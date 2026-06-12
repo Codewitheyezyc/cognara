@@ -18,9 +18,11 @@ import {
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { Logo } from '@/components/ui/Logo'
+import { Spark } from '@/components/mascot/Spark'
 
 export default function MarketingPage() {
-  // Simulator State
+  // Mascot & Simulator State
+  const [sparkEmotion, setSparkEmotion] = useState<'wave' | 'happy' | 'celebrate' | 'thinking' | 'idle'>('wave')
   const [activeSubject, setActiveSubject] = useState<'tech' | 'business' | 'creative'>('tech')
   const [activeDepth, setActiveDepth] = useState<number>(3)
 
@@ -322,10 +324,12 @@ export default function MarketingPage() {
 
             <ul className="space-y-3">
               {[
-                { title: "Syntax Highlighted CodeBlocks", desc: "Runnable code samples with instant clipboard copying actions for programming modules." },
-                { title: "Zebra-Striped Data Tables", desc: "Comparing multiple choices, metrics, or values (e.g. Paid vs Organic Marketing) side by side." },
-                { title: "Colored Context Callouts", desc: "Tip, Warning, Important, and Pro Tip alerts to isolate critical context rules." },
-                { title: "Scope/Flow Diagrams", desc: "ASCII visual structures representing lifecycle timelines and hierarchy trees." }
+                { title: "Monaco Code Practice Playgrounds", desc: "Live code editor with syntax highlighting for hands-on technical lessons (HTML/CSS/JS)." },
+                { title: "AI Soft-Skills Writing Workspaces", desc: "Advanced text area with instant, context-aware AI feedback for paragraph assignments." },
+                { title: "Actionable Task Checklists", desc: "Visual, step-by-step guides for practical offline training exercises." },
+                { title: "Interactive Spark Mascot Greetings", desc: "A CSS/SVG animated AI companion that celebrates your study wins and habit streaks." },
+                { title: "Progressive Subscription Paywalls", desc: "Freemium plan layout options and structured limits tailored for active goals." },
+                { title: "Colored Context Callouts", desc: "Important, Warning, Tip, and Pro Tip callouts highlighting critical concepts." }
               ].map((item, idx) => (
                 <li key={idx} className="flex items-start text-xs text-text-2">
                   <Check className="h-4 w-4 text-success mr-2.5 flex-shrink-0 mt-0.5" strokeWidth={3} />
@@ -408,6 +412,161 @@ export default function MarketingPage() {
               <p className="text-text-2 text-xs sm:text-sm leading-relaxed">
                 Stay motivated with interactive vitals metrics. Cognara logs your daily studies and quiz scores, generating a GitHub-style activity heatmap, score charts, and direct coach feedback to highlight strengths and recommend reviews.
               </p>
+            </div>
+          </div>
+        </section>
+
+        {/* INTERACTIVE MASCOT SHOWCASE */}
+        <section className="bg-surface border border-border rounded-[12px] p-6 md:p-8 space-y-8 shadow-md relative overflow-hidden">
+          <div className="absolute left-0 top-0 w-36 h-36 rounded-full bg-accent/5 blur-2xl pointer-events-none" />
+          
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            
+            {/* Spark mascot column */}
+            <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 bg-surface-alt border border-border/60 rounded-[8px] min-h-[300px] relative">
+              <div className="mb-6 flex justify-center items-center w-full">
+                <Spark emotion={sparkEmotion} size={120} />
+              </div>
+              
+              <div className="w-full space-y-3">
+                <span className="text-[10px] font-mono text-text-3 uppercase tracking-wider block text-center">Tap to Change Spark's Emotion</span>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {(['wave', 'happy', 'celebrate', 'thinking', 'idle'] as const).map((emotion) => (
+                    <button
+                      key={emotion}
+                      onClick={() => setSparkEmotion(emotion)}
+                      type="button"
+                      className={`px-2.5 py-1 rounded-md text-[10px] font-mono font-bold capitalize transition-all cursor-pointer border ${
+                        sparkEmotion === emotion
+                          ? 'border-primary bg-primary/10 text-primary shadow-[0_0_12px_rgba(91,142,255,0.15)]'
+                          : 'border-border bg-surface text-text-2 hover:text-text-1'
+                      }`}
+                    >
+                      {emotion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Content Column */}
+            <div className="lg:col-span-7 space-y-6">
+              <span className="text-xs font-mono uppercase text-accent font-bold tracking-wider">Meet the Mascot</span>
+              <h3 className="font-heading text-3xl font-extrabold text-text-1 leading-tight">
+                Spark: Your Responsive, CSS-Animated Study Companion
+              </h3>
+              <p className="text-text-2 text-xs sm:text-sm leading-relaxed">
+                Learning is a journey, and we believe it deserves an emotional, engaging companion. Spark is constructed entirely from CSS and SVG layers (no static images) ensuring crisp, responsive presentation on any size screen:
+              </p>
+              
+              <ul className="space-y-3">
+                {[
+                  { title: "Friendly Welcome Greetings", desc: "Spark greets you inside the dashboard and helps you initialize your onboarding goals." },
+                  { title: "Confetti Completing Celebrations", desc: "When you mark a lesson as complete, Spark celebrates with confetti and tracks your streak." },
+                  { title: "Adaptive Quiz Dial Score Response", desc: "Cheering you for scoring high, thinking alongside you, or encouraging a retry." },
+                  { title: "Toast Milestone Slide-ins", desc: "Celebrating 3, 7, 14, and 30 day habit milestones to help maintain your momentum." }
+                ].map((item, idx) => (
+                  <li key={idx} className="flex items-start text-xs text-text-2">
+                    <span className="h-2 w-2 rounded-full bg-accent mr-3 mt-1.5 flex-shrink-0" />
+                    <div>
+                      <span className="font-bold text-text-1">{item.title}</span> — {item.desc}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* PRICING & SUBSCRIPTIONS */}
+        <section className="space-y-12">
+          <div className="text-center space-y-3">
+            <span className="text-xs font-mono uppercase text-primary font-bold tracking-wider">Plans & Tiers</span>
+            <h2 className="font-heading text-3xl font-extrabold text-text-1">Choose Your Learning Speed</h2>
+            <p className="text-text-2 text-xs sm:text-sm max-w-xl mx-auto">
+              Master unlimited skills or get started with our core Free tier features today.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Free Plan */}
+            <div className="bg-surface border border-border rounded-[12px] p-6 flex flex-col justify-between opacity-90">
+              <div>
+                <h3 className="text-lg font-bold text-text-1 mb-2">Free Plan</h3>
+                <div className="flex items-baseline mb-4">
+                  <span className="text-3xl font-mono font-extrabold text-text-1">$0</span>
+                  <span className="text-text-3 text-xs ml-1">/ forever</span>
+                </div>
+                <hr className="border-border/60 my-4" />
+                <ul className="space-y-3 text-xs text-text-2">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-3.5 w-3.5 text-success flex-shrink-0" />
+                    <span>1 Active Learning Goal</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-3.5 w-3.5 text-success flex-shrink-0" />
+                    <span>Phase 1 fully unlocked (all lessons + quizzes)</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-text-3 line-through">
+                    <span>Monaco practice sandbox & AI feedback</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-text-3 line-through">
+                    <span>Progress dashboards & coach insight cards</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="pt-6">
+                <Link
+                  href="/signup"
+                  className="w-full h-10 inline-flex items-center justify-center rounded-lg border border-border text-xs font-bold text-text-1 hover:bg-surface-alt transition-all"
+                >
+                  Get Started Free
+                </Link>
+              </div>
+            </div>
+
+            {/* Pro Plan */}
+            <div className="bg-surface border-2 border-primary rounded-[12px] p-6 flex flex-col justify-between relative shadow-md">
+              <span className="absolute -top-3 right-6 bg-accent text-white text-[9px] font-mono font-bold tracking-wider px-2 py-0.5 rounded-full uppercase">
+                Unlimited access
+              </span>
+              <div>
+                <h3 className="text-lg font-bold text-text-1 mb-2 flex items-center gap-1.5">
+                  Pro Access
+                  <Award className="h-4 w-4 text-accent fill-current" />
+                </h3>
+                <div className="flex items-baseline mb-4">
+                  <span className="text-3xl font-mono font-extrabold text-text-1">$9</span>
+                  <span className="text-text-3 text-xs ml-1">/ month</span>
+                </div>
+                <hr className="border-border/60 my-4" />
+                <ul className="space-y-3 text-xs text-text-2">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-3.5 w-3.5 text-success flex-shrink-0" />
+                    <span><strong>Unlimited</strong> Active Goals & roadmaps</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-3.5 w-3.5 text-success flex-shrink-0" />
+                    <span>All phases & lessons fully unlocked</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-3.5 w-3.5 text-success flex-shrink-0" />
+                    <span>Full Monaco editor & AI writing workspace</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-3.5 w-3.5 text-success flex-shrink-0" />
+                    <span>Activity calendars & customized insights</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="pt-6">
+                <Link
+                  href="/signup?redirect=/upgrade"
+                  className="w-full h-10 inline-flex items-center justify-center rounded-lg bg-primary hover:bg-primary-hover text-xs font-bold text-white shadow-sm transition-all"
+                >
+                  Upgrade to Pro
+                </Link>
+              </div>
             </div>
           </div>
         </section>

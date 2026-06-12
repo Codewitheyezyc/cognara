@@ -55,22 +55,24 @@ export function WelcomeModal({ userName, onDismiss }: WelcomeModalProps) {
         transition: 'opacity 0.3s ease'
       }} />
 
-      {/* Modal slides up from bottom */}
+      {/* Modal centered on the screen */}
       <div style={{
         position: 'fixed',
-        bottom: visible ? '0' : '-100%',
+        top: '50%',
         left: '50%',
-        transform: 'translateX(-50%)',
-        width: '100%',
-        maxWidth: '480px',
+        transform: visible
+          ? 'translate(-50%, -50%) scale(1)'
+          : 'translate(-50%, -50%) scale(0.85)',
+        opacity: visible ? 1 : 0,
+        width: '90%',
+        maxWidth: '440px',
         background: 'var(--color-surface)',
-        borderRadius: '24px 24px 0 0',
+        borderRadius: '24px',
         padding: '40px 32px 48px',
         zIndex: 201,
-        transition: 'bottom 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
         textAlign: 'center',
-        border: '1px solid var(--color-border)',
-        borderBottom: 'none'
+        border: '1px solid var(--color-border)'
       }}>
         {/* Spark mascot */}
         <div style={{
