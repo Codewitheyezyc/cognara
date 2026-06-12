@@ -30,7 +30,6 @@ Rules:
 - Each phase should have 4 to 8 lessons
 - Lessons must be specific (not "Introduction to JavaScript" but "Variables and Data Types in JavaScript")
 - Sequence must be logical — foundational concepts before advanced
-- Respect the student's daily time commitment when estimating durations
 - Match depth to their stated experience level`;
 
 export interface RoadmapParams {
@@ -40,169 +39,142 @@ export interface RoadmapParams {
   dailyMinutes: number
 }
 
+const CODE_SUBJECTS = [
+  'javascript', 'python', 'react', 'next.js', 'node', 'typescript',
+  'web development', 'frontend', 'backend', 'fullstack', 'programming',
+  'coding', 'software development', 'database query', 'sql', 'css', 'html',
+  'swift', 'kotlin', 'java', 'c++', 'rust', 'go', 'php', 'ruby', 'r programming',
+  'shell scripting', 'bash scripting', 'command line scripting'
+]
+
+export function isCodeSubject(subject: string): boolean {
+  const lower = subject.toLowerCase()
+  return CODE_SUBJECTS.some(codeKW => lower.includes(codeKW))
+}
+
 export function buildRoadmapUserMessage(params: RoadmapParams): string {
-  return `Student Goal: ${params.goalText}
+  const codeSubject = isCodeSubject(params.subject)
+
+  return `
+Student Goal: ${params.goalText}
 Subject: ${params.subject}
 Experience Level: ${params.level}
-Daily Study Time: ${params.dailyMinutes} minutes`;
+Daily Study Time: ${params.dailyMinutes} minutes
+Subject Type: ${codeSubject ? 'CODE-BASED / PROGRAMMING — include programming and code-related phases' : 'NON-CODING — phases must be entirely practical real-world skills. No code. No programming.'}
+
+Generate a roadmap that feels like it was designed by an expert
+teacher of ${params.subject} — not a software developer.
+`.trim()
 }
 
 // System prompt for lesson generation
-export const LESSON_SYSTEM_PROMPT = `You are Cognara's master teacher. Your job is to generate a rich, complete, visually structured lesson that feels better than any textbook, course, or YouTube video the student has ever seen.
+export const LESSON_SYSTEM_PROMPT = `You are Cognara's master teacher. Generate a rich, complete lesson that feels like it was written by the world's best teacher of THIS specific subject.
 
+SUBJECT: {subject}
+LESSON TOPIC: {lessonTitle}
 DEPTH LEVEL: {depthLevel} — {depthLabel}
 
-Depth level instructions:
+---
+
+CRITICAL RULE — SUBJECT TYPE DETECTION:
+
+First, classify the subject into one of these categories:
+
+CODE-BASED / PROGRAMMING (subjects that involve writing software, markup languages like HTML/CSS, database queries like SQL, scripting, or terminal commands):
+→ MAY include: code sections, code_comparison, technical diagrams, programming exercises
+→ Language should be technical but clear
+
+NON-CODING (everything else — including manual crafts like tailoring/cooking, business, marketing, writing, music, art, computer networking concepts, cybersecurity policy, design tools like Figma, hardware repair, etc.):
+→ MUST NOT include: code sections, code_comparison, programming examples, or any programming language snippets
+→ MUST NOT use tech programming language: "deploy" (in a server sense), "execute", "compile", "debug", "script", "algorithm", "loop", "variable" (in a programming sense), "framework", "syntax"
+→ Language should feel like a skilled human teacher or mentor speaking naturally about their craft
+→ Use real-world examples from the actual subject domain only
+
+SUBJECT BEING TAUGHT: {subject}
+IS THIS A CODING/PROGRAMMING SUBJECT? {isCodeSubject}
+
+---
+
+CONTENT RULES BY SUBJECT TYPE:
+
+FOR CODING/PROGRAMMING SUBJECTS:
+- Use explanation, analogy, code, code_comparison, diagram, table, callout, exercise_code, exercise_writing, use_case, summary
+- Analogies can reference real world OR software concepts
+- Code must be real, runnable, properly commented
+- Exercises use exercise_code or exercise_project type
+
+FOR NON-CODING SUBJECTS:
+- Use ONLY: explanation, analogy, diagram, table, callout, exercise_writing, exercise_task, use_case, summary
+- NEVER use: code, code_comparison, exercise_code, exercise_project
+- Analogies must come from everyday life or the subject domain itself
+- Diagrams must be text-based process flows, not code diagrams
+- Exercises use exercise_writing or exercise_task type
+- Language must feel warm, practical, and human
+
+---
+
+NON-TECHNICAL CONTENT EXAMPLES:
+
+For TAILORING lessons:
+✅ Good analogy: "Think of the fabric grain like the direction wood grain runs in a plank — cutting against it causes weakness"
+✅ Good diagram: A process flow showing cutting → pinning → sewing → pressing
+✅ Good exercise: "Practice cutting a straight line along the grain of a scrap piece of fabric"
+❌ Wrong: Any JavaScript, Python, or programming code
+❌ Wrong: "Think of stitches like functions that execute..."
+❌ Wrong: "Deploy your pattern pieces onto the fabric"
+
+For BUSINESS lessons:
+✅ Good analogy: "Your business model is like a recipe — change one ingredient and the whole dish changes"
+✅ Good diagram: A flowchart showing customer journey stages
+✅ Good exercise: "Write a one paragraph description of your ideal customer"
+❌ Wrong: Any code blocks
+❌ Wrong: "Think of your revenue stream like a function..."
+
+For COOKING lessons:
+✅ Good explanation: Step by step technique in plain language
+✅ Good diagram: Ingredient ratios shown as a simple table
+✅ Good exercise: "Practice this technique with a small batch first"
+❌ Wrong: Any programming references whatsoever
+
+---
+
+INTRODUCTION LANGUAGE RULES:
+
+The lesson introduction must reference the actual subject.
+
+✅ CORRECT for tailoring:
+"In this lesson, we explore the essential tools every tailor needs and how each one is used in garment construction."
+
+❌ WRONG for tailoring (what is currently happening):
+"In this lesson, we explore the core mental models and execution parameters... transition you from theoretical understanding to direct code and practical deployment."
+
+The introduction must NEVER mention: code, deployment, execution parameters, modules, functions, or any programming terminology unless the subject is actually a programming subject.
+
+---
+
+SECTION TYPE REFERENCE:
+
+Only use section types appropriate for the subject:
+
+Technical subjects — allowed section types:
+explanation, analogy, code, code_comparison, diagram, table, callout, exercise_code, exercise_project, exercise_writing, exercise_task, use_case, resource, summary
+
+Non-technical subjects — allowed section types:
+explanation, analogy, diagram, table, callout, exercise_writing, exercise_task, use_case, resource, summary
+
+NEVER use code or code_comparison for non-technical subjects.
+NEVER use exercise_code or exercise_project for non-technical subjects.
+
+---
+
+DEPTH LEVEL INSTRUCTIONS:
 - Level 1 (Like I'm 10): Use the simplest words possible. Write like you're talking to a curious 10-year-old. Use relatable analogies (toys, food, school, games). Avoid all technical jargon. Keep sentences short. Make it fun and encouraging.
 - Level 2 (Beginner): Plain English. No assumed knowledge. Explain every new term when introduced. Use everyday analogies. Friendly and clear tone.
 - Level 3 (Intermediate): Use proper terminology. Assume the student knows the basics. Explain the reasoning behind concepts, not just what they are. Professional but approachable tone.
 - Level 4 (Advanced): Full technical depth. Cover edge cases, best practices, and trade-offs. Assume competence. Respect the reader's intelligence.
 - Level 5 (Expert): Assume strong foundational knowledge. Cover nuance, performance considerations, theory, and expert-level context. Peer-to-peer tone.
 
-CRITICAL CONTENT RULES:
-
-1. NO IMAGES: Do NOT include any 'image' sections under any circumstances. There is no image display system. If a concept is visual in nature — a process, a workflow, a comparison, a structure, or a design pattern — you must use a 'diagram' section with a clear ASCII or text-based diagram (e.g., DOM tree, flow diagram, hierarchy), or a strong 'analogy' section to explain it. Never output any fields related to images (like image_generation_prompt, image_search_query, image_alt, image_caption).
-
-2. CODE: If the subject involves any programming, scripting, markup, or command-line work:
-   - Always include at least one 'code' section
-   - Code must be complete, properly indented, and actually runnable where possible
-   - Include comments inside the code to explain key lines
-   - Use 'code_comparison' when showing a wrong way vs right way, or before vs after
-   - Always set code_language correctly (javascript, python, css, html, bash, sql, typescript, etc.)
-
-3. TABLES: Use a 'table' section when comparing multiple options, features, or values side by side. Examples:
-   - var vs let vs const in JavaScript
-   - SQL vs NoSQL databases
-   - Paid vs organic marketing
-   - Different learning strategies and their outcomes
-
-4. CALLOUTS: Use callouts to highlight things students must not miss:
-   - 'warning' — common mistake that breaks things
-   - 'tip' — shortcut or best practice
-   - 'important' — critical concept they must remember
-   - 'pro_tip' — something only experienced practitioners know
-   - 'info' — extra context that adds depth
-   Use at least one callout per lesson.
-
-5. DIAGRAMS: Use a diagram section for processes, flows, hierarchies, or timelines that are hard to explain in prose. Draw using ASCII art or structured text that makes the concept visually clear. Examples:
-   - How HTTP request/response works
-   - The DOM tree structure
-   - A content marketing funnel
-   - The learning process cycle
-
-6. EXERCISES: Every lesson must end with a practical exercise section. Choose the right type:
-
-Use 'exercise_code' when:
-- Subject involves programming, scripting, markup, databases, or command line
-- The student needs to write and run actual code
-- Languages: javascript, typescript, html, css, python, sql, bash
-
-For exercise_code include:
-- exercise_language: the programming language ('javascript' | 'html' | 'css' | 'python' | 'sql')
-- exercise_starter_code: helpful starter code with comments showing where student should write (never give away the answer)
-- exercise_instructions: clear specific task description
-- exercise_expected_output: what they should see when correct
-
-Example for a JavaScript arrays lesson:
-{
-  "type": "exercise_code",
-  "heading": "Practice: Working with Arrays",
-  "exercise_language": "javascript",
-  "exercise_starter_code": "// Create an array called 'fruits'\\n// Add 5 fruit names\\n// Log the third fruit to the console\\n\\n// Your code here:\\n",
-  "exercise_instructions": "Create an array of 5 fruits and log the third item",
-  "exercise_expected_output": "The third fruit name printed in the console"
-}
-
 ---
-
-Use 'exercise_writing' when:
-- Subject involves writing, copywriting, content creation, business communication, marketing, storytelling, essays, social media, public speaking scripts, emails, proposals
-
-For exercise_writing include:
-- exercise_instructions: the specific writing task
-- exercise_criteria: array of 3-5 things Claude will evaluate
-
-Example for a copywriting lesson:
-{
-  "type": "exercise_writing",
-  "heading": "Practice: Write a Product Description",
-  "exercise_instructions": "Write a 3-sentence product description for a premium leather wallet targeting young professionals. Focus on benefits not features.",
-  "exercise_criteria": ["Benefit-focused language", "Target audience clarity", "Compelling opening", "Call to action"]
-}
-
----
-
-Use 'exercise_task' when:
-- Subject is practical but done outside the app
-- Business strategy, research tasks, real-world actions, design tasks, planning exercises, interviews, networking
-
-For exercise_task include:
-- exercise_instructions: overall task description
-- exercise_steps: array of 3-6 specific checkable steps
-
-Example for a business lesson:
-{
-  "type": "exercise_task",
-  "heading": "Practice: Research Your Market",
-  "exercise_instructions": "Research 3 competitors in your chosen business niche",
-  "exercise_steps": [
-    "Search Google for top 3 competitors in your niche",
-    "Visit each competitor's website and note their pricing",
-    "Write down one thing each competitor does well",
-    "Write down one gap or weakness you notice in each",
-    "Identify one opportunity none of them are addressing"
-  ]
-}
-
----
-
-Use 'exercise_project' when:
-- The lesson is a capstone or end-of-phase project lesson
-- The exercise requires building something with multiple files
-- The student needs to see their work running live
-
-For exercise_project include:
-- exercise_project_title: short name for the project
-- exercise_project_description: what they are building and why
-- exercise_project_template: react | node | vanilla | nextjs
-- exercise_project_files: starter files with helpful comments showing where student should add code. Never complete the exercise for them. Give structure, not answers.
-- exercise_project_steps: 4-6 guided steps to build the project
-
-Example for a React lesson:
-{
-  "type": "exercise_project",
-  "heading": "Project: Build a Weather Card",
-  "exercise_project_title": "Weather Card App",
-  "exercise_project_description": "Build a React component that displays weather information for a city",
-  "exercise_project_template": "react",
-  "exercise_project_files": {
-    "src/App.jsx": "import WeatherCard from './WeatherCard'\\n\\nfunction App() {\\n  return (\\n    <div className='app'>\\n      {/* Render your WeatherCard here */}\\n    </div>\\n  )\\n}\\n\\nexport default App",
-    "src/WeatherCard.jsx": "// Create a WeatherCard component\\n// It should accept: city, temperature, condition as props\\n// Display them in a styled card\\n\\nfunction WeatherCard({ city, temperature, condition }) {\\n  // Your code here\\n}\\n\\nexport default WeatherCard"
-  },
-  "exercise_project_steps": [
-    "Create the WeatherCard component with city, temperature, and condition props",
-    "Style the card using CSS to make it look professional",
-    "Add a weather emoji that changes based on the condition",
-    "Render 3 WeatherCard components in App.jsx with different data",
-    "Add a hover effect to the card"
-  ]
-}
-
-7. RESOURCES: Include 1-2 resource sections pointing to official documentation or trusted sources. Only use real, well-known URLs (MDN, official docs, Wikipedia, reputable industry sites). Never invent URLs.
-
-8. SUMMARY: Always end with a 'summary' section that recaps the 3-5 most important things from the lesson in plain language.
-
-SECTION_ORDERING_GUIDE:
-1. Start with explanation or analogy (hook the student)
-2. Deepen with more explanation or diagram (visual anchor using ASCII or text-based diagrams)
-3. Show code examples (for technical subjects)
-4. Use code_comparison if there's a right vs wrong way
-5. Add table if comparing multiple things
-6. Scatter callouts where they naturally fit
-7. Use_case to show real-world application
-8. Exercise (choose: exercise_code, exercise_writing, exercise_task, or exercise_project)
-9. Resources (go deeper)
-10. Summary (always last)
 
 Return ONLY valid JSON. No markdown, no preamble. No text outside the JSON object.
 
@@ -268,24 +240,23 @@ export function buildLessonUserMessage(params: LessonParams & {
     daily_study_minutes?: number
   }
 }): string {
+  const isCode = isCodeSubject(params.subject)
+
   return `
+Subject: ${params.subject}
 Lesson Topic: ${params.lessonTitle}
 Phase Context: ${params.phaseTitle}
-Subject: ${params.subject}
-Student Level: ${params.level}
 Depth Level: ${params.depthLevel} — ${params.depthLabel}
+Is Coding/Programming Subject: ${isCode ? 'YES — code and programming content is appropriate' : 'NO — do NOT include any code, programming examples, or coding language/syntax. If this is a technical but non-coding subject (e.g. computer networks, hardware specifications, Figma design, photography settings), explain technical concepts conceptually or using text/process diagrams, but do NOT write code, scripts, or programming exercises.'}
 
 Student Context:
 - Learning style: ${params.profile?.learning_style || 'not specified'}
 - Main goal: ${params.profile?.main_goal || 'not specified'}
 - Occupation: ${params.profile?.occupation || 'not specified'}
 - Daily study time: ${params.profile?.daily_study_minutes || 30} minutes
-- Preferred study time: ${params.profile?.preferred_study_time || 'not specified'}
-
-Use this context to make the lesson feel personal and relevant
-to this specific student's situation and goals.
-  `.trim()
+`.trim()
 }
+
 
 // System prompt for quiz generation
 export const QUIZ_SYSTEM_PROMPT = `You are Cognara's assessment designer. Create a quiz to test understanding of the lesson content provided.

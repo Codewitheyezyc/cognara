@@ -1,6 +1,6 @@
 import { GeneratedLesson } from '@/types/ai'
 import { callClaudeJSON } from './client'
-import { LESSON_SYSTEM_PROMPT, buildLessonUserMessage } from './prompts'
+import { LESSON_SYSTEM_PROMPT, buildLessonUserMessage, isCodeSubject } from './prompts'
 
 const depthLabels = ["", "Like I'm 10", "Beginner", "Intermediate", "Advanced", "Expert"];
 
@@ -35,9 +35,13 @@ export async function generateLesson(
   }
 
   const depthLabel = depthLabels[depthLevel] || 'Beginner'
+  const isCode = isCodeSubject(subject)
   const systemPrompt = LESSON_SYSTEM_PROMPT
+    .replace(/{subject}/g, subject)
+    .replace('{lessonTitle}', lessonTitle)
     .replace('{depthLevel}', String(depthLevel))
     .replace('{depthLabel}', depthLabel)
+    .replace('{isCodeSubject}', isCode ? 'YES' : 'NO')
 
   const userPrompt = buildLessonUserMessage({
     lessonTitle,
@@ -630,110 +634,202 @@ function getuseEffectLesson(depthLevel: number): GeneratedLesson {
 
 function getDefaultLesson(lessonTitle: string, phaseTitle: string, subject: string, level: string, depthLevel: number): GeneratedLesson {
   const label = depthLabels[depthLevel] || 'Beginner'
+  const technical = isCodeSubject(subject)
   
   let explanation = ''
   let analogy = ''
   let exerciseDesc = ''
   
-  if (depthLevel === 1) {
-    explanation = `Welcome! Today we are learning about ${lessonTitle}. In our ${subject} journey, this topic helps us organize things and keep them clean. We will explain how this works using easy words and simple pictures, so you can start writing your own code projects right away!`
-    analogy = `To understand ${lessonTitle}, think of a toy box. When you have many toys, you don't throw them all over the floor. You put them in little labeled drawers so you can find them easily later. ${lessonTitle} does the same thing by organizing data into clean boxes!`
-    exerciseDesc = "Draw three boxes and write down the names of items you would sort into them!"
-  } else if (depthLevel === 2) {
-    explanation = `In this lesson, we explore the core mental models and execution parameters behind ${lessonTitle} as part of the ${phaseTitle} stage of your ${subject} journey. Calibrated for a student at the ${level} tier, this module aims to transition you from theoretical understanding to direct code and practical deployment.`
-    analogy = `To understand the core mechanisms of ${lessonTitle}, think of a sorting warehouse. Data and tasks represent packages arriving on the loading dock. Instead of attempting to sort them all at once (causing blockages), the warehouse structures organized lanes, filters, and triggers. Similarly, ${lessonTitle} provides structure to handle execution flows smoothly.`
-    exerciseDesc = "Write a simple helper block in JS implementing the core logic of this concept, testing it with a mock string."
-  } else if (depthLevel === 3) {
-    explanation = `This module covers the operational patterns and paradigms of ${lessonTitle} within the context of ${phaseTitle} in ${subject}. It is calibrated to bridge basic syntax definitions with structural implementation patterns, explaining not just the 'how' but the underlying 'why' of this pattern.`
-    analogy = `To visualize the mechanics of ${lessonTitle}, think of an event-driven dispatch router in a supply chain. Rather than having modules request resources directly, they register handlers on the router. The router delegates events to the appropriate channels, reducing component dependency coupling.`
-    exerciseDesc = "Create an active modular script that maps and transforms input values based on custom rules."
-  } else if (depthLevel === 4) {
-    explanation = `This analysis explores the technical architecture and implementation strategies for ${lessonTitle} within ${phaseTitle}. Calibrated for advanced learners, we evaluate performance considerations, typical edge cases, and design trade-offs associated with this pattern in modern production codebases.`
-    analogy = `Consider ${lessonTitle} as a virtualized execution pipeline. By isolating state transitions into distinct, idempotent transactions, the system prevents side-channel modifications and minimizes reference invalidation throughout the sub-tree structures.`
-    exerciseDesc = "Build a refactored implementation that optimizes memory usage and isolates scope under high-concurrency."
-  } else {
-    explanation = `This theoretical overview analyzes the design principles, concurrency implications, and architectural parameters of ${lessonTitle} during ${phaseTitle}. Calibrated for expert engineers, we review memory layout models, hidden classes optimizations, and garbage collection behaviors associated with these patterns.`
-    analogy = `In an optimized compiler environment, ${lessonTitle} behaves similarly to an inline instruction cache. The virtual machine resolves references by optimizing call site offsets, bypassing generic prototype chains to maintain high execution density within critical path loops.`
-    exerciseDesc = "Analyze layout benchmarks and bytecode traces for this execution model, assessing hidden class allocations."
-  }
+  if (technical) {
+    if (depthLevel === 1) {
+      explanation = `Welcome! Today we are learning about ${lessonTitle}. In our ${subject} journey, this topic helps us organize things and keep them clean. We will explain how this works using easy words and simple pictures, so you can start writing your own code projects right away!`
+      analogy = `To understand ${lessonTitle}, think of a toy box. When you have many toys, you don't throw them all over the floor. You put them in little labeled drawers so you can find them easily later. ${lessonTitle} does the same thing by organizing data into clean boxes!`
+      exerciseDesc = "Draw three boxes and write down the names of items you would sort into them!"
+    } else if (depthLevel === 2) {
+      explanation = `In this lesson, we explore the core mental models and execution parameters behind ${lessonTitle} as part of the ${phaseTitle} stage of your ${subject} journey. Calibrated for a student at the ${level} tier, this module aims to transition you from theoretical understanding to direct code and practical deployment.`
+      analogy = `To understand the core mechanisms of ${lessonTitle}, think of a sorting warehouse. Data and tasks represent packages arriving on the loading dock. Instead of attempting to sort them all at once (causing blockages), the warehouse structures organized lanes, filters, and triggers. Similarly, ${lessonTitle} provides structure to handle execution flows smoothly.`
+      exerciseDesc = "Write a simple helper block in JS implementing the core logic of this concept, testing it with a mock string."
+    } else if (depthLevel === 3) {
+      explanation = `This module covers the operational patterns and paradigms of ${lessonTitle} within the context of ${phaseTitle} in ${subject}. It is calibrated to bridge basic syntax definitions with structural implementation patterns, explaining not just the 'how' but the underlying 'why' of this pattern.`
+      analogy = `To visualize the mechanics of ${lessonTitle}, think of an event-driven dispatch router in a supply chain. Rather than having modules request resources directly, they register handlers on the router. The router delegates events to the appropriate channels, reducing component dependency coupling.`
+      exerciseDesc = "Create an active modular script that maps and transforms input values based on custom rules."
+    } else if (depthLevel === 4) {
+      explanation = `This analysis explores the technical architecture and implementation strategies for ${lessonTitle} within ${phaseTitle}. Calibrated for advanced learners, we evaluate performance considerations, typical edge cases, and design trade-offs associated with this pattern in modern production codebases.`
+      analogy = `Consider ${lessonTitle} as a virtualized execution pipeline. By isolating state transitions into distinct, idempotent transactions, the system prevents side-channel modifications and minimizes reference invalidation throughout the sub-tree structures.`
+      exerciseDesc = "Build a refactored implementation that optimizes memory usage and isolates scope under high-concurrency."
+    } else {
+      explanation = `This theoretical overview analyzes the design principles, concurrency implications, and architectural parameters of ${lessonTitle} during ${phaseTitle}. Calibrated for expert engineers, we review memory layout models, hidden classes optimizations, and garbage collection behaviors associated with these patterns.`
+      analogy = `In an optimized compiler environment, ${lessonTitle} behaves similarly to an inline instruction cache. The virtual machine resolves references by optimizing call site offsets, bypassing generic prototype chains to maintain high execution density within critical path loops.`
+      exerciseDesc = "Analyze layout benchmarks and bytecode traces for this execution model, assessing hidden class allocations."
+    }
 
-  return {
-    title: `${lessonTitle} (${label})`,
-    estimated_minutes: 10,
-    sections: [
-      {
-        type: 'explanation',
-        heading: `Introduction to ${lessonTitle}`,
-        body: explanation,
-      },
-
-      {
-        type: 'analogy',
-        heading: 'Working Analogy',
-        body: analogy,
-      },
-      {
-        type: 'code_comparison',
-        heading: 'Refactoring Example',
-        comparison_label_left: '❌ Legacy Approach (Messy / Coupled)',
-        code_left: `function runLegacy(data) {
+    return {
+      title: `${lessonTitle} (${label})`,
+      estimated_minutes: 10,
+      sections: [
+        {
+          type: 'explanation',
+          heading: `Introduction to ${lessonTitle}`,
+          body: explanation,
+        },
+        {
+          type: 'analogy',
+          heading: 'Working Analogy',
+          body: analogy,
+        },
+        {
+          type: 'code_comparison',
+          heading: 'Refactoring Example',
+          comparison_label_left: '❌ Legacy Approach (Messy / Coupled)',
+          code_left: `function runLegacy(data) {
   // Hardcoded values & global pollution
   window.tempData = data;
   return window.tempData;
 }`,
-        comparison_label_right: '✅ Modular Approach (Clean / Scoped)',
-        code_right: `function runModern(data) {
+          comparison_label_right: '✅ Modular Approach (Clean / Scoped)',
+          code_right: `function runModern(data) {
   // Encapsulated local references
   const localData = { ...data };
   return localData;
 }`,
-        comparison_caption: 'Decoupling references and encapsulating logic leads to cleaner compilation and unit-testing.',
-      },
-      {
-        type: 'table',
-        heading: 'Comparison Breakdown',
-        table_headers: ['Metric', 'Legacy Method', 'Modern Method'],
-        table_rows: [
-          ['Maintainability', 'Low', 'High'],
-          ['Reusability', 'Hard', 'Easy'],
-          ['Isolation', 'None', 'Complete'],
-        ],
-      },
-      {
-        type: 'callout',
-        heading: 'Key Architectural Takeaway',
-        callout_type: 'important',
-        callout_body: `Always decouple execution parameters from display layouts when implementing ${lessonTitle}. This isolates rendering updates.`,
-      },
-      {
-        type: 'exercise_task',
-        heading: 'Practical Exercise',
-        exercise_instructions: exerciseDesc,
-        exercise_steps: [
-          'Identify the primary data entities in your application',
-          'Map relationships between the entities',
-          'Sort them according to dependencies',
-          'Verify that all structural dependencies are resolved'
-        ]
-      },
-      {
-        type: 'resource',
-        heading: 'Recommended Resources',
-        resource_title: 'MDN Developer Documentation',
-        resource_url: 'https://developer.mozilla.org',
-        resource_description: 'Core developer glossary, guides, and specifications for modern programming concepts.',
-      },
-      {
-        type: 'summary',
-        heading: 'Lesson Summary',
-        body: `1. encapsulation protects scope parameters.\n2. Decoupling structures enable easier automated testing.\n3. Optimizations limit re-render footprints in complex engines.`,
-      },
-    ],
-    key_takeaways: [
-      `Mastering ${lessonTitle} is essential for scaling applications in the ${subject} domain.`,
-      'Encapsulation patterns help prevent global conflicts and structure predictable flows.',
-      'Isolating functions ensures modular code blocks are easily unit-tested.',
-    ],
-    next_lesson_preview: 'Next, we will test your understanding of this topic with a quick quiz assessment.',
+          comparison_caption: 'Decoupling references and encapsulating logic leads to cleaner compilation and unit-testing.',
+        },
+        {
+          type: 'table',
+          heading: 'Comparison Breakdown',
+          table_headers: ['Metric', 'Legacy Method', 'Modern Method'],
+          table_rows: [
+            ['Maintainability', 'Low', 'High'],
+            ['Reusability', 'Hard', 'Easy'],
+            ['Isolation', 'None', 'Complete'],
+          ],
+        },
+        {
+          type: 'callout',
+          heading: 'Key Architectural Takeaway',
+          callout_type: 'important',
+          callout_body: `Always decouple execution parameters from display layouts when implementing ${lessonTitle}. This isolates rendering updates.`,
+        },
+        {
+          type: 'exercise_task',
+          heading: 'Practical Exercise',
+          exercise_instructions: exerciseDesc,
+          exercise_steps: [
+            'Identify the primary data entities in your application',
+            'Map relationships between the entities',
+            'Sort them according to dependencies',
+            'Verify that all structural dependencies are resolved'
+          ]
+        },
+        {
+          type: 'resource',
+          heading: 'Recommended Resources',
+          resource_title: 'MDN Developer Documentation',
+          resource_url: 'https://developer.mozilla.org',
+          resource_description: 'Core developer glossary, guides, and specifications for modern programming concepts.',
+        },
+        {
+          type: 'summary',
+          heading: 'Lesson Summary',
+          body: `1. Encapsulation protects scope parameters.\n2. Decoupling structures enable easier automated testing.\n3. Optimizations limit re-render footprints in complex engines.`,
+        },
+      ],
+      key_takeaways: [
+        `Mastering ${lessonTitle} is essential for scaling applications in the ${subject} domain.`,
+        'Encapsulation patterns help prevent global conflicts and structure predictable flows.',
+        'Isolating functions ensures modular code blocks are easily unit-tested.',
+      ],
+      next_lesson_preview: 'Next, we will test your understanding of this topic with a quick quiz assessment.',
+    }
+  } else {
+    // Non-technical content mock
+    if (depthLevel === 1) {
+      explanation = `Welcome! Today we are learning about ${lessonTitle}. In our ${subject} journey, this topic is like the foundation of a house. We will explain it using simple everyday words and clear guides, so you can practice your new skill right away!`
+      analogy = `To understand ${lessonTitle}, think of sorting your clothes. You put shirts in one drawer, pants in another, and socks in a third. Labeled drawers make it easy to find what you need. ${lessonTitle} does the same by organizing your work steps!`
+      exerciseDesc = `Write down three categories of items you use in ${subject} and list one item for each category.`
+    } else if (depthLevel === 2) {
+      explanation = `In this lesson, we explore the essential techniques and processes behind ${lessonTitle} as part of the ${phaseTitle} stage of your ${subject} journey. Calibrated for a student at the ${level} tier, this module aims to transition you from basic understanding to practical, real-world application.`
+      analogy = `To understand the core mechanisms of ${lessonTitle}, think of baking a cake. If you add ingredients in the wrong order or skip a step, the cake won't rise. Similarly, ${lessonTitle} provides a clear, ordered set of instructions to guarantee success in your craft.`
+      exerciseDesc = "Write a one-paragraph description of how you would apply this concept to a real project."
+    } else if (depthLevel === 3) {
+      explanation = `This module covers the operational techniques and best practices of ${lessonTitle} within the context of ${phaseTitle} in ${subject}. It is calibrated to bridge basic definitions with professional structures, explaining not just 'how' to perform the steps but the underlying 'why' of each method.`
+      analogy = `To visualize the mechanics of ${lessonTitle}, think of a musical orchestra. Each instrument must play at the correct volume and time. If one instrument plays out of turn, it disrupts the harmony. Similarly, ${lessonTitle} coordinates different resources to create a seamless workflow.`
+      exerciseDesc = "List three common challenges in this area and write down a mitigation plan for each."
+    } else if (depthLevel === 4) {
+      explanation = `This analysis explores the professional methods and strategies for ${lessonTitle} within ${phaseTitle}. Calibrated for advanced students, we evaluate performance considerations, quality metrics, and trade-offs associated with different techniques in professional settings.`
+      analogy = `Consider ${lessonTitle} as a precision blueprints assembly. By isolating each stage of production into checked milestones, the craftsman prevents structural defects and minimizes waste throughout the creation process.`
+      exerciseDesc = "Create a detailed workflow checklist for a complex project, detailing quality standards at each step."
+    } else {
+      explanation = `This comprehensive overview analyzes the design principles, historical contexts, and master-level parameters of ${lessonTitle} during ${phaseTitle}. Calibrated for expert practitioners, we review advanced material selections, efficiency loops, and aesthetic alignments.`
+      analogy = `In master-level craft, ${lessonTitle} behaves like muscle memory. The expert doesn't think about individual movements; rather, the entire sequence flows naturally because of deep structural habits built over years of deliberate practice.`
+      exerciseDesc = "Outline an expert-level critique framework for evaluating work quality in this domain, detailing the core attributes."
+    }
+
+    return {
+      title: `${lessonTitle} (${label})`,
+      estimated_minutes: 10,
+      sections: [
+        {
+          type: 'explanation',
+          heading: `Introduction to ${lessonTitle}`,
+          body: explanation,
+        },
+        {
+          type: 'analogy',
+          heading: 'Working Analogy',
+          body: analogy,
+        },
+        {
+          type: 'diagram',
+          heading: 'Process Flowchart',
+          diagram_type: 'process',
+          diagram_content: `[Start Preparation] ──► [Apply Techniques] ──► [Perform Quality Check] ──► [Final Review]`,
+        },
+        {
+          type: 'table',
+          heading: 'Comparison Breakdown',
+          table_headers: ['Method Type', 'Primary Benefit', 'Common Pitfall'],
+          table_rows: [
+            ['Traditional Method', 'High control and custom feel', 'Takes more time and practice'],
+            ['Accelerated Method', 'Faster results for standard tasks', 'May reduce custom details'],
+          ],
+        },
+        {
+          type: 'callout',
+          heading: 'Key Takeaway',
+          callout_type: 'important',
+          callout_body: `Always verify your preparation steps before committing to the final application in ${lessonTitle}. This prevents mistakes.`,
+        },
+        {
+          type: 'exercise_task',
+          heading: 'Practical Exercise',
+          exercise_instructions: exerciseDesc,
+          exercise_steps: [
+            'Gather the necessary materials and workspace tools',
+            'Perform a small practice trial to calibrate your setup',
+            'Execute the core technique outlined in this lesson',
+            'Conduct a final quality check and note any improvements needed'
+          ]
+        },
+        {
+          type: 'resource',
+          heading: 'Recommended Resources',
+          resource_title: `Craft Guild Guides - ${subject}`,
+          resource_url: 'https://en.wikipedia.org/wiki/Craft',
+          resource_description: 'An overview of historical techniques, guild structures, and training standards in manual crafts.',
+        },
+        {
+          type: 'summary',
+          heading: 'Lesson Summary',
+          body: `1. Ordered steps prevent mistakes and material waste.\n2. Quality checks at milestones guarantee consistent outcomes.\n3. Consistent practice builds reliable habits and muscle memory.`,
+        },
+      ],
+      key_takeaways: [
+        `Mastering ${lessonTitle} is essential for refining your skills in the ${subject} domain.`,
+        'Ordered checklists help prevent process conflicts and keep your work organized.',
+        'Continuous practice ensures high quality and efficiency in your output.',
+      ],
+      next_lesson_preview: 'Next, we will test your understanding of this topic with a quick quiz assessment.',
+    }
   }
 }

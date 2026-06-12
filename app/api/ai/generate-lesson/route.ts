@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
     // 2. Parse request payload
     const body = await request.json()
-    const { lessonId } = body
+    const { lessonId, forceRegenerate } = body
 
     if (!lessonId) {
       return NextResponse.json({ error: 'Missing required lessonId parameter' }, { status: 400 })
@@ -37,8 +37,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Lesson not found or access denied' }, { status: 404 })
     }
 
-    // If lesson content is already cached, return it directly
-    if (lesson.content) {
+    // If lesson content is already cached, return it directly (unless forceRegenerate is true)
+    if (lesson.content && !forceRegenerate) {
       // Ensure it is marked in progress if not already completed
       const { data: progress } = await supabase
         .from('lesson_progress')

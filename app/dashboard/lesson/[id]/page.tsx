@@ -22,6 +22,27 @@ export default function LessonPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isCompleting, setIsCompleting] = useState(false)
   const [status, setStatus] = useState<'not_started' | 'in_progress' | 'completed'>('not_started')
+  const [isRegenerating, setIsRegenerating] = useState(false)
+  const isAdmin = true
+
+  const regenerateLesson = async (id: string) => {
+    setIsRegenerating(true)
+    try {
+      const res = await fetch('/api/ai/generate-lesson', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lessonId: id, forceRegenerate: true }),
+      })
+      const result = await res.json()
+      if (res.ok && result.content) {
+        setContent(result.content)
+      }
+    } catch (err) {
+      console.error('Error regenerating lesson:', err)
+    } finally {
+      setIsRegenerating(false)
+    }
+  }
   
   const [depthLevel, setDepthLevel] = useState<number>(2)
   const [isChangingDepth, setIsChangingDepth] = useState(false)
@@ -254,7 +275,7 @@ export default function LessonPage() {
     router.push(`/dashboard/quiz/${lessonId}`)
   }
 
-  if (isGenerating || isChangingDepth || !content) {
+  if (isGenerating || isChangingDepth || isRegenerating || !content) {
     return (
       <div className="py-6 space-y-4">
         <div className="max-w-[720px] mx-auto">
@@ -275,15 +296,33 @@ export default function LessonPage() {
 
   return (
     <div className="py-4 space-y-6">
-      {/* Back button container */}
-      <div className="max-w-[720px] mx-auto">
+      {/* Back button and Admin controls container */}
+      <div className="max-w-[720px] mx-auto flex items-center justify-between mb-2">
         <Link
           href="/dashboard/path"
-          className="inline-flex items-center space-x-2 text-xs text-text-2 hover:text-text-1 mb-2 transition-colors"
+          className="inline-flex items-center space-x-2 text-xs text-text-2 hover:text-text-1 transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           <span>Back to Path</span>
         </Link>
+
+        {isAdmin && (
+          <button
+            onClick={() => regenerateLesson(lessonId)}
+            disabled={isRegenerating}
+            style={{
+              background: 'transparent',
+              border: '1px solid var(--color-border)',
+              color: 'var(--color-text-3)',
+              fontSize: '12px',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              cursor: 'pointer'
+            }}
+          >
+            {isRegenerating ? '🔄 Regenerating...' : '🔄 Regenerate lesson'}
+          </button>
+        )}
       </div>
 
       {/* Main Lesson Content */}
