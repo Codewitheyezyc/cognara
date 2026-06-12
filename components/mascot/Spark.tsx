@@ -10,10 +10,27 @@ interface SparkProps {
 
 export function Spark({ emotion = 'idle', size = 80 }: SparkProps) {
   const [animated, setAnimated] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     setAnimated(true)
   }, [emotion])
+
+  if (!mounted) {
+    return (
+      <div style={{
+        width: size,
+        height: size,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }} />
+    )
+  }
 
   const center = size / 2
   const coreSize = size * 0.28

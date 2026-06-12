@@ -4,6 +4,8 @@ import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { ToastProvider } from "@/components/ui/toast";
 
+import Script from "next/script";
+
 const sora = Sora({
   subsets: ["latin"],
   variable: "--font-sora",
@@ -39,26 +41,26 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <script
+        <Script
+          id="theme-initializer"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
-              (function() {
-                try {
-                  var saved = localStorage.getItem('cognara-theme');
-                  var theme = saved || 'dark';
-                  document.documentElement.setAttribute('data-theme', theme);
-                  if (theme === 'dark') {
-                    document.documentElement.classList.add('dark');
-                  } else {
-                    document.documentElement.classList.remove('dark');
-                  }
-                  
-                  var savedFont = localStorage.getItem('cognara-font-size');
-                  var fontSize = savedFont || 'normal';
-                  document.documentElement.setAttribute('data-font-size', fontSize);
-                  document.documentElement.style.setProperty('--text-base', fontSize === 'large' ? '17px' : '15px');
-                } catch (e) {}
-              })();
+              try {
+                var saved = localStorage.getItem('cognara-theme');
+                var theme = saved || 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+                if (theme === 'dark') {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+                
+                var savedFont = localStorage.getItem('cognara-font-size');
+                var fontSize = savedFont || 'normal';
+                document.documentElement.setAttribute('data-font-size', fontSize);
+                document.documentElement.style.setProperty('--text-base', fontSize === 'large' ? '17px' : '15px');
+              } catch (e) {}
             `,
           }}
         />
