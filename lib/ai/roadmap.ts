@@ -1,0 +1,443 @@
+import { callClaudeJSON } from './client'
+import { ROADMAP_SYSTEM_PROMPT, buildRoadmapUserMessage } from './prompts'
+
+export interface LessonStub {
+  order_index: number
+  title: string
+  description: string
+}
+
+export interface PhaseStub {
+  phase_number: number
+  title: string
+  description: string
+  duration_weeks: number
+  lessons: LessonStub[]
+}
+
+export interface GeneratedRoadmap {
+  title: string
+  description: string
+  estimated_weeks: number
+  phases: PhaseStub[]
+}
+
+export async function generateRoadmap(
+  goalText: string,
+  subject: string,
+  level: string,
+  dailyMinutes: number
+): Promise<GeneratedRoadmap> {
+  const mockFallback = async () => {
+    // Simulate network processing latency (3 seconds)
+    await new Promise((resolve) => setTimeout(resolve, 3000))
+
+    const query = (goalText + ' ' + subject).toLowerCase()
+
+    if (query.includes('react') || query.includes('next.js') || query.includes('frontend')) {
+      return getReactRoadmap(level, dailyMinutes)
+    } else if (query.includes('python') || query.includes('data science') || query.includes('backend')) {
+      return getPythonRoadmap(level, dailyMinutes)
+    } else if (query.includes('design') || query.includes('ux') || query.includes('ui') || query.includes('figma')) {
+      return getUXRoadmap(level, dailyMinutes)
+    }
+
+    // Fallback generic but personalized roadmap
+    return getDefaultRoadmap(goalText, subject, level, dailyMinutes)
+  }
+
+  const userPrompt = buildRoadmapUserMessage({
+    goalText,
+    subject,
+    level,
+    dailyMinutes
+  })
+
+  return callClaudeJSON<GeneratedRoadmap>(
+    ROADMAP_SYSTEM_PROMPT,
+    userPrompt,
+    mockFallback
+  )
+}
+
+function getReactRoadmap(level: string, dailyMinutes: number): GeneratedRoadmap {
+  const weeksMultiplier = dailyMinutes < 30 ? 1.5 : dailyMinutes > 60 ? 0.75 : 1
+  return {
+    title: `React & Frontend Engineering Path (${level})`,
+    description: `A comprehensive track designed to take you from core JavaScript paradigms to deploying production-ready Next.js application layers.`,
+    estimated_weeks: Math.round(8 * weeksMultiplier),
+    phases: [
+      {
+        phase_number: 1,
+        title: "Phase 1: Modern JavaScript & React Basics",
+        description: "Revisit ES6+ concepts and understand JSX syntax, rendering cycles, and custom components.",
+        duration_weeks: Math.round(2 * weeksMultiplier),
+        lessons: [
+          {
+            order_index: 1,
+            title: "ES6+ Modern Syntax Refresher",
+            description: "Master destructuring, arrow functions, template literals, and rest/spread operators."
+          },
+          {
+            order_index: 2,
+            title: "Understanding JSX and Rendering",
+            description: "Learn how JSX is compiled into React elements and how DOM commits are scheduled."
+          },
+          {
+            order_index: 3,
+            title: "Reusable Components and Props",
+            description: "Learn to build modular components, pass state data down, and enforce prop safety."
+          },
+          {
+            order_index: 4,
+            title: "Event Handling in React",
+            description: "Capture user interactions and handle synthesized event states efficiently."
+          }
+        ]
+      },
+      {
+        phase_number: 2,
+        title: "Phase 2: React State & Custom Hooks",
+        description: "Learn the core hooks of functional React components to trigger UI changes and isolate state behaviors.",
+        duration_weeks: Math.round(3 * weeksMultiplier),
+        lessons: [
+          {
+            order_index: 1,
+            title: "Managing Component State with useState",
+            description: "Initialize state, manage schedules, and coordinate complex form objects."
+          },
+          {
+            order_index: 2,
+            title: "Side Effects with useEffect",
+            description: "Understand side effect cleanup, dependency arrays, and calling external APIs."
+          },
+          {
+            order_index: 3,
+            title: "Form Handling and Validations",
+            description: "Control input forms and validate user data before state commits."
+          },
+          {
+            order_index: 4,
+            title: "Writing Custom Hook Services",
+            description: "Extract reusable logic into clean, testable, and isolated custom hooks."
+          }
+        ]
+      },
+      {
+        phase_number: 3,
+        title: "Phase 3: Routing, Context & State Management",
+        description: "Scale your application to multi-page navigation and centralize global state variables.",
+        duration_weeks: Math.round(3 * weeksMultiplier),
+        lessons: [
+          {
+            order_index: 1,
+            title: "Global State with Context API",
+            description: "Avoid prop-drilling by providing global variables down the component tree."
+          },
+          {
+            order_index: 2,
+            title: "Routing and Page Navigation",
+            description: "Implement page layouts, dynamic route paths, and navigation guards."
+          },
+          {
+            order_index: 3,
+            title: "Fetching Data with TanStack Query",
+            description: "Incorporate server state management, query caching, and mutations."
+          },
+          {
+            order_index: 4,
+            title: "Performance Tuning in React",
+            description: "Optimize render trees using React.memo, useMemo, and useCallback hooks."
+          }
+        ]
+      }
+    ]
+  }
+}
+
+function getPythonRoadmap(level: string, dailyMinutes: number): GeneratedRoadmap {
+  const weeksMultiplier = dailyMinutes < 30 ? 1.5 : dailyMinutes > 60 ? 0.75 : 1
+  return {
+    title: `Python Masterclass & Programming Path (${level})`,
+    description: `A structural path exploring standard Python libraries, object-oriented concepts, and API integrations.`,
+    estimated_weeks: Math.round(9 * weeksMultiplier),
+    phases: [
+      {
+        phase_number: 1,
+        title: "Phase 1: Python Core Foundations",
+        description: "Learn basic scripting, logical statements, collection lists, and procedural programming.",
+        duration_weeks: Math.round(3 * weeksMultiplier),
+        lessons: [
+          {
+            order_index: 1,
+            title: "Variables and basic data types",
+            description: "Understand integers, floats, strings, booleans, and type conversion logic."
+          },
+          {
+            order_index: 2,
+            title: "Control Flow and Logical Operators",
+            description: "Construct conditional blocks and iterate through collection items."
+          },
+          {
+            order_index: 3,
+            title: "Python Lists, Sets, and Dictionaries",
+            description: "Understand data structures, list comprehensions, and mapping key-value stores."
+          },
+          {
+            order_index: 4,
+            title: "Writing Modular Functions",
+            description: "Establish function scopes, define defaults, and handle return statements."
+          }
+        ]
+      },
+      {
+        phase_number: 2,
+        title: "Phase 2: Object-Oriented Programming (OOP)",
+        description: "Translate real-world concepts into code classes, inheritance lines, and modular systems.",
+        duration_weeks: Math.round(3 * weeksMultiplier),
+        lessons: [
+          {
+            order_index: 1,
+            title: "Python Classes and Instances",
+            description: "Define class scopes, initializers, object attributes, and instance methods."
+          },
+          {
+            order_index: 2,
+            title: "Inheritance and Polymorphism",
+            description: "Build parent-child relationships and overwrite standard attributes."
+          },
+          {
+            order_index: 3,
+            title: "Exception Handling Protocols",
+            description: "Build try-except-finally blocks to manage errors without crashing."
+          },
+          {
+            order_index: 4,
+            title: "File Operations and Context Managers",
+            description: "Safely read and write file data using context managers."
+          }
+        ]
+      },
+      {
+        phase_number: 3,
+        title: "Phase 3: Python in Practice (APIs & Tools)",
+        description: "Deploy scripts to fetch third-party data and set up environments.",
+        duration_weeks: Math.round(3 * weeksMultiplier),
+        lessons: [
+          {
+            order_index: 1,
+            title: "Virtual Environments and PIP",
+            description: "Create isolated virtual environments and install packages."
+          },
+          {
+            order_index: 2,
+            title: "Interacting with Web APIs",
+            description: "Perform HTTP request methods and parse JSON payloads."
+          },
+          {
+            order_index: 3,
+            title: "Data Manipulation with Pandas",
+            description: "Load dataset tables, structure data frames, and query statistics."
+          },
+          {
+            order_index: 4,
+            title: "Deploying Script Automations",
+            description: "Set up scheduling cron scripts and batch process reports."
+          }
+        ]
+      }
+    ]
+  }
+}
+
+function getUXRoadmap(level: string, dailyMinutes: number): GeneratedRoadmap {
+  const weeksMultiplier = dailyMinutes < 30 ? 1.5 : dailyMinutes > 60 ? 0.75 : 1
+  return {
+    title: `UI/UX Product Design Specialization (${level})`,
+    description: `A path tailored to learning user research methodologies, typography layouts, Figma wireframing, and interactive prototyping.`,
+    estimated_weeks: Math.round(6 * weeksMultiplier),
+    phases: [
+      {
+        phase_number: 1,
+        title: "Phase 1: Design Principles & Research",
+        description: "Understand user-centric guidelines, wireframes, and interface hierarchies.",
+        duration_weeks: Math.round(2 * weeksMultiplier),
+        lessons: [
+          {
+            order_index: 1,
+            title: "Introduction to User-Centered Design",
+            description: "Examine UX principles, human interaction models, and standard designs."
+          },
+          {
+            order_index: 2,
+            title: "User Research & User Personas",
+            description: "Conduct surveys, interviews, and compile structural user personas."
+          },
+          {
+            order_index: 3,
+            title: "Information Architecture & Sitemaps",
+            description: "Structure navigation layouts and page hierarchies for low friction."
+          },
+          {
+            order_index: 4,
+            title: "Sketching and Low-Fidelity Wireframes",
+            description: "Quickly iterate design ideas on paper or basic shapes before digital wireframes."
+          }
+        ]
+      },
+      {
+        phase_number: 2,
+        title: "Phase 2: Figma & High-Fidelity Design",
+        description: "Create grids, style guides, components, and auto-layouts inside Figma.",
+        duration_weeks: Math.round(2 * weeksMultiplier),
+        lessons: [
+          {
+            order_index: 1,
+            title: "Figma Environment and Vector Tools",
+            description: "Master layers, vectors, styling, and frame alignments in Figma."
+          },
+          {
+            order_index: 2,
+            title: "Typography and Color Hierarchies",
+            description: "Establish a clear type scale, typographic contrasts, and accessible color values."
+          },
+          {
+            order_index: 3,
+            title: "Figma Auto-Layout & Constraints",
+            description: "Build responsive grids and layouts that adapt dynamically."
+          },
+          {
+            order_index: 4,
+            title: "Modular Components & Variants",
+            description: "Create reusable components, variants, and design tokens."
+          }
+        ]
+      },
+      {
+        phase_number: 3,
+        title: "Phase 3: Prototyping & Testing",
+        description: "Interlink frames, apply smart animations, and conduct usability testings.",
+        duration_weeks: Math.round(2 * weeksMultiplier),
+        lessons: [
+          {
+            order_index: 1,
+            title: "Interactive Prototyping in Figma",
+            description: "Apply triggers, transitions, and navigate clicks across screens."
+          },
+          {
+            order_index: 2,
+            title: "Figma Smart Animate Extensions",
+            description: "Build micro-interactions, page slides, and animations."
+          },
+          {
+            order_index: 3,
+            title: "Conducting Usability Testing",
+            description: "Test your designs with users and log usability issues."
+          },
+          {
+            order_index: 4,
+            title: "Design-to-Development Handoffs",
+            description: "Document layouts, CSS tokens, assets, and specs for developers."
+          }
+        ]
+      }
+    ]
+  }
+}
+
+function getDefaultRoadmap(goalText: string, subject: string, level: string, dailyMinutes: number): GeneratedRoadmap {
+  const weeksMultiplier = dailyMinutes < 30 ? 1.5 : dailyMinutes > 60 ? 0.75 : 1
+  const topic = subject || goalText || "Selected Subject"
+  
+  return {
+    title: `Mastery Path for ${topic} (${level})`,
+    description: `A custom generated learning path created by Cognara to help you achieve your goals in ${topic}.`,
+    estimated_weeks: Math.round(6 * weeksMultiplier),
+    phases: [
+      {
+        phase_number: 1,
+        title: `Phase 1: Foundations of ${topic}`,
+        description: `Establish core definitions, setups, and baseline vocabulary in the field of ${topic}.`,
+        duration_weeks: Math.round(2 * weeksMultiplier),
+        lessons: [
+          {
+            order_index: 1,
+            title: `Introduction to ${topic}`,
+            description: "Overview of the ecosystem, key histories, and what makes it essential today."
+          },
+          {
+            order_index: 2,
+            title: "Essential Glossary and Concepts",
+            description: "Familiarize yourself with the terminology and basic conceptual mental models."
+          },
+          {
+            order_index: 3,
+            title: "Standard Setup and Environment",
+            description: "Install, compile, configure, and verify the basic tooling required."
+          },
+          {
+            order_index: 4,
+            title: "Building your First Hello World Project",
+            description: "Apply your initial learnings to compile a simple working project from scratch."
+          }
+        ]
+      },
+      {
+        phase_number: 2,
+        title: "Phase 2: Core Practical Applications",
+        description: "Translate core theory into practical steps, managing errors and working with real patterns.",
+        duration_weeks: Math.round(2 * weeksMultiplier),
+        lessons: [
+          {
+            order_index: 1,
+            title: "Intermediate Practical Techniques",
+            description: "Solve practical problems using standard approaches and frameworks."
+          },
+          {
+            order_index: 2,
+            title: "Debugging and Error Resolutions",
+            description: "Learn how to read logs, inspect data, and troubleshoot common issues."
+          },
+          {
+            order_index: 3,
+            title: "Modular Clean Code Principles",
+            description: "Organize files, separate concerns, and design refactoring methods."
+          },
+          {
+            order_index: 4,
+            title: "Integrating with Libraries and Plugins",
+            description: "Expand core capabilities by importing community plugins and packages."
+          }
+        ]
+      },
+      {
+        phase_number: 3,
+        title: "Phase 3: Advanced Methods & Scaling",
+        description: "Focus on optimization, security configurations, and deploying your final project capstone.",
+        duration_weeks: Math.round(2 * weeksMultiplier),
+        lessons: [
+          {
+            order_index: 1,
+            title: "Optimizations and Performance Limits",
+            description: "Analyze latency, measure bottlenecks, and optimize execution profiles."
+          },
+          {
+            order_index: 2,
+            title: "Security Protocols and Best Practices",
+            description: "Secure data keys, restrict networks, and validate user permissions."
+          },
+          {
+            order_index: 3,
+            title: "Deployments and Public Publishing",
+            description: "Build production packages and deploy to public hosts."
+          },
+          {
+            order_index: 4,
+            title: "Final Capstone Review & Assessment",
+            description: "Synthesize all prior concepts into a complete comprehensive project review."
+          }
+        ]
+      }
+    ]
+  }
+}

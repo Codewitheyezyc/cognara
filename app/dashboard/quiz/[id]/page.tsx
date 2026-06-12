@@ -1,0 +1,402 @@
+'use client'
+
+import { useParams, useRouter } from 'next/navigation'
+import React, { useEffect, useState, useRef } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Button } from '@/components/ui/button'
+import { ArrowLeft, CheckCircle2, XCircle, Flame, Clock, Award, RotateCcw, AlertTriangle } from 'lucide-react'
+import Link from 'next/link'
+import { QuizQuestion } from '@/types/ai'
+import AIBadge from '@/components/lesson/AIBadge'
+import { QuizResultModal } from '@/components/mascot/QuizResultModal'
+
+export default function QuizPage() {
+  const params = useParams()
+  const router = useRouter()
+  const lessonId = params.id as string
+  const supabase = createClient()
+
+  // States
+  const [lessonTitle, setLessonTitle] = useState('')
+  const [quizId, setQuizId] = useState<string | null>(null)
+  const [questions, setQuestions] = useState<QuizQuestion[]>([])
+  const [currentIdx, setCurrentIdx] = useState(0)
+  const [selectedAnswer, setSelectedAnswer] = useState('')
+  const [isAnswerChecked, setIsAnswerChecked] = useState(false)
+  const [userAnswers, setUserAnswers] = useState<Record<string, string>>({})
+  
+  // Scoring / Submission
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [quizResult, setQuizResult] = useState<{
+    score: number
+    passed: boolean
+    correctCount: number
+    totalCount: number
+    streak: { current: number; longest: number }
+  } | null>(null)
+
+  // Loading / Error
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMsg, setErrorMsg] = useState('')
+
+  // Timer
+  const [timeSpentSecs, setTimeSpentSecs] = useState(0)
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Fetch quiz details on mount
+  useEffect(() => {
+    async function loadQuiz() {
+      try {
+        setIsLoading(true)
+        setErrorMsg('')
+
+        // 1. Authenticate user
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          router.push('/login')
+          return
+        }
+
+        // 2. Fetch lesson title
+        const { data: lesson, error: lessonErr } = await supabase
+          .from('lessons')
+          .select('title')
+          .eq('id', lessonId)
+          .maybeSingle()
+
+        if (lessonErr || !lesson) {
+          router.push('/dashboard/path')
+          return
+        }
+        setLessonTitle(lesson.title)
+
+        // 3. Load or generate quiz
+        const res = await fetch('/api/ai/generate-quiz', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lessonId }),
+        })
+
+        const data = await res.json()
+        if (!res.ok) {
+          throw new Error(data.error || 'Failed to load quiz')
+        }
+
+        setQuizId(data.quizId)
+        setQuestions(data.questions || [])
+        setIsLoading(false)
+
+        // Start timer
+        setTimeSpentSecs(0)
+        timerRef.current = setInterval(() => {
+          setTimeSpentSecs((prev) => prev + 1)
+        }, 1000)
+      } catch (err: any) {
+        console.error(err)
+        setErrorMsg(err.message || 'An error occurred while building the quiz.')
+        setIsLoading(false)
+      }
+    }
+
+    loadQuiz()
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current)
+    }
+  }, [lessonId, supabase, router])
+
+  // Handle checking active question's answer
+  const handleCheckAnswer = () => {
+    if (!selectedAnswer.trim()) return
+
+    const currentQuestion = questions[currentIdx]
+    setUserAnswers((prev) => ({
+      ...prev,
+      [currentQuestion.id]: selectedAnswer,
+    }))
+    setIsAnswerChecked(true)
+  }
+
+  // Handle proceeding to next question or final results submission
+  const handleNextQuestion = async () => {
+    if (currentIdx < questions.length - 1) {
+      setCurrentIdx((prev) => prev + 1)
+      setSelectedAnswer('')
+      setIsAnswerChecked(false)
+    } else {
+      // Final submission
+      if (timerRef.current) clearInterval(timerRef.current)
+      setIsSubmitting(true)
+      try {
+        const res = await fetch('/api/quiz/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            quizId,
+            answers: userAnswers,
+            timeSpentSecs,
+          }),
+        })
+
+        const result = await res.json()
+        if (!res.ok) {
+          throw new Error(result.error || 'Failed to submit quiz results')
+        }
+
+        setQuizResult(result)
+      } catch (err: any) {
+        console.error(err)
+        setErrorMsg(err.message || 'Failed to save quiz score.')
+      } finally {
+        setIsSubmitting(false)
+      }
+    }
+  }
+
+  // Reset quiz state to retry
+  const handleRetryQuiz = () => {
+    setCurrentIdx(0)
+    setSelectedAnswer('')
+    setIsAnswerChecked(false)
+    setUserAnswers({})
+    setQuizResult(null)
+    setErrorMsg('')
+    setTimeSpentSecs(0)
+    timerRef.current = setInterval(() => {
+      setTimeSpentSecs((prev) => prev + 1)
+    }, 1000)
+  }
+
+  // Loading Screen
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-bg text-text-1 flex flex-col items-center justify-center p-6 space-y-4 animate-page-enter">
+        <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+        <p className="text-sm font-mono text-text-2 tracking-wide animate-pulse">
+          Calibrating assessment metrics...
+        </p>
+      </div>
+    )
+  }
+
+  // Error Screen
+  if (errorMsg) {
+    return (
+      <div className="min-h-screen bg-bg text-text-1 flex flex-col items-center justify-center p-6 space-y-6 max-w-md mx-auto">
+        <div className="p-4 bg-error/10 border border-error/20 rounded-full">
+          <AlertTriangle className="h-8 w-8 text-error" />
+        </div>
+        <div className="text-center space-y-2">
+          <h2 className="font-heading text-xl font-bold text-text-1">Assessment Interrupted</h2>
+          <p className="text-sm text-text-2">{errorMsg}</p>
+        </div>
+        <div className="flex space-x-3 w-full">
+          <Button
+            onClick={() => router.push(`/dashboard/lesson/${lessonId}`)}
+            className="flex-1 h-11 bg-transparent border border-border hover:bg-surface-alt text-text-1 rounded-sm text-xs font-semibold"
+          >
+            Back to Lesson
+          </Button>
+          <Button
+            onClick={handleRetryQuiz}
+            className="flex-1 h-11 bg-primary hover:bg-primary/95 text-white rounded-sm text-xs font-semibold"
+          >
+            Retry Loading
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // Results View
+  if (quizResult) {
+    return (
+      <div className="min-h-screen bg-bg text-text-1 flex flex-col items-center justify-center p-4 md:p-8 animate-page-enter">
+        <QuizResultModal
+          score={quizResult.score}
+          passed={quizResult.passed}
+          lessonTitle={lessonTitle}
+          onContinue={() => {
+            if (quizResult.passed) {
+              router.push('/dashboard/path')
+            } else {
+              router.push(`/dashboard/lesson/${lessonId}`)
+            }
+          }}
+          onRetry={handleRetryQuiz}
+        />
+      </div>
+    )
+  }
+
+  // Active Focus Mode View
+  const currentQuestion = questions[currentIdx]
+  const questionNumber = currentIdx + 1
+  const totalQuestions = questions.length
+  const progressPercent = (questionNumber / totalQuestions) * 100
+
+  return (
+    <div className="min-h-screen bg-bg text-text-1 flex flex-col animate-page-enter">
+      {/* Minimal Focus Header */}
+      <header className="border-b border-border bg-surface/80 backdrop-blur-md sticky top-0 z-30">
+        <div className="max-w-[760px] mx-auto px-4 h-14 flex items-center justify-between">
+          <Link
+            href={`/dashboard/lesson/${lessonId}`}
+            className="flex items-center space-x-2 text-xs text-text-2 hover:text-text-1 transition-colors font-medium"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span>Exit Focus Mode</span>
+          </Link>
+          <div className="flex items-center space-x-3">
+            <AIBadge />
+            <span className="text-[10px] font-mono text-text-2">
+              Question {questionNumber} of {totalQuestions}
+            </span>
+          </div>
+        </div>
+        {/* Progress Bar */}
+        <div className="w-full bg-border h-1">
+          <div 
+            style={{ width: `${progressPercent}%` }} 
+            className="bg-primary h-full transition-all duration-300" 
+          />
+        </div>
+      </header>
+
+      {/* Main Question Display */}
+      <main className="flex-1 max-w-[720px] w-full mx-auto px-4 py-8 md:py-12 space-y-6">
+        {/* Question Head */}
+        <div className="space-y-2">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-accent font-semibold">
+            Section Quiz
+          </span>
+          <h2 className="font-heading text-lg md:text-xl font-semibold leading-snug text-text-1">
+            {currentQuestion.question}
+          </h2>
+        </div>
+
+        {/* Inputs based on type */}
+        <div className="py-4">
+          {currentQuestion.type === 'multiple_choice' && (
+            <div className="grid grid-cols-1 gap-3">
+              {(currentQuestion.options || []).map((option) => {
+                const isSelected = selectedAnswer === option
+                return (
+                  <button
+                    key={option}
+                    disabled={isAnswerChecked}
+                    onClick={() => setSelectedAnswer(option)}
+                    type="button"
+                    className={`w-full text-left p-4 rounded-[10px] border text-sm font-medium transition-all flex items-center justify-between ${
+                      isSelected
+                        ? 'border-primary bg-primary/5 text-primary shadow-[0_0_12px_rgba(91,142,255,0.06)]'
+                        : 'border-border bg-surface hover:bg-surface-alt text-text-2 hover:text-text-1'
+                    } disabled:opacity-95`}
+                  >
+                    <span>{option}</span>
+                    <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                      isSelected ? 'border-primary bg-primary' : 'border-text-3'
+                    }`}>
+                      {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          {currentQuestion.type === 'true_false' && (
+            <div className="grid grid-cols-2 gap-4">
+              {['true', 'false'].map((option) => {
+                const isSelected = selectedAnswer === option
+                return (
+                  <button
+                    key={option}
+                    disabled={isAnswerChecked}
+                    onClick={() => setSelectedAnswer(option)}
+                    type="button"
+                    className={`text-center p-6 rounded-[10px] border text-base font-semibold capitalize transition-all ${
+                      isSelected
+                        ? 'border-primary bg-primary/5 text-primary shadow-[0_0_12px_rgba(91,142,255,0.06)]'
+                        : 'border-border bg-surface hover:bg-surface-alt text-text-2 hover:text-text-1'
+                    } disabled:opacity-95`}
+                  >
+                    {option === 'true' ? 'True' : 'False'}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          {currentQuestion.type === 'fill_blank' && (
+            <div className="max-w-md space-y-2">
+              <input
+                disabled={isAnswerChecked}
+                value={selectedAnswer}
+                onChange={(e) => setSelectedAnswer(e.target.value)}
+                placeholder="Type your answer here..."
+                type="text"
+                className="w-full h-11 px-4 rounded-sm bg-surface border border-border text-text-1 text-sm placeholder:text-text-3 focus:outline-none focus:border-primary transition-colors disabled:opacity-75"
+              />
+              <p className="text-[10px] font-mono text-text-3">
+                Tip: Correct spelling is required (single word or short phrase).
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Action button */}
+        {!isAnswerChecked ? (
+          <Button
+            onClick={handleCheckAnswer}
+            disabled={!selectedAnswer.trim()}
+            className="w-full h-11 bg-primary hover:bg-primary/95 text-white rounded-sm text-xs font-semibold tracking-wide uppercase disabled:opacity-50"
+          >
+            Check Answer
+          </Button>
+        ) : (
+          <div className="space-y-6">
+            {/* Feedback Panel */}
+            {(() => {
+              const isCorrect = selectedAnswer.trim().toLowerCase() === currentQuestion.correct_answer.trim().toLowerCase()
+              return (
+                <div className={`p-5 rounded-[10px] border flex gap-4 items-start ${
+                  isCorrect
+                    ? 'border-success/20 bg-success/5 text-text-1'
+                    : 'border-error/20 bg-error/5 text-text-1'
+                }`}>
+                  {isCorrect ? (
+                    <CheckCircle2 className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <XCircle className="h-5 w-5 text-error flex-shrink-0 mt-0.5" />
+                  )}
+                  <div className="space-y-2">
+                    <h4 className={`text-sm font-bold uppercase tracking-wider ${isCorrect ? 'text-success' : 'text-error'}`}>
+                      {isCorrect ? 'Correct Answer' : 'Incorrect Answer'}
+                    </h4>
+                    {!isCorrect && (
+                      <p className="text-xs text-text-2">
+                        Correct answer: <span className="font-mono font-semibold text-text-1">{currentQuestion.correct_answer}</span>
+                      </p>
+                    )}
+                    <p className="text-xs text-text-2 leading-relaxed">
+                      {currentQuestion.explanation}
+                    </p>
+                  </div>
+                </div>
+              )
+            })()}
+
+            <Button
+              onClick={handleNextQuestion}
+              disabled={isSubmitting}
+              className="w-full h-11 bg-primary hover:bg-primary/95 text-white rounded-sm text-xs font-semibold tracking-wide uppercase"
+            >
+              {isSubmitting ? 'Saving...' : currentIdx === questions.length - 1 ? 'Submit Assessment' : 'Next Question'}
+            </Button>
+          </div>
+        )}
+      </main>
+    </div>
+  )
+}
