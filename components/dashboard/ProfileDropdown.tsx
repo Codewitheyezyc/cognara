@@ -20,10 +20,6 @@ export function ProfileDropdown({ profile, email, onSignOut }: ProfileDropdownPr
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const name = profile?.name || 'Learner'
-  const isPro = 
-    profile?.plan === 'pro' || 
-    ((profile?.subscription_tier === 'pro_monthly' || profile?.subscription_tier === 'pro_yearly') && 
-     profile?.subscription_status === 'active')
   const avatarUrl = profile?.avatar_url
   const initialsUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`
 
@@ -105,14 +101,6 @@ export function ProfileDropdown({ profile, email, onSignOut }: ProfileDropdownPr
             <div className="flex flex-col min-w-0">
               <span className="text-sm font-bold text-text-1 truncate">{name}</span>
               <span className="text-[11px] text-text-2 truncate">{email}</span>
-              {/* Plan Badge */}
-              <span className={`w-fit mt-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase tracking-wider ${
-                isPro 
-                  ? 'bg-accent/15 text-accent border border-accent/20' 
-                  : 'bg-text-3/15 text-text-2 border border-text-3/20'
-              }`}>
-                {isPro ? '✨ Pro' : '🆓 Free'}
-              </span>
             </div>
           </div>
 

@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Map as MapIcon } from 'lucide-react'
 import { RoadmapPhaseCard } from '@/components/dashboard/RoadmapPhaseCard'
-import { getUserSubscription, isLessonAccessible } from '@/lib/subscription'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,9 +17,6 @@ export default async function PathPage() {
   if (!user) {
     redirect('/login')
   }
-
-  // 1.5. Fetch subscription tier
-  const { isPro } = await getUserSubscription()
 
   // 2. Fetch the user's active learning goal & roadmap
   const { data: goal } = await supabase
@@ -95,23 +91,20 @@ export default async function PathPage() {
 
       {/* Visual Timeline Path */}
       <div className="relative border-l border-border pl-6 ml-4 space-y-12">
-        {phases?.map((phase, pIdx) => {
+        {phases?.map((phase) => {
           const phaseLessons = lessonsByPhase[phase.id] || []
           
           const mappedLessons = phaseLessons.map(lesson => {
             const status = progressMap.get(lesson.id) || 'not_started'
-            const isAccessible = isLessonAccessible(phase.phase_number, lesson.order_index, isPro)
             return {
               id: lesson.id,
               title: lesson.title,
               description: `Lesson ${lesson.order_index} • Ready to learn`,
               order_index: lesson.order_index,
-              isAccessible,
+              isAccessible: true,
               status: status as 'not_started' | 'in_progress' | 'completed'
             }
           })
-
-          const isFullyLocked = !isPro && phase.phase_number >= 3
 
           return (
             <div key={phase.id} className="relative">
@@ -125,8 +118,6 @@ export default async function PathPage() {
                 title={phase.title}
                 description={phase.description || ''}
                 lessons={mappedLessons}
-                isFullyLocked={isFullyLocked}
-                isPro={isPro}
               />
             </div>
           )

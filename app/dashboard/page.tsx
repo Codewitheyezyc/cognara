@@ -4,7 +4,6 @@ import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { Flame, Award, BookOpen, CheckCircle, Zap, BrainCircuit, ArrowRight, Map, Lock } from 'lucide-react'
 import AICoachInsight from '@/components/dashboard/AICoachInsight'
-import { getUserSubscription } from '@/lib/subscription'
 import { MascotWelcomeManager } from '@/components/mascot/MascotWelcomeManager'
 
 export const dynamic = 'force-dynamic'
@@ -21,8 +20,7 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  // 1.5. Fetch subscription status
-  const { isPro } = await getUserSubscription()
+
 
   // 2. Fetch Profile Name & welcome seen state
   const { data: profile } = await supabase
@@ -286,41 +284,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* 4. AI Coach Insight Banner */}
-      {isPro ? (
-        <AICoachInsight />
-      ) : (
-        <div style={{
-          padding: '16px 20px',
-          background: 'var(--color-surface)',
-          border: '1px dashed var(--color-border)',
-          borderRadius: '10px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px'
-        }}>
-          <Lock size={18} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
-          <div>
-            <div style={{ color: 'var(--color-text-2)', fontSize: '14px' }}>
-              AI insights available on Pro
-            </div>
-            <Link
-              href="/upgrade"
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--color-primary)',
-                fontSize: '13px',
-                cursor: 'pointer',
-                padding: 0,
-                marginTop: '4px',
-                display: 'inline-block'
-              }}
-            >
-              Upgrade to unlock →
-            </Link>
-          </div>
-        </div>
-      )}
+      <AICoachInsight />
     </div>
   )
 }

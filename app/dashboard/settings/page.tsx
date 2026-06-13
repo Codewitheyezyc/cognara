@@ -156,35 +156,7 @@ export default function SettingsPage() {
     toast(`Font size set to ${sz}`)
   }
 
-  // Upgrade Mock Plan Handler
-  const handleUpgradePlan = async (toPro: boolean) => {
-    if (!user) return
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          plan: toPro ? 'pro' : 'free',
-          subscription_tier: toPro ? 'pro_monthly' : 'free',
-          subscription_status: toPro ? 'active' : 'inactive',
-          subscription_start_date: toPro ? new Date().toISOString() : null,
-          subscription_end_date: toPro ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() : null
-        })
-        .eq('id', user.id)
-      if (error) throw error
-      
-      setProfile((prev: any) => ({ 
-        ...prev, 
-        plan: toPro ? 'pro' : 'free',
-        subscription_tier: toPro ? 'pro_monthly' : 'free',
-        subscription_status: toPro ? 'active' : 'inactive',
-        subscription_end_date: toPro ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() : null
-      }))
-      toast(toPro ? 'Upgraded to Pro successfully! ✨' : 'Subscription cancelled successfully.')
-    } catch (err) {
-      console.error(err)
-      toast('Failed to update subscription', 'error')
-    }
-  }
+
 
   // Export User Data JSON Handler
   const handleExportData = async () => {
@@ -293,10 +265,7 @@ export default function SettingsPage() {
     )
   }
 
-  const isPro = 
-    profile?.plan === 'pro' || 
-    ((profile?.subscription_tier === 'pro_monthly' || profile?.subscription_tier === 'pro_yearly') && 
-     profile?.subscription_status === 'active')
+
 
   return (
     <div className="space-y-8 animate-page-enter max-w-3xl pb-16">
@@ -371,61 +340,7 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* 2. SUBSCRIPTION SECTION */}
-      <div className="rounded-[10px] border border-border bg-surface p-6 shadow-md space-y-6">
-        <div className="flex items-center space-x-2 text-primary border-b border-border pb-3">
-          <CreditCard className="h-5 w-5" strokeWidth={1.5} />
-          <h2 className="font-heading text-xl font-bold text-text-1">Subscription Billing</h2>
-        </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 p-4 rounded-md bg-surface-alt/40 border border-border/40">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-text-1">Current Active Plan:</span>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                isPro 
-                  ? 'bg-accent/15 text-accent border border-accent/20' 
-                  : 'bg-text-3/15 text-text-2 border border-text-3/20'
-              }`}>
-                {isPro ? 'Pro Active' : 'Free Trial'}
-              </span>
-            </div>
-            <p className="text-xs text-text-2 max-w-md">
-              {isPro 
-                ? 'Your Pro account gives you unlimited roadmap generation and deep lesson custom AI prompts.' 
-                : 'Upgrade to get access to advanced custom coach insights and high-accuracy quiz tracks.'}
-            </p>
-          </div>
-
-          <div className="flex gap-3">
-            {isPro ? (
-              <Button variant="outline" onClick={() => handleUpgradePlan(false)}>
-                Cancel Pro
-              </Button>
-            ) : (
-              <Button onClick={() => handleUpgradePlan(true)} className="bg-accent hover:bg-accent/90 text-white font-semibold">
-                Upgrade to Pro
-              </Button>
-            )}
-            <a 
-              href="https://lemonsqueezy.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-lg border border-[var(--btn-secondary-border)] text-sm font-medium px-4 h-10 hover:bg-[var(--color-surface-alt)] text-text-2"
-            >
-              Manage Subscription
-            </a>
-          </div>
-        </div>
-
-        {isPro && (
-          <div className="text-xs text-text-2 flex items-center gap-2 pl-2 border-l-2 border-accent">
-            <span>Next billing date: <strong>July 11, 2026</strong></span>
-            <span>•</span>
-            <span>Amount: <strong>$12.00/mo</strong></span>
-          </div>
-        )}
-      </div>
 
       {/* 3. APPEARANCE SECTION */}
       <div className="rounded-[10px] border border-border bg-surface p-6 shadow-md space-y-6">

@@ -16,7 +16,7 @@ import {
   Bar,
 } from 'recharts'
 import AICoachInsight from '@/components/dashboard/AICoachInsight'
-import { UpgradePrompt } from '@/components/subscription/UpgradePrompt'
+
 
 export default function ProgressPage() {
   const router = useRouter()
@@ -33,7 +33,7 @@ export default function ProgressPage() {
   
   // Loading state
   const [isLoading, setIsLoading] = useState(true)
-  const [isPro, setIsPro] = useState(false)
+  const [isPro, setIsPro] = useState(true)
 
   useEffect(() => {
     async function loadData() {
@@ -45,20 +45,7 @@ export default function ProgressPage() {
           return
         }
 
-        // Fetch profile and check Pro status
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('subscription_tier, subscription_status, subscription_end_date')
-          .eq('id', user.id)
-          .maybeSingle()
 
-        const computedIsPro =
-          profile &&
-          (profile.subscription_tier === 'pro_monthly' || profile.subscription_tier === 'pro_yearly') &&
-          profile.subscription_status === 'active' &&
-          (!profile.subscription_end_date || new Date(profile.subscription_end_date) > new Date())
-        
-        setIsPro(!!computedIsPro)
 
         // 1. Fetch Streak
         const { data: streakData } = await supabase
@@ -261,13 +248,7 @@ export default function ProgressPage() {
     )
   }
 
-  if (!isPro) {
-    return (
-      <div className="max-w-xl mx-auto py-12">
-        <UpgradePrompt context="Unlock your full progress analytics" />
-      </div>
-    )
-  }
+
 
   return (
     <div className="space-y-8 animate-page-enter">

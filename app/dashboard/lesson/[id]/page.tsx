@@ -27,7 +27,7 @@ export default function LessonPage() {
   const [isChangingDepth, setIsChangingDepth] = useState(false)
   const [userId, setUserId] = useState('')
   const [subject, setSubject] = useState('')
-  const [isPro, setIsPro] = useState(false)
+  const [isPro, setIsPro] = useState(true)
 
   // Celebration Mascot Modal States
   const [showCelebration, setShowCelebration] = useState(false)
@@ -93,19 +93,14 @@ export default function LessonPage() {
         setStatus(progress.status as any)
       }
 
-      // 4. Fetch depth level and subscription tier
+      // 4. Fetch depth level
       const { data: profile } = await supabase
         .from('profiles')
-        .select('learning_depth, subscription_tier, subscription_status, subscription_end_date')
+        .select('learning_depth')
         .eq('id', user.id)
         .maybeSingle()
 
-      const computedIsPro =
-        profile &&
-        (profile.subscription_tier === 'pro_monthly' || profile.subscription_tier === 'pro_yearly') &&
-        profile.subscription_status === 'active' &&
-        (!profile.subscription_end_date || new Date(profile.subscription_end_date) > new Date())
-      setIsPro(!!computedIsPro)
+      setIsPro(true)
 
       let activeGoalDepth = null
       if (lesson.roadmap_id) {

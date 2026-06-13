@@ -3,7 +3,7 @@
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import { GeneratedLesson } from '@/types/ai'
-import { BookOpen, ArrowRight, ChevronDown, Lock } from 'lucide-react'
+import { BookOpen, ArrowRight, ChevronDown } from 'lucide-react'
 import AIBadge from './AIBadge'
 import { CodeBlock } from './CodeBlock'
 import { Callout } from './Callout'
@@ -12,7 +12,6 @@ import { ExerciseCode } from './ExerciseCode'
 import { ExerciseWriting } from './ExerciseWriting'
 import { ExerciseTask } from './ExerciseTask'
 import { ExerciseProject } from './ExerciseProject'
-import { UpgradePrompt } from '@/components/subscription/UpgradePrompt'
 
 interface LessonContentProps {
   lesson: GeneratedLesson
@@ -50,23 +49,6 @@ export default function LessonContent({
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false)
   const router = useRouter()
 
-  const renderLockOverlay = (idx: number, context: string) => (
-    <div key={idx} style={{
-      border: '1px solid var(--color-border)',
-      borderRadius: '10px',
-      padding: '20px',
-      textAlign: 'center',
-      marginBlock: '24px',
-      background: 'var(--color-surface)'
-    }}>
-      <Lock size={24} style={{ color: 'var(--color-text-3)', marginBottom: '10px', marginLeft: 'auto', marginRight: 'auto' }} />
-      <p style={{ color: 'var(--color-text-2)', fontSize: '14px', margin: '0 0 16px' }}>
-        Practice environments are available on Pro plan
-      </p>
-      <UpgradePrompt context={context} />
-    </div>
-  )
-
   return (
     <div className="max-w-[720px] mx-auto space-y-8 pb-12 animate-page-enter">
       {/* Lesson Heading Block */}
@@ -101,29 +83,21 @@ export default function LessonContent({
                   />
                   <div className="absolute right-0 mt-1.5 w-44 rounded-md shadow-lg bg-surface border border-border z-50 py-1 animate-page-enter">
                     {depthLevels.map((lvl) => {
-                      const isAccessible = isPro || lvl.value === 2
                       return (
                         <button
                           key={lvl.value}
                           type="button"
-                          disabled={!isAccessible && depthLevel === lvl.value}
+                          disabled={depthLevel === lvl.value}
                           onClick={() => {
-                            if (isAccessible) {
-                              onDepthChange(lvl.value)
-                            } else {
-                              router.push('/upgrade')
-                            }
+                            onDepthChange(lvl.value)
                             setIsDropdownOpen(false)
                           }}
-                          className={`w-full text-left px-4 py-2 text-xs transition-colors duration-100 flex items-center justify-between ${
-                            isAccessible ? 'hover:bg-surface-alt cursor-pointer' : 'opacity-40 cursor-pointer'
-                          } ${depthLevel === lvl.value ? 'text-primary font-semibold' : 'text-text-2'}`}
+                          className={`w-full text-left px-4 py-2 text-xs hover:bg-surface-alt cursor-pointer transition-colors duration-100 flex items-center justify-between ${
+                            depthLevel === lvl.value ? 'text-primary font-semibold' : 'text-text-2'
+                          }`}
                         >
                           <span>{lvl.title}</span>
-                          <span className="text-[9px] font-mono text-text-3 flex items-center gap-0.5">
-                            {!isAccessible && <Lock className="h-2.5 w-2.5" />}
-                            <span>Lvl {lvl.value}</span>
-                          </span>
+                          <span className="text-[9px] font-mono text-text-3">Lvl {lvl.value}</span>
                         </button>
                       )
                     })}
@@ -161,9 +135,6 @@ export default function LessonContent({
               )
 
             case 'exercise_code':
-              if (!isPro) {
-                return renderLockOverlay(idx, "Practice what you learn with real exercises")
-              }
               return (
                 <div key={idx} style={{ marginBottom: '28px' }}>
                   <ExerciseCode
@@ -176,9 +147,6 @@ export default function LessonContent({
               )
 
             case 'exercise_writing':
-              if (!isPro) {
-                return renderLockOverlay(idx, "Evaluate your soft skills with AI feedback")
-              }
               return (
                 <div key={idx} style={{ marginBottom: '28px' }}>
                   <ExerciseWriting
@@ -201,9 +169,6 @@ export default function LessonContent({
               )
 
             case 'exercise_project':
-              if (!isPro) {
-                return renderLockOverlay(idx, "Build full stack projects live in your browser")
-              }
               return (
                 <div key={idx} style={{ marginBottom: '28px' }}>
                   <ExerciseProject
@@ -261,8 +226,6 @@ export default function LessonContent({
                   )}
                 </div>
               )
-
-
 
             case 'diagram':
               return (
