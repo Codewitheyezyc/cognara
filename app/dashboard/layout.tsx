@@ -99,7 +99,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             if (lessonsData) {
               setAllLessons(lessonsData)
               
-              const lessonIds = lessonsData.map(l => l.id)
+              const lessonIds = lessonsData.map((l: any) => l.id)
               let completed = 0
               if (lessonIds.length > 0) {
                 const { count: completedCount } = await supabase
@@ -125,14 +125,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
 
     // Get initial session
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(({ data: { user } }: any) => {
       if (active && user) {
         loadStats(user)
       }
     })
 
     // Listen for auth state change to resolve race condition
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: any, session: any) => {
       if (active && session?.user) {
         loadStats(session.user)
       }

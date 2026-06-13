@@ -1,6 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Lock } from 'lucide-react'
 
 interface StepDepthProps {
   depth: number
@@ -43,8 +45,21 @@ const depthLevels = [
 ]
 
 export default function StepDepth({ depth, onChange, onNext, onBack }: StepDepthProps) {
+  const [lockedMessage, setLockedMessage] = useState<string | null>(null)
+
+  const handleLevelClick = (value: number) => {
+    if (value === 1 || value === 2) {
+      onChange(value)
+      setLockedMessage(null)
+    } else {
+      setLockedMessage('Available on Pro plan. You can upgrade after signup.')
+    }
+  }
+
   const handleNext = () => {
-    if (!depth) return
+    if (depth !== 1 && depth !== 2) {
+      onChange(2) // Default to Beginner
+    }
     onNext()
   }
 
@@ -56,27 +71,41 @@ export default function StepDepth({ depth, onChange, onNext, onBack }: StepDepth
         <p className="text-sm text-text-2">Calibration of the depth and explanation style for all future topics.</p>
       </div>
 
+      {lockedMessage && (
+        <div className="rounded-md bg-accent/10 p-3 text-xs text-accent border border-accent/20 animate-page-enter flex items-center space-x-2">
+          <Lock className="h-3.5 w-3.5 flex-shrink-0" />
+          <span>{lockedMessage}</span>
+        </div>
+      )}
+
       <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
         {depthLevels.map((item) => {
           const isSelected = depth === item.value
+          const isLocked = item.value > 2
           return (
             <button
               key={item.value}
               type="button"
-              onClick={() => onChange(item.value)}
-              className={`w-full text-left p-4 rounded-md border bg-surface-alt hover:bg-border transition-all duration-150 cursor-pointer ${
+              onClick={() => handleLevelClick(item.value)}
+              className={`w-full text-left p-4 rounded-md border transition-all duration-150 cursor-pointer ${
                 isSelected
                   ? 'border-primary ring-1 ring-primary/45 bg-surface'
                   : 'border-border'
-              }`}
+              } ${isLocked ? 'opacity-55 bg-surface-alt/50' : 'bg-surface-alt hover:bg-border'}`}
             >
               <div className="flex flex-col">
                 <div className="flex justify-between items-baseline">
-                  <span className={`font-semibold text-base ${isSelected ? 'text-primary' : 'text-text-1'}`}>
-                    {item.title}
+                  <span className={`font-semibold text-base flex items-center space-x-2 ${isSelected ? 'text-primary' : 'text-text-1'}`}>
+                    <span>{item.title}</span>
+                    {isLocked && (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-accent/20 border border-accent/30 text-accent text-[9px] font-bold uppercase tracking-wide">
+                        Pro
+                      </span>
+                    )}
                   </span>
-                  <span className="text-[10px] font-mono text-text-3 font-semibold uppercase">
-                    Level {item.value}
+                  <span className="text-[10px] font-mono text-text-3 font-semibold uppercase flex items-center gap-1">
+                    {isLocked && <Lock className="h-2.5 w-2.5" />}
+                    <span>Level {item.value}</span>
                   </span>
                 </div>
                 <span className="text-xs text-text-2 mt-1 leading-relaxed">
@@ -118,3 +147,4 @@ export default function StepDepth({ depth, onChange, onNext, onBack }: StepDepth
     </div>
   )
 }
+

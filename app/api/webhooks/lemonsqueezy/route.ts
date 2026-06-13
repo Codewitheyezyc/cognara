@@ -57,6 +57,7 @@ export async function POST(req: Request) {
         const { error: upsertError } = await supabase
           .from('profiles')
           .update({
+            plan: status === 'active' ? 'pro' : 'free',
             subscription_tier: tier,
             subscription_status: status === 'active' ? 'active' : 'inactive',
             subscription_start_date: new Date().toISOString(),
@@ -76,6 +77,7 @@ export async function POST(req: Request) {
         const { error: cancelError } = await supabase
           .from('profiles')
           .update({
+            plan: endsAt && new Date(endsAt) > new Date() ? 'pro' : 'free',
             subscription_status: 'cancelled',
             subscription_end_date: endsAt
           })
@@ -91,6 +93,7 @@ export async function POST(req: Request) {
         const { error: expireError } = await supabase
           .from('profiles')
           .update({
+            plan: 'free',
             subscription_tier: 'free',
             subscription_status: 'inactive',
             subscription_end_date: endsAt

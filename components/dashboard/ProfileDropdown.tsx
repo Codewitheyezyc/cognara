@@ -20,7 +20,10 @@ export function ProfileDropdown({ profile, email, onSignOut }: ProfileDropdownPr
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const name = profile?.name || 'Learner'
-  const isPro = profile?.plan === 'pro'
+  const isPro = 
+    profile?.plan === 'pro' || 
+    ((profile?.subscription_tier === 'pro_monthly' || profile?.subscription_tier === 'pro_yearly') && 
+     profile?.subscription_status === 'active')
   const avatarUrl = profile?.avatar_url
   const initialsUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`
 

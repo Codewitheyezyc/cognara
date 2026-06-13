@@ -162,11 +162,23 @@ export default function SettingsPage() {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ plan: toPro ? 'pro' : 'free' })
+        .update({ 
+          plan: toPro ? 'pro' : 'free',
+          subscription_tier: toPro ? 'pro_monthly' : 'free',
+          subscription_status: toPro ? 'active' : 'inactive',
+          subscription_start_date: toPro ? new Date().toISOString() : null,
+          subscription_end_date: toPro ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() : null
+        })
         .eq('id', user.id)
       if (error) throw error
       
-      setProfile((prev: any) => ({ ...prev, plan: toPro ? 'pro' : 'free' }))
+      setProfile((prev: any) => ({ 
+        ...prev, 
+        plan: toPro ? 'pro' : 'free',
+        subscription_tier: toPro ? 'pro_monthly' : 'free',
+        subscription_status: toPro ? 'active' : 'inactive',
+        subscription_end_date: toPro ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() : null
+      }))
       toast(toPro ? 'Upgraded to Pro successfully! ✨' : 'Subscription cancelled successfully.')
     } catch (err) {
       console.error(err)
@@ -281,7 +293,10 @@ export default function SettingsPage() {
     )
   }
 
-  const isPro = profile?.plan === 'pro'
+  const isPro = 
+    profile?.plan === 'pro' || 
+    ((profile?.subscription_tier === 'pro_monthly' || profile?.subscription_tier === 'pro_yearly') && 
+     profile?.subscription_status === 'active')
 
   return (
     <div className="space-y-8 animate-page-enter max-w-3xl pb-16">

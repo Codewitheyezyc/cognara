@@ -113,7 +113,7 @@ export default function ProgressPage() {
 
         // 5. Line Chart Data: Scores over time (last 10)
         const last10Attempts = rawAttempts.slice(-10)
-        const lineData = last10Attempts.map((attempt, index) => {
+        const lineData = last10Attempts.map((attempt: any, index: number) => {
           const quizInfo = attempt.quizzes as any
           const lessonTitle = quizInfo?.lessons?.title?.split(' (')[0] || `Quiz ${index + 1}`
           return {
@@ -126,7 +126,7 @@ export default function ProgressPage() {
 
         // 6. Bar Chart Data: Performance per lesson topic (lowest first)
         const scoresByTopic: Record<string, { sum: number; count: number }> = {}
-        rawAttempts.forEach((attempt) => {
+        rawAttempts.forEach((attempt: any) => {
           const quizInfo = attempt.quizzes as any
           const lessonTitle = quizInfo?.lessons?.title?.split(' (')[0] || 'General Concepts'
           if (!scoresByTopic[lessonTitle]) {
@@ -155,7 +155,7 @@ export default function ProgressPage() {
         
         const activityCounts: Record<string, number> = {}
 
-        lessonLogs?.forEach((log) => {
+        lessonLogs?.forEach((log: any) => {
           if (log.completed_at) {
             const dateStr = log.completed_at.split('T')[0]
             activityCounts[dateStr] = (activityCounts[dateStr] || 0) + 1
@@ -163,7 +163,7 @@ export default function ProgressPage() {
         })
 
         // Fetch quiz attempt dates
-        rawAttempts.forEach((attempt) => {
+        rawAttempts.forEach((attempt: any) => {
           if (attempt.attempted_at) {
             const dateStr = attempt.attempted_at.split('T')[0]
             activityCounts[dateStr] = (activityCounts[dateStr] || 0) + 1

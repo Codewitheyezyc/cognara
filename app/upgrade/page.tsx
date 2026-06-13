@@ -116,6 +116,7 @@ function UpgradePageContent() {
       const { error } = await supabase
         .from('profiles')
         .update({
+          plan: isProTier ? 'pro' : 'free',
           subscription_tier: newTier,
           subscription_status: statusValue,
           subscription_start_date: isProTier ? new Date().toISOString() : null,
