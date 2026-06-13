@@ -39,9 +39,10 @@ export async function generateLesson(
   const systemPrompt = LESSON_SYSTEM_PROMPT
     .replace(/{subject}/g, subject)
     .replace('{lessonTitle}', lessonTitle)
+    .replace('{phaseTitle}', phaseTitle)
     .replace('{depthLevel}', String(depthLevel))
     .replace('{depthLabel}', depthLabel)
-    .replace('{isCodeSubject}', isCode ? 'YES' : 'NO')
+    .replace('{isTechnical}', isCode ? 'YES' : 'NO')
 
   const userPrompt = buildLessonUserMessage({
     lessonTitle,
