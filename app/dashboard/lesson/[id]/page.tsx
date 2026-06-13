@@ -19,6 +19,7 @@ export default function LessonPage() {
 
   const [lessonTitle, setLessonTitle] = useState('')
   const [content, setContent] = useState<GeneratedLesson | null>(null)
+  const [contentMap, setContentMap] = useState<Record<number, GeneratedLesson>>({})
   const [isGenerating, setIsGenerating] = useState(false)
   const [isCompleting, setIsCompleting] = useState(false)
   const [status, setStatus] = useState<'not_started' | 'in_progress' | 'completed'>('not_started')
@@ -128,8 +129,25 @@ export default function LessonPage() {
       setDepthLevel(initialDepth)
 
       // 5. Handle rendering / lazy generation
-      if (lesson.content) {
-        setContent(lesson.content as unknown as GeneratedLesson)
+      const dbContent = lesson.content as any
+      let initialMap: Record<number, GeneratedLesson> = {}
+      let activeContent: GeneratedLesson | null = null
+
+      if (dbContent && typeof dbContent === 'object') {
+        if ('sections' in dbContent) {
+          // Old single-depth schema migration fallback
+          initialMap = { [initialDepth]: dbContent as GeneratedLesson }
+          activeContent = dbContent as GeneratedLesson
+        } else {
+          initialMap = dbContent as Record<number, GeneratedLesson>
+          activeContent = dbContent[initialDepth] || null
+        }
+      }
+
+      setContentMap(initialMap)
+
+      if (activeContent) {
+        setContent(activeContent)
       } else {
         setIsGenerating(true)
         try {
@@ -141,6 +159,7 @@ export default function LessonPage() {
           const result = await res.json()
           if (res.ok && result.content) {
             setContent(result.content)
+            setContentMap(prev => ({ ...prev, [initialDepth]: result.content }))
             setStatus('in_progress')
           }
         } catch (err) {
@@ -153,6 +172,27 @@ export default function LessonPage() {
 
     loadLesson()
   }, [lessonId, supabase, router])
+
+  // Background prefetching for next lesson
+  useEffect(() => {
+    if (!content || !nextLessonId) return
+
+    // Wait 3 seconds after lesson loads to avoid competing for network
+    const prefetchTimer = setTimeout(async () => {
+      try {
+        console.log(`[Prefetch] Proactively pre-generating next lesson: ${nextLessonId}`);
+        await fetch('/api/ai/generate-lesson', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lessonId: nextLessonId }),
+        })
+      } catch (err) {
+        console.warn('[Prefetch] Next lesson prefetch failed:', err)
+      }
+    }, 3000)
+
+    return () => clearTimeout(prefetchTimer)
+  }, [content, nextLessonId])
 
   const handleDepthChange = async (newDepth: number) => {
     setIsChangingDepth(true)
@@ -188,17 +228,20 @@ export default function LessonPage() {
         }
       }
 
-      // 3. Mark lesson as stale (clear cached content)
-      await supabase
-        .from('lessons')
-        .update({ content: null, generated_at: null })
-        .eq('id', lessonId)
-
-      // 4. Update local state
+      // 3. Update local state
       setDepthLevel(newDepth)
-      setContent(null) // clear local content to trigger skeleton/loading
 
-      // 5. Trigger regeneration
+      // If already cached locally, load immediately and return
+      if (contentMap[newDepth]) {
+        setContent(contentMap[newDepth])
+        setIsChangingDepth(false)
+        return
+      }
+
+      // Otherwise clear local content to trigger skeleton/loading and fetch
+      setContent(null)
+
+      // 4. Trigger generation
       const res = await fetch('/api/ai/generate-lesson', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -207,6 +250,7 @@ export default function LessonPage() {
       const result = await res.json()
       if (res.ok && result.content) {
         setContent(result.content)
+        setContentMap(prev => ({ ...prev, [newDepth]: result.content }))
         setStatus('in_progress')
       }
     } catch (err) {

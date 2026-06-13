@@ -37,28 +37,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Lesson not found or access denied' }, { status: 404 })
     }
 
-    // If lesson content is already cached, return it directly (unless forceRegenerate is true)
-    if (lesson.content && !forceRegenerate) {
-      // Ensure it is marked in progress if not already completed
-      const { data: progress } = await supabase
-        .from('lesson_progress')
-        .select('status')
-        .eq('user_id', user.id)
-        .eq('lesson_id', lessonId)
-        .maybeSingle()
-
-      if (!progress) {
-        await supabase.from('lesson_progress').insert({
-          user_id: user.id,
-          lesson_id: lessonId,
-          status: 'in_progress',
-          started_at: new Date().toISOString(),
-        })
-      }
-
-      return NextResponse.json({ content: lesson.content })
-    }
-
     // 4. Fetch phase details to supply context
     const { data: phase, error: phaseError } = await supabase
       .from('roadmap_phases')
@@ -99,7 +77,32 @@ export async function POST(request: Request) {
 
     const depthLevel = goal.depth_level ?? profile?.learning_depth ?? 2
 
-    // 5.5. Enforce Rate Limit (30 per day)
+    // 6. Check multi-depth cache
+    const contentMap = (lesson.content && typeof lesson.content === 'object') ? (lesson.content as any) : null
+    const cachedLesson = contentMap ? contentMap[depthLevel] : null
+
+    if (cachedLesson && !forceRegenerate) {
+      // Ensure it is marked in progress if not already completed
+      const { data: progress } = await supabase
+        .from('lesson_progress')
+        .select('status')
+        .eq('user_id', user.id)
+        .eq('lesson_id', lessonId)
+        .maybeSingle()
+
+      if (!progress) {
+        await supabase.from('lesson_progress').insert({
+          user_id: user.id,
+          lesson_id: lessonId,
+          status: 'in_progress',
+          started_at: new Date().toISOString(),
+        })
+      }
+
+      return NextResponse.json({ content: cachedLesson })
+    }
+
+    // 7. Enforce Rate Limit (30 per day)
     const rateLimit = await checkRateLimit(supabase, user.id, 'lesson', 30)
     if (!rateLimit.allowed) {
       return NextResponse.json(
@@ -108,7 +111,7 @@ export async function POST(request: Request) {
       )
     }
 
-    // 6. Generate the lesson content (simulated AI)
+    // 8. Generate the lesson content (simulated AI)
     const generatedLesson = await generateLesson(
       lesson.title,
       phase.title,
@@ -118,11 +121,16 @@ export async function POST(request: Request) {
       profile
     )
 
-    // 7. Update lesson cache in the DB
+    // 9. Update multi-depth lesson cache in the DB
+    const updatedContent = {
+      ...(contentMap || {}),
+      [depthLevel]: generatedLesson
+    }
+
     const { error: updateError } = await supabase
       .from('lessons')
       .update({
-        content: generatedLesson,
+        content: updatedContent,
         generated_at: new Date().toISOString(),
       })
       .eq('id', lessonId)

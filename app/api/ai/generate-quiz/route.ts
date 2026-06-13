@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     // 6. Fetch learning goal context
     const { data: goal, error: goalError } = await supabase
       .from('learning_goals')
-      .select('subject, level')
+      .select('subject, level, depth_level')
       .eq('id', roadmap.goal_id)
       .maybeSingle()
 
@@ -76,8 +76,11 @@ export async function POST(request: Request) {
     }
 
     // Extract takeaways if lesson has been generated
-    const lessonContent = lesson.content as unknown as GeneratedLesson | null
-    const takeaways = lessonContent?.key_takeaways || []
+    const contentMap = lesson.content as any
+    const lessonContent = (contentMap && typeof contentMap === 'object')
+      ? (contentMap[goal.depth_level ?? 2] || Object.values(contentMap)[0])
+      : contentMap
+    const takeaways = (lessonContent as any)?.key_takeaways || []
 
     // 6.5. Enforce Rate Limit (30 per day)
     const rateLimit = await checkRateLimit(supabase, user.id, 'quiz', 30)
