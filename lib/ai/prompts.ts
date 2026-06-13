@@ -119,7 +119,22 @@ ACTUAL techniques, ACTUAL tools from the real subject.
 
 ---
 
-RULE 2 — NO GENERIC TEMPLATES
+RULE 2 — DYNAMIC LESSON STRUCTURE
+Every lesson must have a unique structure that fits the specific topic being taught. You are NOT following a fixed template. You are choosing the best way to teach THIS specific concept.
+
+Ask yourself these questions before deciding each section:
+- Does this topic involve a process or sequence of steps? → Use a diagram or numbered explanation.
+- Does this topic involve comparing multiple options or methods? → Use a table.
+- Does this topic have one key concept that needs deep explanation? → Use multiple explanation sections going deeper each time.
+- Does this topic have a common mistake beginners make? → Use a warning callout early.
+- Does this topic involve a physical skill or hands-on practice? → Go straight to a practical exercise with very specific steps.
+- Does this topic have a surprising insight that changes how you see something? → Lead with the analogy before the explanation.
+
+No two lessons should have the same section order. No two lessons should have the same number of sections. A lesson about a single tool might be: explanation → analogy → callout → exercise. A lesson about a complex process might be: explanation → diagram → explanation → explanation → table → pro_tip → exercise → summary. Let the topic decide the structure every single time.
+
+---
+
+RULE 3 — NO GENERIC TEMPLATES
 These phrases are FORBIDDEN in every lesson — never use them:
 
 FORBIDDEN:
@@ -142,7 +157,7 @@ subject name, that sentence is too generic. Rewrite it.
 
 ---
 
-RULE 3 — ANALOGIES MUST BE CREATIVE AND SUBJECT-APPROPRIATE
+RULE 4 — ANALOGIES MUST BE CREATIVE AND SUBJECT-APPROPRIATE
 Do NOT use "baking a cake" as an analogy for non-cooking subjects.
 Do NOT use the same analogy for multiple lessons.
 
@@ -170,7 +185,7 @@ specific concept being taught.
 
 ---
 
-RULE 4 — LESSONS MUST BE EXTENSIVE AND DETAILED
+RULE 5 — LESSONS MUST BE EXTENSIVE AND DETAILED
 This is a learning platform. Lessons must teach people properly.
 Not superficially. Not briefly. Properly.
 
@@ -199,7 +214,7 @@ Not just "gather your workspace tools."
 
 ---
 
-RULE 5 — RESOURCES MUST BE REAL
+RULE 6 — RESOURCES MUST BE REAL
 Only include resource sections with real, verifiable URLs.
 If you are not certain a URL exists, do not include it.
 Never invent resource names like "Craft Guild Guides."
@@ -217,7 +232,7 @@ better than a fake one.
 
 ---
 
-RULE 6 — EXERCISES MUST BE SPECIFIC AND PRACTICAL
+RULE 7 — EXERCISES MUST BE SPECIFIC AND PRACTICAL
 Exercises must be things the student can actually DO related
 to the specific lesson content.
 
@@ -246,7 +261,7 @@ For "Introduction to User-Centered Design" lesson:
 
 ---
 
-RULE 7 — SUBJECT TYPE CONTENT RULES (from previous fix)
+RULE 8 — SUBJECT TYPE CONTENT RULES (from previous fix)
 Technical subjects (programming, web dev, etc.):
 → Include code sections, code_comparison, technical diagrams
 
@@ -256,42 +271,27 @@ Non-technical subjects (tailoring, business, design, cooking, etc.):
 
 ---
 
-SECTION STRUCTURE FOR A COMPLETE LESSON:
+GUIDELINE ON DYNAMIC SECTION STRUCTURE:
 
-A complete lesson should follow this flow:
+Every lesson must design its own flow rather than repeating the same layout.
+Examples of appropriate lesson flows:
 
-1. explanation — Real introduction with actual subject knowledge
-   (NOT "in this lesson we explore the core mechanisms of...")
-   (YES "Tailoring begins with your tools. A tailor without proper
-   equipment is like a chef without knives — the skill exists but
-   cannot be expressed...")
+A lesson about a single tool/concept:
+1. explanation — Subject-specific introduction
+2. analogy — Imaginative comparison
+3. callout (warning) — Common beginner mistakes or safety warnings
+4. exercise_task or exercise_writing — Actionable hands-on task
+5. summary — Domain-specific key takeaways
 
-2. analogy — Creative, subject-specific analogy that genuinely
-   illuminates the concept
-
-3. explanation — Deep dive into the first key concept with
-   real named details
-
-4. diagram OR table — Subject-specific visual breakdown
-   (NOT "[Start] → [Apply]" — YES actual named steps/comparisons)
-
-5. explanation — Second key concept with real named details
-
-6. callout (tip or warning) — Specific practical advice from
-   real subject knowledge
-
-7. explanation OR table — Third concept or comparison
-
-8. callout (pro_tip) — Advanced insight only experienced
-   practitioners would know
-
-9. exercise_task OR exercise_writing — Specific actionable exercise
-   using real subject tools/concepts
-
-10. resource — ONLY if a real verified URL exists
-
-11. summary — 4-5 genuinely specific takeaways that could ONLY
-    apply to this specific lesson
+A lesson about a complex process:
+1. explanation — High level overview
+2. diagram — Step-by-step visual process flow
+3. explanation — Detailed breakdown of step 1 and 2
+4. explanation — Detailed breakdown of step 3 and 4
+5. table — Comparison of alternative paths or materials
+6. callout (pro_tip) — Pro techniques for high-quality outcomes
+7. exercise_task — Full practical walk-through exercise
+8. summary — Core process principles to remember
 
 ---
 
