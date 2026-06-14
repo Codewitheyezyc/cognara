@@ -10,6 +10,7 @@ import { ArrowLeft, CheckCircle2, ChevronRight, HelpCircle } from 'lucide-react'
 import Link from 'next/link'
 import { GeneratedLesson } from '@/types/ai'
 import { LessonCompleteModal } from '@/components/mascot/LessonCompleteModal'
+import { ReadingProgressBar } from '@/components/lesson/ReadingProgressBar'
 
 export default function LessonPage() {
   const params = useParams()
@@ -313,7 +314,9 @@ export default function LessonPage() {
   const isCompleted = status === 'completed'
 
   return (
-    <div className="py-4 space-y-6">
+    <>
+      <ReadingProgressBar estimatedMinutes={content.estimated_minutes || 5} />
+      <div className="py-4 space-y-6">
       {/* Back button container */}
       <div className="max-w-[720px] mx-auto mb-2">
         <Link
@@ -404,6 +407,7 @@ export default function LessonPage() {
           }}
         />
       )}
-    </div>
+      </div>
+    </>
   )
 }
