@@ -12,6 +12,8 @@ import { ExerciseCode } from './ExerciseCode'
 import { ExerciseWriting } from './ExerciseWriting'
 import { ExerciseTask } from './ExerciseTask'
 import { ExerciseProject } from './ExerciseProject'
+import { createClient } from '@/lib/supabase/client'
+import { BookmarkButton } from './BookmarkButton'
 
 interface LessonContentProps {
   lesson: GeneratedLesson
@@ -48,6 +50,24 @@ export default function LessonContent({
 }: LessonContentProps) {
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false)
   const router = useRouter()
+
+  const supabase = createClient()
+  const [bookmarks, setBookmarks] = React.useState<any[]>([])
+
+  React.useEffect(() => {
+    async function fetchBookmarks() {
+      if (!userId || !lessonId) return
+      const { data } = await supabase
+        .from('lesson_bookmarks')
+        .select('*')
+        .eq('lesson_id', lessonId)
+        .eq('user_id', userId)
+      if (data) {
+        setBookmarks(data)
+      }
+    }
+    fetchBookmarks()
+  }, [lessonId, userId, supabase])
 
   return (
     <div className="max-w-[720px] mx-auto space-y-8 pb-12 animate-page-enter">
@@ -118,7 +138,9 @@ export default function LessonContent({
       {/* Structured Sections Loop */}
       <div className="space-y-8">
         {(lesson.sections || []).map((section, idx) => {
-          switch (section.type) {
+          const sectionBookmark = bookmarks.find(b => b.section_index === idx)
+          const sectionEl = (() => {
+            switch (section.type) {
             case 'explanation':
             case 'analogy':
             case 'use_case':
@@ -293,7 +315,32 @@ export default function LessonContent({
             default:
               return null
           }
-        })}
+        })()
+
+        if (!sectionEl) return null
+
+        return (
+          <div key={idx} className="relative group/section">
+            <BookmarkButton
+              lessonId={lessonId}
+              lessonTitle={lessonTitle}
+              sectionIndex={idx}
+              sectionHeading={section.heading || ''}
+              sectionBody={section.body?.slice(0, 200) || section.code_snippet?.slice(0, 200) || ''}
+              userId={userId}
+              initialBookmark={sectionBookmark}
+              onBookmarkChange={(newBookmark) => {
+                if (newBookmark) {
+                  setBookmarks(prev => [...prev.filter(b => b.section_index !== idx), newBookmark])
+                } else {
+                  setBookmarks(prev => prev.filter(b => b.section_index !== idx))
+                }
+              }}
+            />
+            {sectionEl}
+          </div>
+        )
+      })}
       </div>
 
       {/* Key Takeaways Section */}

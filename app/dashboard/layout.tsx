@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Home, Map, BarChart2, Flame, Settings, Search, Bell } from 'lucide-react'
+import { Home, Map, BarChart2, Flame, Settings, Search, Bell, Bookmark } from 'lucide-react'
 import { ProfileDropdown } from '@/components/dashboard/ProfileDropdown'
 import { Logo } from '@/components/ui/Logo'
 
@@ -228,6 +228,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { label: 'Home', href: '/dashboard', icon: Home },
     { label: 'My Path', href: '/dashboard/path', icon: Map },
     { label: 'Progress', href: '/dashboard/progress', icon: BarChart2 },
+    { label: 'Notes', href: '/dashboard/notes', icon: Bookmark },
     { label: 'Settings', href: '/dashboard/settings', icon: Settings },
   ]
 
