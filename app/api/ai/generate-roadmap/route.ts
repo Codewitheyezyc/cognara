@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 
     // 2. Parse request payload
     const body = await request.json()
-    const { goalText, subject, level, dailyMinutes, name, learningDepth } = body
+    const { goalText, subject, level, dailyMinutes, name, learningDepth, learningStyleDetail } = body
 
     if (!goalText || !subject || !level || !dailyMinutes) {
       return NextResponse.json(
@@ -45,13 +45,14 @@ export async function POST(request: Request) {
       )
     }
 
-    // 3. Update Profile Name & Learning Depth if provided
-    if (name || learningDepth) {
+    // 3. Update Profile Name, Learning Depth, & Learning Style if provided
+    if (name || learningDepth || learningStyleDetail) {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
           ...(name ? { name } : {}),
-          ...(learningDepth ? { learning_depth: Number(learningDepth) } : {})
+          ...(learningDepth ? { learning_depth: Number(learningDepth) } : {}),
+          ...(learningStyleDetail ? { learning_style_detail: learningStyleDetail } : {})
         })
         .eq('id', user.id)
 

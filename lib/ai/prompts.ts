@@ -362,9 +362,31 @@ export function buildLessonUserMessage(params: LessonParams & {
     occupation?: string
     preferred_study_time?: string
     daily_study_minutes?: number
+    learning_style_detail?: {
+      prefers: string
+      confusion_style: string
+      pace: string
+      motivation: string
+      challenge: string
+    }
   }
 }): string {
   const isCode = isCodeSubject(params.subject)
+  const styleContext = params.profile?.learning_style_detail
+    ? `
+Learning style preferences:
+- Learns best by: ${params.profile.learning_style_detail.prefers}
+- When confused prefers: ${params.profile.learning_style_detail.confusion_style}
+- Ideal lesson pace: ${params.profile.learning_style_detail.pace}
+- Motivated by: ${params.profile.learning_style_detail.motivation}
+- Past challenge: ${params.profile.learning_style_detail.challenge}
+
+Adapt the lesson structure to match these preferences.
+If they prefer examples first — lead with an example before
+the explanation. If they like short focused content — keep
+sections concise. If they are motivated by progress — add
+encouragement milestone notes within the lesson.
+` : ''
 
   return `
 You are teaching: ${params.lessonTitle}
@@ -372,6 +394,7 @@ This is part of: ${params.phaseTitle}
 Full subject: ${params.subject}
 Depth level: ${params.depthLevel} — ${params.depthLabel}
 Technical subject: ${isCode ? 'YES — include code examples' : 'NO — never include code. Use real domain knowledge only.'}
+${styleContext}
 
 CRITICAL: This lesson is about ${params.lessonTitle} in the context of ${params.subject}.
 Every sentence must reference actual concepts, tools, techniques, and knowledge

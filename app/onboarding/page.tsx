@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import StepName from '@/components/onboarding/StepName'
 import StepGoal from '@/components/onboarding/StepGoal'
+import StepLearningStyle from '@/components/onboarding/StepLearningStyle'
 import StepLevel from '@/components/onboarding/StepLevel'
 import StepDepth from '@/components/onboarding/StepDepth'
 import StepTime from '@/components/onboarding/StepTime'
@@ -22,6 +23,7 @@ export default function OnboardingPage() {
   const [name, setName] = useState('')
   const [goalText, setGoalText] = useState('')
   const [subject, setSubject] = useState('')
+  const [learningStyleDetail, setLearningStyleDetail] = useState<any>(null)
   const [level, setLevel] = useState('')
   const [learningDepth, setLearningDepth] = useState(2) // default 2 (Beginner)
   const [dailyMinutes, setDailyMinutes] = useState(30) // default 30 min
@@ -56,7 +58,7 @@ export default function OnboardingPage() {
 
   // Submit onboarding details to API route
   async function triggerGeneration() {
-    setStep(6) // Generating step (previously 5)
+    setStep(7) // Generating step
     setErrorMsg(null)
 
     try {
@@ -70,6 +72,7 @@ export default function OnboardingPage() {
           level,
           learningDepth,
           dailyMinutes,
+          learningStyleDetail,
         }),
       })
 
@@ -77,14 +80,14 @@ export default function OnboardingPage() {
 
       if (!response.ok || result.error) {
         setErrorMsg(result.error || 'Failed to generate roadmap. Please try again.')
-        setStep(5) // Go back to last step for retry (previously 4)
+        setStep(6) // Go back to last step for retry
       } else {
-        setStep(7) // Success step (previously 6)
+        setStep(8) // Success step
       }
     } catch (err) {
       console.error('Error in onboarding submission:', err)
       setErrorMsg('An unexpected connection issue occurred. Please try again.')
-      setStep(5)
+      setStep(6)
     }
   }
 
@@ -132,35 +135,43 @@ export default function OnboardingPage() {
           )}
 
           {step === 3 && (
-            <StepLevel
-              level={level}
-              onChange={setLevel}
+            <StepLearningStyle
+              onChange={setLearningStyleDetail}
               onBack={() => setStep(2)}
               onNext={() => setStep(4)}
             />
           )}
 
           {step === 4 && (
-            <StepDepth
-              depth={learningDepth}
-              onChange={setLearningDepth}
+            <StepLevel
+              level={level}
+              onChange={setLevel}
               onBack={() => setStep(3)}
               onNext={() => setStep(5)}
             />
           )}
 
           {step === 5 && (
+            <StepDepth
+              depth={learningDepth}
+              onChange={setLearningDepth}
+              onBack={() => setStep(4)}
+              onNext={() => setStep(6)}
+            />
+          )}
+
+          {step === 6 && (
             <StepTime
               dailyMinutes={dailyMinutes}
               onChange={setDailyMinutes}
-              onBack={() => setStep(4)}
+              onBack={() => setStep(5)}
               onNext={triggerGeneration}
             />
           )}
 
-          {step === 6 && <GeneratingPath />}
+          {step === 7 && <GeneratingPath />}
 
-          {step === 7 && (
+          {step === 8 && (
             <div className="flex flex-col items-center justify-center text-center space-y-6 animate-page-enter">
               <div className="relative flex items-center justify-center w-16 h-16 rounded-full border border-success/30 bg-success/10 text-success shadow-[0_0_24px_rgba(52,211,153,0.15)]">
                 <CheckCircle2 className="h-9 w-9" strokeWidth={1.5} />

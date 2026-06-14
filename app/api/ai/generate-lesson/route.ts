@@ -71,7 +71,7 @@ export async function POST(request: Request) {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('learning_depth, learning_style, main_goal, occupation, preferred_study_time, daily_study_minutes')
+      .select('learning_depth, learning_style, main_goal, occupation, preferred_study_time, daily_study_minutes, learning_style_detail')
       .eq('id', user.id)
       .maybeSingle()
 
