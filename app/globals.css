@@ -262,3 +262,15 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary);
 }
+
+/* Why Cognara scroll animation classes */
+.why-card {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.why-card.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}

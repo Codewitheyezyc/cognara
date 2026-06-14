@@ -19,6 +19,7 @@ import {
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { Logo } from '@/components/ui/Logo'
 import { Spark } from '@/components/mascot/Spark'
+import { WhyCognara } from '@/components/marketing/WhyCognara'
 
 export default function MarketingPage() {
   // Mascot & Simulator State
@@ -478,7 +479,7 @@ export default function MarketingPage() {
           </div>
         </section>
 
-
+        <WhyCognara />
 
         {/* FAQ SECTION */}
         <section className="space-y-12">
