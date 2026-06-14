@@ -14,6 +14,8 @@ import { ExerciseTask } from './ExerciseTask'
 import { ExerciseProject } from './ExerciseProject'
 import { createClient } from '@/lib/supabase/client'
 import { BookmarkButton } from './BookmarkButton'
+import { ConfusedButton } from './ConfusedButton'
+
 
 interface LessonContentProps {
   lesson: GeneratedLesson
@@ -144,6 +146,21 @@ export default function LessonContent({
             case 'explanation':
             case 'analogy':
             case 'use_case':
+              return (
+                <div key={idx}>
+                  <ConfusedButton
+                    sectionHeading={section.heading}
+                    sectionBody={section.body || ''}
+                    subject={subject}
+                    depthLevel={depthLevel}
+                  >
+                    <p className="text-text-2 text-sm leading-relaxed whitespace-pre-line">
+                      {section.body}
+                    </p>
+                  </ConfusedButton>
+                </div>
+              )
+
             case 'summary':
               return (
                 <div key={idx} className="space-y-2">
@@ -155,6 +172,7 @@ export default function LessonContent({
                   </p>
                 </div>
               )
+
 
             case 'exercise_code':
               return (
