@@ -1,12 +1,13 @@
 import { GeneratedQuiz, QuizQuestion } from '@/types/ai'
 import { callClaudeJSON } from './client'
-import { QUIZ_SYSTEM_PROMPT, buildQuizUserMessage } from './prompts'
+import { QUIZ_SYSTEM_PROMPT, buildQuizUserMessage, isTechnicalSubject } from './prompts'
 
 export async function generateQuiz(
   lessonTitle: string,
   subject: string,
   level: string,
-  keyTakeaways: string[]
+  keyTakeaways: string[],
+  lessonSummary: string
 ): Promise<GeneratedQuiz> {
   const mockFallback = async () => {
     // Simulate network delay
@@ -26,22 +27,29 @@ export async function generateQuiz(
       return { questions: getuseEffectQuestions() }
     }
 
-    return { questions: getDefaultQuestions(lessonTitle) }
+    return { questions: getDefaultQuestions(lessonTitle, subject) }
   }
 
   const userPrompt = buildQuizUserMessage({
     lessonTitle,
     subject,
     level,
-    keyTakeaways
+    keyTakeaways,
+    lessonSummary
   })
 
+  const systemPrompt = QUIZ_SYSTEM_PROMPT
+    .replace(/{subject}/g, subject)
+    .replace(/{lessonTitle}/g, lessonTitle)
+    .replace(/{isTechnical}/g, isTechnicalSubject(subject) ? 'YES' : 'NO')
+
   return callClaudeJSON<GeneratedQuiz>(
-    QUIZ_SYSTEM_PROMPT,
+    systemPrompt,
     userPrompt,
     mockFallback
   )
 }
+
 
 function getES6Questions(): QuizQuestion[] {
   return [
@@ -328,7 +336,66 @@ function getuseEffectQuestions(): QuizQuestion[] {
   ]
 }
 
-function getDefaultQuestions(lessonTitle: string): QuizQuestion[] {
+function getDefaultQuestions(lessonTitle: string, subject: string): QuizQuestion[] {
+  const isTech = isTechnicalSubject(subject)
+  if (!isTech) {
+    return [
+      {
+        id: 'def_q1',
+        type: 'multiple_choice',
+        question: `What is the primary goal when applying the principles of ${lessonTitle}?`,
+        options: [
+          'To develop practical, real-world skills and apply them effectively in context.',
+          'To memorize abstract terminology without practicing the core activities.',
+          'To standardise every task regardless of the unique requirements of the situation.',
+          'To focus solely on theoretical models without executing any hands-on work.'
+        ],
+        correct_answer: 'To develop practical, real-world skills and apply them effectively in context.',
+        explanation: `Applying the concepts of ${lessonTitle} helps build genuine capability and domain confidence, ensuring you can execute tasks successfully.`
+      },
+      {
+        id: 'def_q2',
+        type: 'true_false',
+        question: `Developing proficiency in ${lessonTitle} requires both understanding the concepts and engaging in regular, deliberate practice.`,
+        correct_answer: 'true',
+        explanation: 'Real-world expertise is built by combining theoretical knowledge with hands-on practice over time.'
+      },
+      {
+        id: 'def_q3',
+        type: 'fill_blank',
+        question: `To verify that our skills are improving, we should seek constructive _____ from others or self-evaluate our progress.`,
+        correct_answer: 'feedback',
+        explanation: 'Feedback or active self-evaluation identifies areas of strength and specific opportunities for correction.'
+      },
+      {
+        id: 'def_q4',
+        type: 'multiple_choice',
+        question: `Which approach is most effective when encountering a difficult challenge in ${lessonTitle}?`,
+        options: [
+          'Break the challenge down into smaller, manageable parts and tackle them systematically.',
+          'Abandon the task immediately and switch to a completely unrelated subject.',
+          'Repeat the exact same mistake repeatedly without making any adjustments.',
+          'Ignore the difficulty and proceed without resolving the core issue.'
+        ],
+        correct_answer: 'Break the challenge down into smaller, manageable parts and tackle them systematically.',
+        explanation: 'Deconstructing complex problems makes them easier to understand, troubleshoot, and resolve step-by-step.'
+      },
+      {
+        id: 'def_q5',
+        type: 'multiple_choice',
+        question: `What is the most reliable way to maintain your skills in ${subject} over the long term?`,
+        options: [
+          'Consistent, active application and review of the key techniques.',
+          'Studying the material once and never thinking about it again.',
+          'Relying entirely on others to perform the tasks for you.',
+          'Assuming that skills never fade or require updates.'
+        ],
+        correct_answer: 'Consistent, active application and review of the key techniques.',
+        explanation: 'Regular practice and periodic review reinforce learning and keep your skills sharp and ready for use.'
+      }
+    ]
+  }
+
   return [
     {
       id: 'def_q1',

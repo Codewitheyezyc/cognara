@@ -52,6 +52,11 @@ export function isCodeSubject(subject: string): boolean {
   return CODE_SUBJECTS.some(codeKW => lower.includes(codeKW))
 }
 
+export function isTechnicalSubject(subject: string): boolean {
+  return isCodeSubject(subject)
+}
+
+
 export function buildRoadmapUserMessage(params: RoadmapParams): string {
   const codeSubject = isCodeSubject(params.subject)
 
@@ -388,48 +393,172 @@ Student context:
 
 
 // System prompt for quiz generation
-export const QUIZ_SYSTEM_PROMPT = `You are Cognara's assessment designer. Create a quiz to test understanding of the lesson content provided.
+export const QUIZ_SYSTEM_PROMPT = `You are Cognara's assessment designer. Generate a quiz that
+tests genuine understanding of the lesson content provided.
 
-Return ONLY valid JSON. No markdown, no preamble.
+SUBJECT: {subject}
+LESSON TOPIC: {lessonTitle}
+IS TECHNICAL SUBJECT: {isTechnical}
 
-Structure:
+---
+
+CRITICAL RULE — EVERY QUESTION AND ANSWER MUST BE ABOUT THE SUBJECT
+
+This is the most important rule. Read it carefully.
+
+Every single question, every single answer option, and every
+single explanation must be 100% relevant to {subject} and
+specifically about {lessonTitle}.
+
+FORBIDDEN — never include in any quiz regardless of subject:
+- Answer options about databases, SQL, or data structures
+  (unless the lesson IS about databases)
+- Answer options about web development, CSS, HTML, JavaScript
+  (unless the lesson IS about web development)
+- Answer options about programming, code, or software
+  (unless the lesson IS about programming)
+- Answer options about browser settings or security
+  (unless the lesson IS about cybersecurity)
+- Answer options about design patterns or architectures
+  (unless the lesson IS about software architecture)
+- Any answer option that could belong to a completely
+  different subject from {subject}
+
+TEST EVERY ANSWER OPTION YOU WRITE:
+Before including any answer option ask yourself:
+"Could this answer option appear in a lesson about {subject}?"
+If the answer is NO — rewrite it completely.
+
+---
+
+EXAMPLES OF CORRECT QUIZ CONTENT:
+
+For PUBLIC SPEAKING — "Why We Fear Public Speaking":
+✅ Correct question: "What physical symptom is most commonly
+   associated with stage fright?"
+✅ Correct options:
+   A) Increased heart rate and sweaty palms
+   B) Improved memory recall
+   C) Reduced adrenaline production
+   D) Enhanced vocal projection
+
+❌ WRONG options (what is currently happening):
+   A) To implement complex databases
+   B) To master modular architectures
+   C) To override browser security settings
+   D) To style pages using absolute layouts
+   (These belong to a programming course — never appear in public speaking)
+
+---
+
+For TAILORING — "Essential Tailoring Tools":
+✅ Correct question: "What is a seam ripper primarily used for?"
+✅ Correct options:
+   A) Removing stitches without damaging fabric
+   B) Cutting straight lines through multiple fabric layers
+   C) Measuring the distance between seams
+   D) Pressing seam allowances flat
+
+❌ WRONG options:
+   A) To compile and run code
+   B) To create responsive layouts
+   C) To initialize a database
+   D) To debug runtime errors
+
+---
+
+For BUSINESS — "Understanding Your Target Market":
+✅ Correct question: "What is the primary purpose of a customer persona?"
+✅ Correct options:
+   A) To represent a fictional ideal customer based on research
+   B) To track inventory levels in a warehouse
+   C) To calculate employee payroll
+   D) To design a company logo
+
+---
+
+For COOKING — "Knife Skills and Cutting Techniques":
+✅ Correct question: "What does 'julienne' mean in cooking?"
+✅ Correct options:
+   A) Cutting food into thin matchstick-shaped strips
+   B) Cooking food in boiling water briefly then cooling it
+   C) Frying food in a small amount of hot fat
+   D) Reducing a liquid by simmering it slowly
+
+---
+
+QUESTION GENERATION RULES:
+
+1. Read the lesson key takeaways and lesson topic carefully
+2. Generate questions that test actual understanding of THIS lesson
+3. Every question must reference concepts FROM this specific lesson
+4. Wrong answer options must be plausible but clearly incorrect
+   to someone who studied the lesson
+5. Wrong answers must come from the SAME subject domain —
+   a wrong answer for a public speaking quiz should still be
+   about communication or psychology, just incorrect
+6. Never generate trick questions or deliberately confusing options
+7. The correct answer explanation must reference actual lesson content
+
+QUESTION TYPES:
+- multiple_choice: 4 options, 1 correct
+- fill_blank: complete the sentence with a specific term
+- true_false: statement about lesson content
+
+Generate exactly 5 questions.
+Difficulty: 2 easy, 2 medium, 1 hard.
+
+Return ONLY valid JSON. No markdown. No preamble.
+
 {
   "questions": [
     {
-      "id": "string",
-      "type": "multiple_choice" | "fill_blank" | "true_false",
-      "question": "string",
-      "options": ["string", "string", "string", "string"],  // only for multiple_choice
-      "correct_answer": "string",
-      "explanation": "string - why this is correct, shown after submission"
+      "id": "q1",
+      "type": "multiple_choice",
+      "question": "string — must be about {subject} and {lessonTitle}",
+      "options": ["string", "string", "string", "string"],
+      "correct_answer": "string — must match one option exactly",
+      "explanation": "string — explains why this is correct using lesson concepts"
     }
   ]
-}
+}`;
 
-Rules:
-- Generate exactly 5 questions
-- Use at least 2 multiple_choice questions
-- Use at least 1 fill_blank question
-- Vary difficulty: 2 easy, 2 medium, 1 hard
-- Questions must directly test the lesson content — not trivia
-- Correct answers for fill_blank must be a single word or short phrase
-- Explanations must be educational — teach, don't just confirm
-- For multiple_choice: exactly 4 options, only 1 correct`;
+export const QUIZ_SYSTEM_PROMPT_STRICT = QUIZ_SYSTEM_PROMPT + `
+
+---
+WARNING: Previous generation had wrong subject content. Every option MUST be about {subject} only. No technology, programming, or database content allowed. Make absolutely sure no options or explanations refer to web development, coding, SQL, databases, or programming.`;
 
 export interface QuizParams {
   lessonTitle: string
   subject: string
   level: string
   keyTakeaways: string[]
+  lessonSummary: string
 }
 
 export function buildQuizUserMessage(params: QuizParams): string {
-  const takeawaysList = params.keyTakeaways.map((t) => `- ${t}`).join('\n')
-  return `Lesson Title: ${params.lessonTitle}
+  const technical = isTechnicalSubject(params.subject)
+
+  return `
+You are generating a quiz for this specific lesson:
+
 Subject: ${params.subject}
-Student Level: ${params.level}
-Lesson Summary:
-${takeawaysList}`;
+Lesson title: ${params.lessonTitle}
+Technical subject: ${technical
+  ? 'YES — questions and answers may include programming concepts'
+  : 'NO — questions and answers must ONLY reference real-world concepts from ' + params.subject + '. Never include programming, databases, web development, or technology answer options.'}
+
+Lesson key takeaways (base your questions on these):
+${params.keyTakeaways.map((t, i) => `${i + 1}. ${t}`).join('\n')}
+
+Lesson summary:
+${params.lessonSummary}
+
+CRITICAL REMINDER: Every question and every answer option
+must be specifically about ${params.subject} — ${params.lessonTitle}.
+If any answer option could belong to a different subject,
+rewrite it immediately.
+`.trim()
 }
 
 // System prompt for insights generation
