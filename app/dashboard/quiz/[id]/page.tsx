@@ -55,6 +55,8 @@ export default function QuizPage() {
   // Badge celebration states
   const [newBadges, setNewBadges] = useState<any[]>([])
   const [currentBadgeIndex, setCurrentBadgeIndex] = useState(0)
+  const [phaseId, setPhaseId] = useState('')
+  const [phaseTitle, setPhaseTitle] = useState('')
 
   // Timer
   const [timeSpentSecs, setTimeSpentSecs] = useState(0)
@@ -74,18 +76,29 @@ export default function QuizPage() {
           return
         }
 
-        // 2. Fetch lesson title
+        // 2. Fetch lesson details
         const { data: lesson, error: lessonErr } = await supabase
           .from('lessons')
-          .select('title')
+          .select('title, phase_id')
           .eq('id', lessonId)
           .maybeSingle()
-
+ 
         if (lessonErr || !lesson) {
           router.push('/dashboard/path')
           return
         }
         setLessonTitle(lesson.title)
+        if (lesson.phase_id) {
+          setPhaseId(lesson.phase_id)
+          const { data: phaseRow } = await supabase
+            .from('roadmap_phases')
+            .select('title')
+            .eq('id', lesson.phase_id)
+            .maybeSingle()
+          if (phaseRow) {
+            setPhaseTitle(phaseRow.title)
+          }
+        }
 
         // 3. Load or generate quiz
         const res = await fetch('/api/ai/generate-quiz', {
@@ -266,24 +279,43 @@ export default function QuizPage() {
         />
 
         {newBadges.length > 0 && currentBadgeIndex < newBadges.length && (
-          <MascotOverlay
-            emotion="celebrate"
-            messages={[
-              `New badge earned! ${newBadges[currentBadgeIndex].badge_emoji}`,
-              `${newBadges[currentBadgeIndex].badge_label}`,
-              BADGE_DESCRIPTIONS[newBadges[currentBadgeIndex].badge_key] || ''
-            ]}
-            ctaLabel="Keep going!"
-            onDismiss={() => {
-              if (currentBadgeIndex + 1 < newBadges.length) {
-                setCurrentBadgeIndex(currentBadgeIndex + 1)
-              } else {
-                setNewBadges([])
-                window.dispatchEvent(new Event('badge-earned'))
-                router.refresh()
-              }
-            }}
-          />
+          (() => {
+            const badge = newBadges[currentBadgeIndex]
+            const isPhaseBadge = badge.badge_key.startsWith('phase')
+            
+            return (
+              <MascotOverlay
+                emotion="celebrate"
+                messages={
+                  isPhaseBadge
+                    ? [
+                        `Phase complete! 🏆`,
+                        `You finished every lesson in ${phaseTitle || badge.badge_label}`,
+                        `Your certificate is ready to download.`
+                      ]
+                    : [
+                        `New badge earned! ${badge.badge_emoji}`,
+                        `${badge.badge_label}`,
+                        BADGE_DESCRIPTIONS[badge.badge_key] || ''
+                      ]
+                }
+                ctaLabel={isPhaseBadge ? "Download Certificate" : "Keep going!"}
+                onDismiss={() => {
+                  if (isPhaseBadge) {
+                    window.open(`/api/certificate/generate?phaseId=${phaseId}`, '_blank')
+                  }
+                  
+                  if (currentBadgeIndex + 1 < newBadges.length) {
+                    setCurrentBadgeIndex(currentBadgeIndex + 1)
+                  } else {
+                    setNewBadges([])
+                    window.dispatchEvent(new Event('badge-earned'))
+                    router.refresh()
+                  }
+                }}
+              />
+            )
+          })()
         )}
       </div>
     )

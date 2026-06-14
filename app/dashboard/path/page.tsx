@@ -114,6 +114,7 @@ export default async function PathPage() {
               </div>
 
               <RoadmapPhaseCard
+                phaseId={phase.id}
                 phaseNumber={phase.phase_number}
                 title={phase.title}
                 description={phase.description || ''}

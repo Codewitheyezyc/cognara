@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, CheckCircle2, PlayCircle, Circle } from 'lucide-react'
+import { ChevronDown, ChevronUp, CheckCircle2, PlayCircle, Circle, Award } from 'lucide-react'
 
 interface Lesson {
   id: string
@@ -12,6 +12,7 @@ interface Lesson {
 }
 
 interface RoadmapPhaseCardProps {
+  phaseId: string
   phaseNumber: number
   title: string
   description: string
@@ -19,6 +20,7 @@ interface RoadmapPhaseCardProps {
 }
 
 export function RoadmapPhaseCard({
+  phaseId,
   phaseNumber,
   title,
   description,
@@ -92,8 +94,34 @@ export function RoadmapPhaseCard({
           </div>
         </div>
 
-        <div style={{ color: 'var(--color-text-3)' }}>
-          {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {lessons.length > 0 && lessons.every(l => l.status === 'completed') && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                window.open(`/api/certificate/generate?phaseId=${phaseId}`, '_blank')
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'rgba(52,211,153,0.1)',
+                color: 'var(--color-success)',
+                border: '1px solid var(--color-success)',
+                borderRadius: '8px',
+                padding: '7px 14px',
+                fontSize: '13px',
+                cursor: 'pointer',
+                fontWeight: 500
+              }}
+            >
+              <Award size={14} />
+              Download Certificate
+            </button>
+          )}
+          <div style={{ color: 'var(--color-text-3)' }}>
+            {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+          </div>
         </div>
       </div>
 
