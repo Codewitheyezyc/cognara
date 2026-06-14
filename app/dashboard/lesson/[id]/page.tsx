@@ -11,6 +11,19 @@ import Link from 'next/link'
 import { GeneratedLesson } from '@/types/ai'
 import { LessonCompleteModal } from '@/components/mascot/LessonCompleteModal'
 import { ReadingProgressBar } from '@/components/lesson/ReadingProgressBar'
+import MascotOverlay from '@/components/mascot/MascotOverlay'
+
+const BADGE_DESCRIPTIONS: Record<string, string> = {
+  phase_1: 'Completed Phase 1',
+  phase_2: 'Completed Phase 2',
+  phase_3: 'Completed Phase 3',
+  phase_4: 'Completed Phase 4',
+  phase_5: 'Completed full roadmap',
+  streak_7: '7 day streak',
+  streak_30: '30 day streak',
+  perfect_quiz: '100% on a quiz',
+  speed_learner: '3 lessons in one day'
+}
 
 export default function LessonPage() {
   const params = useParams()
@@ -35,6 +48,10 @@ export default function LessonPage() {
   const [showCelebration, setShowCelebration] = useState(false)
   const [streakDays, setStreakDays] = useState(0)
   const [nextLessonId, setNextLessonId] = useState<string | null>(null)
+
+  // Badge celebration states
+  const [newBadges, setNewBadges] = useState<any[]>([])
+  const [currentBadgeIndex, setCurrentBadgeIndex] = useState(0)
 
   useEffect(() => {
     async function loadLesson() {
@@ -280,6 +297,24 @@ export default function LessonPage() {
       if (!error) {
         setStatus('completed')
         setShowCelebration(true)
+        
+        // Trigger badge check on lesson completion
+        try {
+          const badgeRes = await fetch('/api/badges/check-and-award', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lessonId })
+          })
+          if (badgeRes.ok) {
+            const badgeData = await badgeRes.json()
+            if (badgeData.newBadges && badgeData.newBadges.length > 0) {
+              setNewBadges(badgeData.newBadges)
+              setCurrentBadgeIndex(0)
+            }
+          }
+        } catch (badgeErr) {
+          console.error('Error checking badges on lesson complete:', badgeErr)
+        }
       } else {
         console.error('Error updating progress:', error)
       }
@@ -404,6 +439,27 @@ export default function LessonPage() {
           onDismiss={() => {
             setShowCelebration(false)
             router.refresh()
+          }}
+        />
+      )}
+
+      {newBadges.length > 0 && currentBadgeIndex < newBadges.length && (
+        <MascotOverlay
+          emotion="celebrate"
+          messages={[
+            `New badge earned! ${newBadges[currentBadgeIndex].badge_emoji}`,
+            `${newBadges[currentBadgeIndex].badge_label}`,
+            BADGE_DESCRIPTIONS[newBadges[currentBadgeIndex].badge_key] || ''
+          ]}
+          ctaLabel="Keep going!"
+          onDismiss={() => {
+            if (currentBadgeIndex + 1 < newBadges.length) {
+              setCurrentBadgeIndex(currentBadgeIndex + 1)
+            } else {
+              setNewBadges([])
+              window.dispatchEvent(new Event('badge-earned'))
+              router.refresh()
+            }
           }}
         />
       )}

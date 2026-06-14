@@ -11,7 +11,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { 
   User, Globe, Clock, Target, GraduationCap, Briefcase, 
-  Settings2, Bell, Save, Upload, Camera, Check, AlertCircle, Loader2 
+  Settings2, Bell, Save, Upload, Camera, Check, AlertCircle, Loader2,
+  Award, Lock
 } from 'lucide-react'
 
 // Define Zod schemas
@@ -311,6 +312,18 @@ const depthLevels = [
   { value: 5, label: 'Expert' },
 ]
 
+const ALL_BADGES = [
+  { key: 'phase_1', emoji: '🌱', label: 'First Steps', description: 'Completed Phase 1' },
+  { key: 'phase_2', emoji: '🔥', label: 'Building Momentum', description: 'Completed Phase 2' },
+  { key: 'phase_3', emoji: '⚡', label: 'Halfway There', description: 'Completed Phase 3' },
+  { key: 'phase_4', emoji: '🎯', label: 'Advanced Learner', description: 'Completed Phase 4' },
+  { key: 'phase_5', emoji: '🏆', label: 'Graduate', description: 'Completed full roadmap' },
+  { key: 'streak_7', emoji: '🔥', label: 'Week Warrior', description: '7 day streak' },
+  { key: 'streak_30', emoji: '💎', label: 'Consistent', description: '30 day streak' },
+  { key: 'perfect_quiz', emoji: '⭐', label: 'Perfect Score', description: '100% on a quiz' },
+  { key: 'speed_learner', emoji: '⚡', label: 'Speed Learner', description: '3 lessons in one day' }
+]
+
 export default function ProfilePage() {
   const supabase = createClient()
   const { toast } = useToast()
@@ -318,6 +331,7 @@ export default function ProfilePage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [userName, setUserName] = useState<string>('')
+  const [badges, setBadges] = useState<any[]>([])
   
   const [loadingProfile, setLoadingProfile] = useState(true)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
@@ -411,6 +425,17 @@ export default function ProfilePage() {
               weekly_summary_enabled: profile.weekly_summary_enabled ?? true,
               achievement_notifications: profile.achievement_notifications ?? true,
             })
+          }
+
+          // Fetch badges
+          const { data: badgeData } = await supabase
+            .from('user_badges')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('earned_at', { ascending: false })
+            
+          if (badgeData) {
+            setBadges(badgeData)
           }
         }
       } catch (err) {
@@ -696,6 +721,90 @@ export default function ProfilePage() {
             </Button>
           </div>
         </form>
+      </div>
+
+      {/* SECTION 1.5 — MY BADGES */}
+      <div className="rounded-[10px] border border-border bg-surface p-6 shadow-md space-y-6">
+        <div className="flex items-center space-x-2 text-primary border-b border-border pb-3">
+          <Award className="h-5 w-5" strokeWidth={1.5} />
+          <h2 className="font-heading text-xl font-bold text-text-1">My Badges</h2>
+        </div>
+
+        {/* Badge Grid */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-text-1">Badges Overview</h3>
+          <div className="flex flex-wrap gap-4 p-4 rounded-md bg-surface-alt/20 border border-border/40 justify-center sm:justify-start">
+            {ALL_BADGES.map((item) => {
+              const isEarned = badges.some((b) => b.badge_key === item.key)
+              return (
+                <div key={item.key} className="flex flex-col items-center gap-1.5 w-16">
+                  {isEarned ? (
+                    <div 
+                      className="relative w-12 h-12 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center shadow-[0_0_12px_rgba(91,142,255,0.15)] transition-transform hover:scale-105 duration-200 cursor-help"
+                      title={`${item.label} (Earned): ${item.description}`}
+                    >
+                      <span className="text-xl">{item.emoji}</span>
+                    </div>
+                  ) : (
+                    <div 
+                      className="relative w-12 h-12 rounded-full bg-surface-alt border border-border flex items-center justify-center filter grayscale opacity-35 hover:opacity-60 transition-all duration-200 cursor-help"
+                      title={`${item.label} (Locked): ${item.description}`}
+                    >
+                      <span className="text-xl">{item.emoji}</span>
+                      <div className="absolute -bottom-0.5 -right-0.5 bg-surface border border-border rounded-full p-0.5 text-text-3">
+                        <Lock className="w-2.5 h-2.5" />
+                      </div>
+                    </div>
+                  )}
+                  <span className="text-[10px] font-semibold text-text-2 text-center truncate w-full" title={item.label}>
+                    {item.label}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Earned Badges Details */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-text-1">Earned Details</h3>
+          {badges.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {badges.map((badge) => {
+                const dateString = new Date(badge.earned_at).toLocaleDateString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric'
+                })
+                const desc = ALL_BADGES.find(ab => ab.key === badge.badge_key)?.description || ''
+                
+                return (
+                  <div 
+                    key={badge.id} 
+                    className="flex items-center gap-4 p-4 rounded-md border border-border/80 bg-surface-alt/30 hover:border-primary/20 transition-all duration-200"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-primary/5 border border-primary/20 flex items-center justify-center shrink-0">
+                      <span className="text-2xl">{badge.badge_emoji}</span>
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-bold text-text-1">{badge.badge_label}</span>
+                      <span className="text-xs text-text-2 mt-0.5">{desc}</span>
+                      <span className="text-[10px] text-text-3 mt-1.5 font-medium uppercase tracking-wider">
+                        {badge.subject} · {dateString}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8 px-4 rounded-md bg-surface-alt/10 border border-dashed border-border flex flex-col items-center justify-center">
+              <Award className="h-8 w-8 text-text-3 mb-2 animate-bounce" />
+              <p className="text-xs font-semibold text-text-2">No badges earned yet</p>
+              <p className="text-[11px] text-text-3 mt-0.5">Complete lessons and ace quizzes to earn your first badge!</p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* SECTION 2 — LEARNING IDENTITY */}

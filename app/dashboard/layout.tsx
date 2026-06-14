@@ -15,6 +15,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   
   const [streak, setStreak] = useState<number>(0)
   const [profile, setProfile] = useState<any>(null)
+  const [recentBadgeEmoji, setRecentBadgeEmoji] = useState<string>('')
   const [email, setEmail] = useState<string>('')
   const [roadmapProgress, setRoadmapProgress] = useState<{
     title: string
@@ -55,6 +56,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       if (!active) return
       if (profileData) {
         setProfile(profileData)
+      }
+
+      // Fetch latest badge
+      const { data: latestBadge } = await supabase
+        .from('user_badges')
+        .select('badge_emoji')
+        .eq('user_id', user.id)
+        .order('earned_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+        
+      if (!active) return
+      if (latestBadge) {
+        setRecentBadgeEmoji(latestBadge.badge_emoji)
+      } else {
+        setRecentBadgeEmoji('')
       }
 
       // Fetch streak
@@ -143,6 +160,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       subscription.unsubscribe()
     }
   }, [supabase, pathname])
+
+  // Real-time badge event listener
+  useEffect(() => {
+    const handleBadgeEarned = () => {
+      supabase.auth.getUser().then(({ data: { user } }: any) => {
+        if (user) {
+          supabase
+            .from('user_badges')
+            .select('badge_emoji')
+            .eq('user_id', user.id)
+            .order('earned_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+            .then(({ data }: any) => {
+              if (data) {
+                setRecentBadgeEmoji(data.badge_emoji)
+              }
+            })
+        }
+      })
+    }
+    window.addEventListener('badge-earned', handleBadgeEarned)
+    return () => window.removeEventListener('badge-earned', handleBadgeEarned)
+  }, [supabase])
 
   // Filter lessons based on command palette query
   useEffect(() => {
@@ -397,6 +438,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <ProfileDropdown 
               profile={profile}
               email={email}
+              recentBadgeEmoji={recentBadgeEmoji}
               onSignOut={handleSignOut}
             />
           </div>

@@ -9,6 +9,19 @@ import Link from 'next/link'
 import { QuizQuestion } from '@/types/ai'
 import AIBadge from '@/components/lesson/AIBadge'
 import { QuizResultModal } from '@/components/mascot/QuizResultModal'
+import MascotOverlay from '@/components/mascot/MascotOverlay'
+
+const BADGE_DESCRIPTIONS: Record<string, string> = {
+  phase_1: 'Completed Phase 1',
+  phase_2: 'Completed Phase 2',
+  phase_3: 'Completed Phase 3',
+  phase_4: 'Completed Phase 4',
+  phase_5: 'Completed full roadmap',
+  streak_7: '7 day streak',
+  streak_30: '30 day streak',
+  perfect_quiz: '100% on a quiz',
+  speed_learner: '3 lessons in one day'
+}
 
 export default function QuizPage() {
   const params = useParams()
@@ -38,6 +51,10 @@ export default function QuizPage() {
   // Loading / Error
   const [isLoading, setIsLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState('')
+
+  // Badge celebration states
+  const [newBadges, setNewBadges] = useState<any[]>([])
+  const [currentBadgeIndex, setCurrentBadgeIndex] = useState(0)
 
   // Timer
   const [timeSpentSecs, setTimeSpentSecs] = useState(0)
@@ -144,6 +161,28 @@ export default function QuizPage() {
         }
 
         setQuizResult(result)
+
+        // Trigger badge check on quiz submission
+        try {
+          const badgeRes = await fetch('/api/badges/check-and-award', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              quizScore: result.score,
+              lessonId,
+              currentStreak: result.streak?.current
+            })
+          })
+          if (badgeRes.ok) {
+            const badgeData = await badgeRes.json()
+            if (badgeData.newBadges && badgeData.newBadges.length > 0) {
+              setNewBadges(badgeData.newBadges)
+              setCurrentBadgeIndex(0)
+            }
+          }
+        } catch (badgeErr) {
+          console.error('Error checking badges on quiz submit:', badgeErr)
+        }
       } catch (err: any) {
         console.error(err)
         setErrorMsg(err.message || 'Failed to save quiz score.')
@@ -225,6 +264,27 @@ export default function QuizPage() {
           }}
           onRetry={handleRetryQuiz}
         />
+
+        {newBadges.length > 0 && currentBadgeIndex < newBadges.length && (
+          <MascotOverlay
+            emotion="celebrate"
+            messages={[
+              `New badge earned! ${newBadges[currentBadgeIndex].badge_emoji}`,
+              `${newBadges[currentBadgeIndex].badge_label}`,
+              BADGE_DESCRIPTIONS[newBadges[currentBadgeIndex].badge_key] || ''
+            ]}
+            ctaLabel="Keep going!"
+            onDismiss={() => {
+              if (currentBadgeIndex + 1 < newBadges.length) {
+                setCurrentBadgeIndex(currentBadgeIndex + 1)
+              } else {
+                setNewBadges([])
+                window.dispatchEvent(new Event('badge-earned'))
+                router.refresh()
+              }
+            }}
+          />
+        )}
       </div>
     )
   }

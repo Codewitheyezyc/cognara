@@ -10,10 +10,11 @@ import {
 interface ProfileDropdownProps {
   profile: any
   email: string
+  recentBadgeEmoji?: string
   onSignOut: () => Promise<void>
 }
 
-export function ProfileDropdown({ profile, email, onSignOut }: ProfileDropdownProps) {
+export function ProfileDropdown({ profile, email, recentBadgeEmoji, onSignOut }: ProfileDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   
@@ -74,7 +75,7 @@ export function ProfileDropdown({ profile, email, onSignOut }: ProfileDropdownPr
         />
         {/* Name next to avatar on desktop */}
         <span className="hidden md:inline text-xs font-semibold text-text-1">
-          {name}
+          {name}{recentBadgeEmoji ? ` ${recentBadgeEmoji}` : ''}
         </span>
       </button>
 
@@ -99,7 +100,9 @@ export function ProfileDropdown({ profile, email, onSignOut }: ProfileDropdownPr
               className="w-10 h-10 rounded-full object-cover border border-border"
             />
             <div className="flex flex-col min-w-0">
-              <span className="text-sm font-bold text-text-1 truncate">{name}</span>
+              <span className="text-sm font-bold text-text-1 truncate">
+                {name}{recentBadgeEmoji ? ` ${recentBadgeEmoji}` : ''}
+              </span>
               <span className="text-[11px] text-text-2 truncate">{email}</span>
             </div>
           </div>
