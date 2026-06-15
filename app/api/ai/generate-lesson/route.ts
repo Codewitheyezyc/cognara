@@ -80,7 +80,38 @@ export async function POST(request: Request) {
     // 6. Check multi-depth cache — skip if content is mock/template data
     const contentMap = (lesson.content && typeof lesson.content === 'object') ? (lesson.content as any) : null
     const cachedLesson = contentMap ? contentMap[depthLevel] : null
-    const cachedIsMock = cachedLesson?._isMock === true
+
+    // Check if the cached lesson is a mock fallback (e.g. from prior failure or unconfigured state)
+    const isMockLesson = (content: any): boolean => {
+      if (!content || typeof content !== 'object') return true
+      if (content._isMock === true) return true
+      
+      const sections = content.sections || []
+      if (sections.length === 0) return true
+      
+      const sectionTexts = sections.map((s: any) => 
+        JSON.stringify(s).toLowerCase()
+      ).join(' ')
+      
+      const mockMarkers = [
+        'baking a cake',
+        'toy box',
+        'sorting warehouse',
+        'lego instructions',
+        'cookie cutter',
+        'light switch',
+        'smart thermostat',
+        'legacy approach (messy / coupled)',
+        'legacy var (hoisted & function scoped)',
+        'incorrect (mutating props)',
+        'direct mutation (no re-render)',
+        'leaky listener (memory leak risk)'
+      ]
+      
+      return mockMarkers.some(marker => sectionTexts.includes(marker))
+    }
+
+    const cachedIsMock = isMockLesson(cachedLesson)
 
     if (cachedLesson && !cachedIsMock && !forceRegenerate) {
       // Ensure it is marked in progress if not already completed
@@ -103,7 +134,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ content: cachedLesson })
     }
 
-    if (cachedIsMock) {
+    if (cachedLesson && cachedIsMock) {
       console.log(`[generate-lesson] Cached content for lesson ${lessonId} depth ${depthLevel} is mock data — forcing regeneration with Claude.`)
     }
 

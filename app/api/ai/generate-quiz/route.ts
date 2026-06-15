@@ -38,11 +38,31 @@ export async function POST(request: Request) {
       .eq('user_id', user.id)
       .maybeSingle()
 
+    const isMockQuiz = (questions: any[]) => {
+      if (!Array.isArray(questions) || questions.length === 0) return true
+      return questions.some(q => 
+        q.id?.startsWith('es6_') || 
+        q.id?.startsWith('jsx_') || 
+        q.id?.startsWith('props_') || 
+        q.id?.startsWith('state_') || 
+        q.id?.startsWith('effect_') || 
+        q.id?.startsWith('def_')
+      )
+    }
+
     if (existingQuiz) {
-      return NextResponse.json({
-        quizId: existingQuiz.id,
-        questions: existingQuiz.questions,
-      })
+      if (isMockQuiz(existingQuiz.questions)) {
+        console.log(`[generate-quiz] Cached quiz for lesson ${lessonId} is mock data — deleting and forcing regeneration.`)
+        await supabase
+          .from('quizzes')
+          .delete()
+          .eq('id', existingQuiz.id)
+      } else {
+        return NextResponse.json({
+          quizId: existingQuiz.id,
+          questions: existingQuiz.questions,
+        })
+      }
     }
 
     // 4. Fetch lesson to verify access and get details
@@ -159,13 +179,15 @@ export async function POST(request: Request) {
     }
 
     // 8. Insert new quiz into database
+    const generatedIsMock = (generatedQuiz as any)._isMock === true
+
     const { data: newQuiz, error: insertError } = await supabase
       .from('quizzes')
       .insert({
         lesson_id: lessonId,
         user_id: user.id,
         questions: generatedQuiz.questions,
-        ai_generated: true,
+        ai_generated: !generatedIsMock,
       })
       .select('id')
       .single()
