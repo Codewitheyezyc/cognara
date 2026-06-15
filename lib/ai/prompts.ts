@@ -190,32 +190,19 @@ specific concept being taught.
 
 ---
 
-RULE 5 — LESSONS MUST BE EXTENSIVE AND DETAILED
-This is a learning platform. Lessons must teach people properly.
-Not superficially. Not briefly. Properly.
-
-Minimum content requirements:
-- At least 6 sections (aim for 8-10 for complex topics)
-- Each explanation section minimum 150 words of real content
-- Each analogy section must be genuinely insightful
-- Diagram sections must show real subject-specific processes
-- Tables must compare real named options from the subject
-- Exercise sections must be specific and actionable
-- Summary must list 4-5 genuinely specific takeaways
+RULE 5 — LESSONS MUST BE CONCISE AND HIGH-DENSITY (TO PREVENT TIMEOUTS)
+To prevent network timeouts on Vercel, keep the output highly concise, punchy, and dense. Avoid long prose.
+- Generate exactly 4 to 5 sections (never exceed 6).
+- Keep each explanation section focused (around 80-120 words of real, high-value content).
+- Do not repeat information. Be direct and educational.
+- The entire JSON payload must be under 2000 tokens.
 
 For a lesson like "Essential Tailoring Tools and Their Uses":
 The lesson should cover at minimum:
-- What each major tool is (scissors/shears, measuring tape,
-  tailor's chalk, seam ripper, dress form, iron/pressing tools)
-- Why each tool matters specifically
-- How to use each tool correctly
-- Common beginner mistakes with each tool
-- How to care for and maintain each tool
+- What each major tool is (shears, measuring tape, tailor's chalk, seam ripper)
+- Why each tool matters, and one common beginner mistake
 - A practical exercise using real tools
-
-A student finishing this lesson should know the name, purpose,
-correct usage, and care of at least 6-8 specific tailoring tools.
-Not just "gather your workspace tools."
+Keep descriptions short and high-value.
 
 ---
 
@@ -278,7 +265,7 @@ Non-technical subjects (tailoring, business, design, cooking, etc.):
 
 GUIDELINE ON DYNAMIC SECTION STRUCTURE:
 
-Every lesson must design its own flow rather than repeating the same layout.
+Every lesson must design its own flow of 4 to 5 sections. Do not repeat the same layout.
 Examples of appropriate lesson flows:
 
 A lesson about a single tool/concept:
@@ -291,12 +278,9 @@ A lesson about a single tool/concept:
 A lesson about a complex process:
 1. explanation — High level overview
 2. diagram — Step-by-step visual process flow
-3. explanation — Detailed breakdown of step 1 and 2
-4. explanation — Detailed breakdown of step 3 and 4
-5. table — Comparison of alternative paths or materials
-6. callout (pro_tip) — Pro techniques for high-quality outcomes
-7. exercise_task — Full practical walk-through exercise
-8. summary — Core process principles to remember
+3. table — Comparison of alternative paths or materials
+4. exercise_task — Full practical walk-through exercise
+5. summary — Core process principles to remember
 
 ---
 
