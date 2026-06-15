@@ -12,6 +12,7 @@ import { GeneratedLesson } from '@/types/ai'
 import { LessonCompleteModal } from '@/components/mascot/LessonCompleteModal'
 import { ReadingProgressBar } from '@/components/lesson/ReadingProgressBar'
 import MascotOverlay from '@/components/mascot/MascotOverlay'
+import LessonGeneratingOverlay from '@/components/lesson/LessonGeneratingOverlay'
 
 const BADGE_DESCRIPTIONS: Record<string, string> = {
   phase_1: 'Completed Phase 1',
@@ -35,6 +36,8 @@ export default function LessonPage() {
   const [content, setContent] = useState<GeneratedLesson | null>(null)
   const [contentMap, setContentMap] = useState<Record<number, GeneratedLesson>>({})
   const [isGenerating, setIsGenerating] = useState(false)
+  // True only while the Claude API call is in-flight (shows animated overlay on top of skeleton)
+  const [isAIGenerating, setIsAIGenerating] = useState(false)
   const [isCompleting, setIsCompleting] = useState(false)
   const [status, setStatus] = useState<'not_started' | 'in_progress' | 'completed'>('not_started')
   
@@ -57,116 +60,78 @@ export default function LessonPage() {
 
   useEffect(() => {
     async function loadLesson() {
-      // 1. Fetch user session
+      // ── Step 1: authenticate ──────────────────────────────────────────────
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/login')
-        return
-      }
+      if (!user) { router.push('/login'); return }
       setUserId(user.id)
 
-      // 2. Fetch lesson record
+      // ── Step 2: fetch lesson (needed for all downstream queries) ──────────
       const { data: lesson, error } = await supabase
         .from('lessons')
         .select('title, content, roadmap_id, order_index, phase_id')
         .eq('id', lessonId)
         .maybeSingle()
-
-      if (error || !lesson) {
-        router.push('/dashboard/path')
-        return
-      }
-
+      if (error || !lesson) { router.push('/dashboard/path'); return }
       setLessonTitle(lesson.title)
-      if (lesson.phase_id) {
-        setPhaseId(lesson.phase_id)
-        const { data: phaseRow } = await supabase
-          .from('roadmap_phases')
-          .select('title')
-          .eq('id', lesson.phase_id)
-          .maybeSingle()
-        if (phaseRow) {
-          setPhaseTitle(phaseRow.title)
-        }
-      }
 
-      // Fetch user's current streak
-      const { data: streakRow } = await supabase
-        .from('streaks')
-        .select('current_streak')
-        .eq('user_id', user.id)
-        .maybeSingle()
-      setStreakDays(streakRow?.current_streak || 0)
+      // ── Step 3: fire all independent queries in parallel ──────────────────
+      const [
+        phaseRes,
+        streakRes,
+        nextLessonRes,
+        progressRes,
+        profileRes,
+        roadmapRes,
+      ] = await Promise.all([
+        lesson.phase_id
+          ? supabase.from('roadmap_phases').select('title').eq('id', lesson.phase_id).maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+        supabase.from('streaks').select('current_streak').eq('user_id', user.id).maybeSingle(),
+        lesson.roadmap_id
+          ? supabase.from('lessons').select('id')
+              .eq('roadmap_id', lesson.roadmap_id)
+              .gt('order_index', lesson.order_index)
+              .order('order_index', { ascending: true })
+              .limit(1)
+              .maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+        supabase.from('lesson_progress').select('status').eq('user_id', user.id).eq('lesson_id', lessonId).maybeSingle(),
+        supabase.from('profiles').select('learning_depth').eq('id', user.id).maybeSingle(),
+        lesson.roadmap_id
+          ? supabase.from('roadmaps').select('goal_id').eq('id', lesson.roadmap_id).maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+      ])
 
-      // Fetch next lesson ID in the roadmap
-      if (lesson.roadmap_id) {
-        const { data: nextLesson } = await supabase
-          .from('lessons')
-          .select('id')
-          .eq('roadmap_id', lesson.roadmap_id)
-          .gt('order_index', lesson.order_index)
-          .order('order_index', { ascending: true })
-          .limit(1)
-          .maybeSingle()
-        if (nextLesson) {
-          setNextLessonId(nextLesson.id)
-        }
-      }
-
-      // 3. Fetch current progress
-      const { data: progress } = await supabase
-        .from('lesson_progress')
-        .select('status')
-        .eq('user_id', user.id)
-        .eq('lesson_id', lessonId)
-        .maybeSingle()
-
-      if (progress?.status) {
-        setStatus(progress.status as any)
-      }
-
-      // 4. Fetch depth level
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('learning_depth')
-        .eq('id', user.id)
-        .maybeSingle()
-
+      if (lesson.phase_id) setPhaseId(lesson.phase_id)
+      if ((phaseRes.data as any)?.title) setPhaseTitle((phaseRes.data as any).title)
+      setStreakDays((streakRes.data as any)?.current_streak || 0)
+      if ((nextLessonRes.data as any)?.id) setNextLessonId((nextLessonRes.data as any).id)
+      if ((progressRes.data as any)?.status) setStatus((progressRes.data as any).status)
       setIsPro(true)
 
+      // ── Step 4: fetch goal (depends on roadmap.goal_id from step 3) ───────
       let activeGoalDepth = null
-      if (lesson.roadmap_id) {
-        const { data: roadmap } = await supabase
-          .from('roadmaps')
-          .select('goal_id')
-          .eq('id', lesson.roadmap_id)
+      const goalId = (roadmapRes.data as any)?.goal_id
+      if (goalId) {
+        const { data: goal } = await supabase
+          .from('learning_goals')
+          .select('depth_level, subject')
+          .eq('id', goalId)
           .maybeSingle()
-
-        if (roadmap?.goal_id) {
-          const { data: goal } = await supabase
-            .from('learning_goals')
-            .select('depth_level, subject')
-            .eq('id', roadmap.goal_id)
-            .maybeSingle()
-          if (goal?.depth_level) {
-            activeGoalDepth = goal.depth_level
-          }
-          if (goal?.subject) {
-            setSubject(goal.subject)
-          }
-        }
+        if (goal?.depth_level) activeGoalDepth = goal.depth_level
+        if (goal?.subject) setSubject(goal.subject)
       }
-      const initialDepth = activeGoalDepth ?? profile?.learning_depth ?? 2
+
+      const initialDepth = activeGoalDepth ?? (profileRes.data as any)?.learning_depth ?? 2
       setDepthLevel(initialDepth)
 
-      // 5. Handle rendering / lazy generation
+      // ── Step 5: resolve content or trigger AI generation ──────────────────
       const dbContent = lesson.content as any
       let initialMap: Record<number, GeneratedLesson> = {}
       let activeContent: GeneratedLesson | null = null
 
       if (dbContent && typeof dbContent === 'object') {
         if ('sections' in dbContent) {
-          // Old single-depth schema migration fallback
           initialMap = { [initialDepth]: dbContent as GeneratedLesson }
           activeContent = dbContent as GeneratedLesson
         } else {
@@ -180,7 +145,9 @@ export default function LessonPage() {
       if (activeContent) {
         setContent(activeContent)
       } else {
+        // No cached content — call Claude
         setIsGenerating(true)
+        setIsAIGenerating(true)
         try {
           const res = await fetch('/api/ai/generate-lesson', {
             method: 'POST',
@@ -197,6 +164,7 @@ export default function LessonPage() {
           console.error('Error generating lesson content:', err)
         } finally {
           setIsGenerating(false)
+          setIsAIGenerating(false)
         }
       }
     }
@@ -231,48 +199,39 @@ export default function LessonPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      // 1. Update profiles learning_depth
-      await supabase
-        .from('profiles')
-        .update({ learning_depth: newDepth })
-        .eq('id', user.id)
-
-      // 2. Fetch roadmap & goal to update goal depth_level
+      // Fetch lesson to get roadmap_id, then goal_id — these are sequential (dependency chain)
       const { data: lesson } = await supabase
         .from('lessons')
         .select('roadmap_id')
         .eq('id', lessonId)
         .maybeSingle()
 
-      if (lesson?.roadmap_id) {
-        const { data: roadmap } = await supabase
-          .from('roadmaps')
-          .select('goal_id')
-          .eq('id', lesson.roadmap_id)
-          .maybeSingle()
+      const roadmapId = lesson?.roadmap_id
+      const goalId = roadmapId
+        ? (await supabase.from('roadmaps').select('goal_id').eq('id', roadmapId).maybeSingle()).data?.goal_id
+        : null
 
-        if (roadmap?.goal_id) {
-          await supabase
-            .from('learning_goals')
-            .update({ depth_level: newDepth })
-            .eq('id', roadmap.goal_id)
-        }
-      }
+      // Fire profile + goal DB writes in parallel
+      await Promise.all([
+        supabase.from('profiles').update({ learning_depth: newDepth }).eq('id', user.id),
+        goalId
+          ? supabase.from('learning_goals').update({ depth_level: newDepth }).eq('id', goalId)
+          : Promise.resolve(),
+      ])
 
-      // 3. Update local state
       setDepthLevel(newDepth)
 
-      // If already cached locally, load immediately and return
+      // Serve from local cache instantly if available
       if (contentMap[newDepth]) {
         setContent(contentMap[newDepth])
         setIsChangingDepth(false)
         return
       }
 
-      // Otherwise clear local content to trigger skeleton/loading and fetch
+      // No cache — clear content (shows skeleton) then call Claude
       setContent(null)
+      setIsAIGenerating(true)
 
-      // 4. Trigger generation
       const res = await fetch('/api/ai/generate-lesson', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -288,6 +247,7 @@ export default function LessonPage() {
       console.error('Error changing depth level:', err)
     } finally {
       setIsChangingDepth(false)
+      setIsAIGenerating(false)
     }
   }
 
@@ -354,7 +314,11 @@ export default function LessonPage() {
             <span>Back to Path</span>
           </Link>
         </div>
-        <LessonSkeleton />
+        {/* Relative wrapper so the overlay can position itself over the skeleton */}
+        <div className="relative">
+          <LessonSkeleton />
+          {isAIGenerating && <LessonGeneratingOverlay />}
+        </div>
       </div>
     )
   }
