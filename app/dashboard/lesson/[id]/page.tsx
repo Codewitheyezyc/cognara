@@ -265,6 +265,10 @@ export default function LessonPage() {
         setIsChangingDepth(false)
         setIsAIGenerating(false)
       }
+    } catch (err) {
+      console.error('handleDepthChange outer error:', err)
+      setIsChangingDepth(false)
+    }
   }
 
   const handleMarkComplete = async () => {
