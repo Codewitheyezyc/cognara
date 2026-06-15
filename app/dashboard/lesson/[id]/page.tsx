@@ -38,6 +38,8 @@ export default function LessonPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   // True only while the Claude API call is in-flight (shows animated overlay on top of skeleton)
   const [isAIGenerating, setIsAIGenerating] = useState(false)
+  // True when the generation API call fails — shows a retry screen
+  const [generationError, setGenerationError] = useState(false)
   const [isCompleting, setIsCompleting] = useState(false)
   const [status, setStatus] = useState<'not_started' | 'in_progress' | 'completed'>('not_started')
   
@@ -146,6 +148,7 @@ export default function LessonPage() {
         setContent(activeContent)
       } else {
         // No cached content — call Claude
+        setGenerationError(false)
         setIsGenerating(true)
         setIsAIGenerating(true)
         try {
@@ -154,14 +157,21 @@ export default function LessonPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ lessonId }),
           })
-          const result = await res.json()
+          // res.json() can throw if Vercel returns an HTML timeout page
+          let result: any = {}
+          try { result = await res.json() } catch { /* non-JSON body (504 etc.) */ }
+
           if (res.ok && result.content) {
             setContent(result.content)
             setContentMap(prev => ({ ...prev, [initialDepth]: result.content }))
             setStatus('in_progress')
+          } else {
+            // API returned error (500 / 504 timeout / model error)
+            setGenerationError(true)
           }
         } catch (err) {
           console.error('Error generating lesson content:', err)
+          setGenerationError(true)
         } finally {
           setIsGenerating(false)
           setIsAIGenerating(false)
@@ -230,25 +240,31 @@ export default function LessonPage() {
 
       // No cache — clear content (shows skeleton) then call Claude
       setContent(null)
+      setGenerationError(false)
       setIsAIGenerating(true)
 
-      const res = await fetch('/api/ai/generate-lesson', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lessonId }),
-      })
-      const result = await res.json()
-      if (res.ok && result.content) {
-        setContent(result.content)
-        setContentMap(prev => ({ ...prev, [newDepth]: result.content }))
-        setStatus('in_progress')
+      let result: any = {}
+      try {
+        const res = await fetch('/api/ai/generate-lesson', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lessonId }),
+        })
+        try { result = await res.json() } catch { /* non-JSON body */ }
+        if (res.ok && result.content) {
+          setContent(result.content)
+          setContentMap(prev => ({ ...prev, [newDepth]: result.content }))
+          setStatus('in_progress')
+        } else {
+          setGenerationError(true)
+        }
+      } catch (err) {
+        console.error('Error changing depth level:', err)
+        setGenerationError(true)
+      } finally {
+        setIsChangingDepth(false)
+        setIsAIGenerating(false)
       }
-    } catch (err) {
-      console.error('Error changing depth level:', err)
-    } finally {
-      setIsChangingDepth(false)
-      setIsAIGenerating(false)
-    }
   }
 
   const handleMarkComplete = async () => {
@@ -303,6 +319,115 @@ export default function LessonPage() {
   }
 
   if (isGenerating || isChangingDepth || !content) {
+    // Show a friendly error screen with retry when generation fails
+    if (generationError) {
+      return (
+        <div className="py-6">
+          <div className="max-w-[720px] mx-auto">
+            <Link
+              href="/dashboard/path"
+              className="inline-flex items-center space-x-2 text-xs text-text-2 hover:text-text-1 mb-8 transition-colors"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>Back to Path</span>
+            </Link>
+
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '20px',
+                padding: '48px 32px',
+                border: '1px solid var(--color-border)',
+                borderRadius: '16px',
+                background: 'var(--color-surface)',
+                textAlign: 'center',
+                marginTop: '32px',
+              }}
+            >
+              {/* Icon */}
+              <div
+                style={{
+                  width: '52px',
+                  height: '52px',
+                  borderRadius: '50%',
+                  background: 'rgba(255,100,80,0.12)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '24px',
+                }}
+              >
+                ⚡
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <p style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text-1)', margin: 0 }}>
+                  Cognara is taking longer than usual
+                </p>
+                <p style={{ fontSize: '13px', color: 'var(--color-text-2)', margin: 0, maxWidth: '360px', lineHeight: '1.6' }}>
+                  The lesson couldn&apos;t load right now. This sometimes happens when Cognara is busy crafting your lesson. Give it a moment and try again.
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  setGenerationError(false)
+                  setIsGenerating(false)
+                  setIsAIGenerating(false)
+                  // Re-trigger the lesson load by resetting content
+                  setContent(null)
+                  // Force re-run loadLesson
+                  const supabaseClient = createClient()
+                  async function retry() {
+                    const { data: { user } } = await supabaseClient.auth.getUser()
+                    if (!user) return
+                    setIsGenerating(true)
+                    setIsAIGenerating(true)
+                    try {
+                      const res = await fetch('/api/ai/generate-lesson', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ lessonId }),
+                      })
+                      let result: any = {}
+                      try { result = await res.json() } catch { /* non-JSON */ }
+                      if (res.ok && result.content) {
+                        setContent(result.content)
+                        setStatus('in_progress')
+                      } else {
+                        setGenerationError(true)
+                      }
+                    } catch {
+                      setGenerationError(true)
+                    } finally {
+                      setIsGenerating(false)
+                      setIsAIGenerating(false)
+                    }
+                  }
+                  retry()
+                }}
+                style={{
+                  padding: '10px 28px',
+                  background: 'var(--color-primary)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'opacity 0.2s',
+                }}
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className="py-6 space-y-4">
         <div className="max-w-[720px] mx-auto">
