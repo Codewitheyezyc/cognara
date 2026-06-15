@@ -14,6 +14,8 @@ interface BookmarkButtonProps {
   userId: string
   initialBookmark: any
   onBookmarkChange: (newBookmark: any) => void
+  /** 'absolute' = fixed top-right overlay (default). 'inline' = renders inside a flex row, no absolute positioning. */
+  variant?: 'absolute' | 'inline'
 }
 
 export function BookmarkButton({
@@ -25,6 +27,7 @@ export function BookmarkButton({
   userId,
   initialBookmark,
   onBookmarkChange,
+  variant = 'absolute',
 }: BookmarkButtonProps) {
   const supabase = createClient()
   const { toast } = useToast()
@@ -93,8 +96,8 @@ export function BookmarkButton({
     }
   }
 
-  return (
-    <div className="absolute top-[2px] right-2 z-20">
+  const inner = (
+    <>
       <button
         type="button"
         onClick={handleIconClick}
@@ -124,7 +127,7 @@ export function BookmarkButton({
             <div className="space-y-1">
               <h4 className="text-xs font-semibold text-text-1">Add a note (optional)</h4>
               <p className="text-[10px] text-text-3 font-medium truncate">
-                Section: "{sectionHeading}"
+                Section: &quot;{sectionHeading}&quot;
               </p>
             </div>
             <textarea
@@ -156,6 +159,18 @@ export function BookmarkButton({
           </div>
         </>
       )}
+    </>
+  )
+
+  // Inline variant: no absolute overlay — sits inside a flex row alongside other buttons
+  if (variant === 'inline') {
+    return <div className="relative">{inner}</div>
+  }
+
+  // Default: absolutely positioned in the top-right corner of a relative parent
+  return (
+    <div className="absolute top-[2px] right-2 z-20">
+      {inner}
     </div>
   )
 }

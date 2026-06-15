@@ -8,6 +8,8 @@ interface ConfusedButtonProps {
   subject: string
   depthLevel: number
   children: React.ReactNode
+  /** Optional element (e.g. BookmarkButton) rendered to the left of the Confused pill in the header row */
+  bookmarkSlot?: React.ReactNode
 }
 
 export function ConfusedButton({
@@ -15,7 +17,8 @@ export function ConfusedButton({
   sectionBody,
   subject,
   depthLevel,
-  children
+  children,
+  bookmarkSlot,
 }: ConfusedButtonProps) {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'resolved'>('idle')
   const [explanation, setExplanation] = useState('')
@@ -27,21 +30,10 @@ export function ConfusedButton({
     try {
       const res = await fetch('/api/ai/simplify-section', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          sectionHeading,
-          sectionBody,
-          subject,
-          depthLevel
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sectionHeading, sectionBody, subject, depthLevel }),
       })
-
-      if (!res.ok) {
-        throw new Error('Failed to fetch simplified explanation')
-      }
-
+      if (!res.ok) throw new Error('Failed to fetch simplified explanation')
       const data = await res.json()
       setExplanation(data.explanation)
       setStatus('success')
@@ -51,46 +43,51 @@ export function ConfusedButton({
     }
   }
 
-  const handleGotItClick = () => {
-    setStatus('resolved')
-  }
+  const handleGotItClick = () => setStatus('resolved')
 
   return (
     <div className="space-y-3 w-full">
-      <div className="flex items-center justify-between gap-4 w-full pr-12">
-        <h3 className="font-heading text-lg font-semibold text-text-1">
+      {/* Header row: heading | [bookmark icon] [confused pill] */}
+      <div className="flex items-start justify-between gap-2 w-full">
+        <h3 className="font-heading text-lg font-semibold text-text-1 min-w-0 flex-1">
           {sectionHeading}
         </h3>
-        
-        <button
-          type="button"
-          onClick={handleConfusedClick}
-          disabled={status === 'loading' || status === 'resolved'}
-          className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-all duration-200 cursor-pointer flex-shrink-0 ${
-            status === 'idle'
-              ? 'text-text-3 border-border hover:bg-surface-alt hover:text-text-2'
-              : status === 'loading'
-              ? 'text-primary border-primary/30 bg-primary/10 animate-pulse-subtle'
-              : status === 'success'
-              ? 'text-primary border-primary/30 bg-primary/10'
-              : 'text-success border-success/30 bg-success/10 font-semibold cursor-default'
-          }`}
-          style={{
-            borderColor: status === 'resolved' ? 'rgba(52,211,153,0.3)' : undefined,
-            color: status === 'resolved' ? 'var(--color-success)' : undefined
-          }}
-        >
-          {status === 'idle' && 'Confused? 💡'}
-          {status === 'loading' && 'Thinking...'}
-          {status === 'success' && 'Thinking...'}
-          {status === 'resolved' && '✓ Clearer now'}
-        </button>
+
+        <div className="flex items-center gap-1 flex-shrink-0 pt-0.5">
+          {/* BookmarkButton injected from parent — rendered inline, no z-index clash */}
+          {bookmarkSlot}
+
+          {/* Confused? pill */}
+          <button
+            type="button"
+            onClick={handleConfusedClick}
+            disabled={status === 'loading' || status === 'resolved'}
+            className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-all duration-200 cursor-pointer flex-shrink-0 ${
+              status === 'idle'
+                ? 'text-text-3 border-border hover:bg-surface-alt hover:text-text-2'
+                : status === 'loading'
+                ? 'text-primary border-primary/30 bg-primary/10 animate-pulse-subtle'
+                : status === 'success'
+                ? 'text-primary border-primary/30 bg-primary/10'
+                : 'text-success border-success/30 bg-success/10 font-semibold cursor-default'
+            }`}
+            style={{
+              borderColor: status === 'resolved' ? 'rgba(52,211,153,0.3)' : undefined,
+              color: status === 'resolved' ? 'var(--color-success)' : undefined,
+            }}
+          >
+            {status === 'idle' && 'Confused? 💡'}
+            {status === 'loading' && 'Thinking...'}
+            {status === 'success' && 'Thinking...'}
+            {status === 'resolved' && '✓ Clearer now'}
+          </button>
+        </div>
       </div>
 
       {children}
 
       {status === 'success' && (
-        <div 
+        <div
           className="animate-slideDown space-y-3"
           style={{
             background: 'rgba(91,142,255,0.06)',
@@ -102,9 +99,11 @@ export function ConfusedButton({
         >
           <div className="flex items-center space-x-2 text-primary">
             <span className="text-sm">💡</span>
-            <span className="text-xs font-semibold uppercase tracking-wider">Let me explain this differently</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">
+              Let me explain this differently
+            </span>
           </div>
-          
+
           <p className="text-text-2 text-sm leading-relaxed whitespace-pre-line">
             {explanation}
           </p>

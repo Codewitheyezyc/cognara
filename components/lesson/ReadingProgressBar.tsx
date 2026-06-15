@@ -46,18 +46,21 @@ export function ReadingProgressBar({ estimatedMinutes }: ReadingProgressBarProps
         borderRadius: '0 2px 2px 0'
       }} />
 
-      {/* Time remaining label */}
+      {/* Time remaining label — anchored bottom-left, above mobile nav, clear of top navbar */}
       <div style={{
         position: 'fixed',
-        top: '76px',
-        right: '16px',
+        bottom: '76px',
+        left: '16px',
         fontSize: '11px',
         color: isComplete ? 'var(--color-success)' : 'var(--color-text-3)',
         fontWeight: 500,
         background: 'var(--color-surface)',
-        padding: '2px 8px',
+        padding: '2px 10px',
         borderRadius: '999px',
-        border: '1px solid var(--color-border)'
+        border: '1px solid var(--color-border)',
+        zIndex: 999,
+        pointerEvents: 'none',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.08)'
       }}>
         {isComplete ? '✓ Read' : `${minutesRemaining} min left`}
       </div>

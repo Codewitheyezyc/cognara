@@ -153,6 +153,25 @@ export default function LessonContent({
                     sectionBody={section.body || ''}
                     subject={subject}
                     depthLevel={depthLevel}
+                    bookmarkSlot={
+                      <BookmarkButton
+                        lessonId={lessonId}
+                        lessonTitle={lessonTitle}
+                        sectionIndex={idx}
+                        sectionHeading={section.heading || ''}
+                        sectionBody={section.body?.slice(0, 200) || ''}
+                        userId={userId}
+                        initialBookmark={sectionBookmark}
+                        onBookmarkChange={(newBookmark) => {
+                          if (newBookmark) {
+                            setBookmarks(prev => [...prev.filter(b => b.section_index !== idx), newBookmark])
+                          } else {
+                            setBookmarks(prev => prev.filter(b => b.section_index !== idx))
+                          }
+                        }}
+                        variant="inline"
+                      />
+                    }
                   >
                     <p className="text-text-2 text-sm leading-relaxed whitespace-pre-line">
                       {section.body}
@@ -336,6 +355,14 @@ export default function LessonContent({
         })()
 
         if (!sectionEl) return null
+
+        // explanation/analogy/use_case sections embed the BookmarkButton inline inside
+        // ConfusedButton's header row via bookmarkSlot — no need for the absolute overlay wrapper.
+        const hasInlineBookmark = ['explanation', 'analogy', 'use_case'].includes(section.type)
+
+        if (hasInlineBookmark) {
+          return <div key={idx}>{sectionEl}</div>
+        }
 
         return (
           <div key={idx} className="relative group/section">
