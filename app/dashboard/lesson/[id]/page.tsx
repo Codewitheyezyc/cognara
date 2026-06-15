@@ -40,6 +40,7 @@ export default function LessonPage() {
   const [isAIGenerating, setIsAIGenerating] = useState(false)
   // True when the generation API call fails — shows a retry screen
   const [generationError, setGenerationError] = useState(false)
+  const [generationErrorMsg, setGenerationErrorMsg] = useState('')
   const [isCompleting, setIsCompleting] = useState(false)
   const [status, setStatus] = useState<'not_started' | 'in_progress' | 'completed'>('not_started')
   
@@ -167,10 +168,12 @@ export default function LessonPage() {
             setStatus('in_progress')
           } else {
             // API returned error (500 / 504 timeout / model error)
+            setGenerationErrorMsg(result.error || 'Unknown error — check Vercel logs.')
             setGenerationError(true)
           }
         } catch (err) {
           console.error('Error generating lesson content:', err)
+          setGenerationErrorMsg('Network error — could not reach the server.')
           setGenerationError(true)
         } finally {
           setIsGenerating(false)
@@ -256,10 +259,12 @@ export default function LessonPage() {
           setContentMap(prev => ({ ...prev, [newDepth]: result.content }))
           setStatus('in_progress')
         } else {
+          setGenerationErrorMsg(result.error || 'Unknown error.')
           setGenerationError(true)
         }
       } catch (err) {
         console.error('Error changing depth level:', err)
+        setGenerationErrorMsg('Network error — could not reach the server.')
         setGenerationError(true)
       } finally {
         setIsChangingDepth(false)
@@ -373,6 +378,22 @@ export default function LessonPage() {
                 <p style={{ fontSize: '13px', color: 'var(--color-text-2)', margin: 0, maxWidth: '360px', lineHeight: '1.6' }}>
                   The lesson couldn&apos;t load right now. This sometimes happens when Cognara is busy crafting your lesson. Give it a moment and try again.
                 </p>
+                {generationErrorMsg && (
+                  <p style={{
+                    fontSize: '11px',
+                    color: 'var(--color-text-2)',
+                    margin: '8px 0 0',
+                    maxWidth: '420px',
+                    lineHeight: '1.5',
+                    padding: '8px 12px',
+                    background: 'rgba(255,100,80,0.07)',
+                    borderRadius: '6px',
+                    fontFamily: 'monospace',
+                    wordBreak: 'break-word',
+                  }}>
+                    {generationErrorMsg}
+                  </p>
+                )}
               </div>
 
               <button
@@ -401,6 +422,7 @@ export default function LessonPage() {
                         setContent(result.content)
                         setStatus('in_progress')
                       } else {
+                        setGenerationErrorMsg(result.error || 'Unknown error.')
                         setGenerationError(true)
                       }
                     } catch {

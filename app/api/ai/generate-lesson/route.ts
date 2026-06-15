@@ -170,8 +170,9 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ content: generatedLesson })
-  } catch (err) {
+  } catch (err: any) {
     console.error('[API Lesson Generation Error]', err)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    const errorMessage = err?.message || 'Lesson generation failed. Check your Anthropic API key and account credits at console.anthropic.com.'
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }
