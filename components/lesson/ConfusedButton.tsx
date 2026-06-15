@@ -57,7 +57,7 @@ export function ConfusedButton({
 
   return (
     <div className="space-y-3 w-full">
-      <div className="flex items-center justify-between gap-4 w-full">
+      <div className="flex items-center justify-between gap-4 w-full pr-12">
         <h3 className="font-heading text-lg font-semibold text-text-1">
           {sectionHeading}
         </h3>

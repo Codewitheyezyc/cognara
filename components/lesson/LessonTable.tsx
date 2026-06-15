@@ -8,7 +8,7 @@ export function LessonTable({ headers, rows, heading }: {
   return (
     <div style={{ marginBlock: '24px', overflowX: 'auto' }}>
       {heading && (
-        <h4 style={{ color: 'var(--color-text-1)', marginBottom: '12px', fontSize: '16px', fontWeight: 600 }}>
+        <h4 style={{ color: 'var(--color-text-1)', marginBottom: '12px', fontSize: '16px', fontWeight: 600, paddingRight: '48px' }}>
           {heading}
         </h4>
       )}

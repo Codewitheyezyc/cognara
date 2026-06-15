@@ -49,7 +49,7 @@ export function ReadingProgressBar({ estimatedMinutes }: ReadingProgressBarProps
       {/* Time remaining label */}
       <div style={{
         position: 'fixed',
-        top: '8px',
+        top: '76px',
         right: '16px',
         fontSize: '11px',
         color: isComplete ? 'var(--color-success)' : 'var(--color-text-3)',

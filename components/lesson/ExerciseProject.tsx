@@ -176,7 +176,7 @@ export function ExerciseProject({
     }}>
       {/* Header */}
       <div style={{
-        padding: '14px 20px',
+        padding: '14px 48px 14px 20px',
         background: 'var(--color-surface-alt)',
         borderBottom: '1px solid var(--color-border)',
         display: 'flex',

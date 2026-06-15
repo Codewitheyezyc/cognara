@@ -54,6 +54,12 @@ export async function generateLesson(
     profile
   })
 
+  console.log('--- DEBUG CLAUDE SYSTEM PROMPT ---')
+  console.log(systemPrompt)
+  console.log('--- DEBUG CLAUDE USER PROMPT ---')
+  console.log(userPrompt)
+  console.log('--------------------------------')
+
   return callClaudeJSON<GeneratedLesson>(
     systemPrompt,
     userPrompt,

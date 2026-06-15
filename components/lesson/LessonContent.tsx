@@ -164,7 +164,7 @@ export default function LessonContent({
             case 'summary':
               return (
                 <div key={idx} className="space-y-2">
-                  <h3 className="font-heading text-lg font-semibold text-text-1">
+                  <h3 className="font-heading text-lg font-semibold text-text-1 pr-12">
                     {section.heading}
                   </h3>
                   <p className="text-text-2 text-sm leading-relaxed whitespace-pre-line">
@@ -228,7 +228,7 @@ export default function LessonContent({
             case 'code':
               return (
                 <div key={idx} className="space-y-2">
-                  <h3 className="font-heading text-lg font-semibold text-text-1">
+                  <h3 className="font-heading text-lg font-semibold text-text-1 pr-12">
                     {section.heading}
                   </h3>
                   <CodeBlock
@@ -242,7 +242,7 @@ export default function LessonContent({
             case 'code_comparison':
               return (
                 <div key={idx} className="space-y-2">
-                  <h3 className="font-heading text-lg font-semibold text-text-1">
+                  <h3 className="font-heading text-lg font-semibold text-text-1 pr-12">
                     {section.heading}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
@@ -270,7 +270,7 @@ export default function LessonContent({
             case 'diagram':
               return (
                 <div key={idx} className="space-y-2">
-                  <h3 className="font-heading text-lg font-semibold text-text-1">
+                  <h3 className="font-heading text-lg font-semibold text-text-1 pr-12">
                     {section.heading}
                   </h3>
                   <pre style={{
