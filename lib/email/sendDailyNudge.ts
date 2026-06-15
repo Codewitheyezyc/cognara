@@ -2,7 +2,15 @@ import { Resend } from 'resend'
 import { DailyNudgeEmail } from '@/emails/DailyNudgeEmail'
 import React from 'react'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+let resendClient: Resend | null = null
+
+function getResendClient() {
+  if (!resendClient) {
+    const apiKey = process.env.RESEND_API_KEY || 'mock_resend_api_key'
+    resendClient = new Resend(apiKey)
+  }
+  return resendClient
+}
 
 export async function sendDailyNudge(params: {
   to: string
@@ -12,6 +20,7 @@ export async function sendDailyNudge(params: {
   streakDays: number
   subject: string
 }) {
+  const resend = getResendClient()
   await resend.emails.send({
     from: 'Cognara <hello@cognara.com>',
     to: params.to,
