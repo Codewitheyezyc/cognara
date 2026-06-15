@@ -13,45 +13,46 @@ export const anthropic = isConfigured
   : null
 
 /**
- * Helper to call Anthropic Claude and return structured JSON
+ * Helper to call Anthropic Claude and return structured JSON.
+ *
+ * Behaviour:
+ * - If API key is NOT configured (dev/missing): silently use mockFallback, marking result _isMock=true.
+ * - If API key IS configured but Claude fails: throw the error upward so the caller can decide.
+ *   This prevents bad content from being cached in the DB.
  */
 export async function callClaudeJSON<T>(
   systemPrompt: string,
   userPrompt: string,
   mockFallback: () => Promise<T>
 ): Promise<T> {
-  // If API key is not configured, fall back to mock data
+  // No API key — fall back to mock (dev mode)
   if (!anthropic) {
-    console.warn('⚠️ ANTHROPIC_API_KEY is not set or is set to dev mock. Falling back to simulated response.')
-    return mockFallback()
+    console.warn('⚠️  ANTHROPIC_API_KEY not configured. Using mock fallback.')
+    const result = await mockFallback()
+    return { ...result as object, _isMock: true } as T
   }
 
-  try {
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5',
-      max_tokens: 5000,
-      temperature: 0.2, // Low temperature for high structure compliance
-      system: systemPrompt,
-      messages: [
-        {
-          role: 'user',
-          content: userPrompt
-        }
-      ]
-    })
+  // API key present — call Claude and let errors propagate
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-5',
+    max_tokens: 5000,
+    temperature: 0.2,
+    system: systemPrompt,
+    messages: [
+      {
+        role: 'user',
+        content: userPrompt
+      }
+    ]
+  })
 
-    const textContent = response.content[0].type === 'text' 
-      ? response.content[0].text 
-      : ''
+  const textContent = response.content[0].type === 'text'
+    ? response.content[0].text
+    : ''
 
-    // Extract JSON block in case Claude wraps it in ```json ... ```
-    const jsonMatch = textContent.match(/\{[\s\S]*\}/)
-    const jsonString = jsonMatch ? jsonMatch[0] : textContent
+  // Extract JSON block in case Claude wraps it in ```json ... ```
+  const jsonMatch = textContent.match(/\{[\s\S]*\}/)
+  const jsonString = jsonMatch ? jsonMatch[0] : textContent
 
-    return JSON.parse(jsonString) as T
-  } catch (error) {
-    console.error('❌ Anthropic API request failed:', error)
-    // Fall back to mock response in case of API outages or rate limits
-    return mockFallback()
-  }
+  return JSON.parse(jsonString) as T
 }

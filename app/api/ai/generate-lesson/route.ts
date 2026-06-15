@@ -77,11 +77,12 @@ export async function POST(request: Request) {
 
     const depthLevel = goal.depth_level ?? profile?.learning_depth ?? 2
 
-    // 6. Check multi-depth cache
+    // 6. Check multi-depth cache — skip if content is mock/template data
     const contentMap = (lesson.content && typeof lesson.content === 'object') ? (lesson.content as any) : null
     const cachedLesson = contentMap ? contentMap[depthLevel] : null
+    const cachedIsMock = cachedLesson?._isMock === true
 
-    if (cachedLesson && !forceRegenerate) {
+    if (cachedLesson && !cachedIsMock && !forceRegenerate) {
       // Ensure it is marked in progress if not already completed
       const { data: progress } = await supabase
         .from('lesson_progress')
@@ -100,6 +101,10 @@ export async function POST(request: Request) {
       }
 
       return NextResponse.json({ content: cachedLesson })
+    }
+
+    if (cachedIsMock) {
+      console.log(`[generate-lesson] Cached content for lesson ${lessonId} depth ${depthLevel} is mock data — forcing regeneration with Claude.`)
     }
 
     // 7. Enforce Rate Limit (30 per day)
@@ -121,22 +126,30 @@ export async function POST(request: Request) {
       profile
     )
 
-    // 9. Update multi-depth lesson cache in the DB
-    const updatedContent = {
-      ...(contentMap || {}),
-      [depthLevel]: generatedLesson
-    }
+    // 9. Only persist REAL Claude content to the DB — never cache mock/template data
+    const generatedIsMock = (generatedLesson as any)._isMock === true
 
-    const { error: updateError } = await supabase
-      .from('lessons')
-      .update({
-        content: updatedContent,
-        generated_at: new Date().toISOString(),
-      })
-      .eq('id', lessonId)
+    if (!generatedIsMock) {
+      const updatedContent = {
+        ...(contentMap || {}),
+        [depthLevel]: generatedLesson
+      }
 
-    if (updateError) {
-      console.error('Failed to update lesson content:', updateError)
+      const { error: updateError } = await supabase
+        .from('lessons')
+        .update({
+          content: updatedContent,
+          generated_at: new Date().toISOString(),
+        })
+        .eq('id', lessonId)
+
+      if (updateError) {
+        console.error('[generate-lesson] Failed to cache lesson content:', updateError)
+      } else {
+        console.log(`[generate-lesson] Cached real Claude content for lesson ${lessonId} depth ${depthLevel}`)
+      }
+    } else {
+      console.warn(`[generate-lesson] Claude not configured or failed — serving mock content without caching. Check ANTHROPIC_API_KEY in environment variables.`)
     }
 
     // 8. Record lesson progress as "in_progress" (if not already completed)
