@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react'
 
 const STAGES = [
-  { label: 'Fetching your roadmap…', duration: 1800 },
-  { label: 'Analysing the topic…', duration: 3000 },
-  { label: 'Crafting lesson content with AI…', duration: 14000 },
-  { label: 'Almost ready…', duration: Infinity },
+  { label: 'Loading your learning path…', duration: 1800 },
+  { label: 'Analysing the topic for you…', duration: 3000 },
+  { label: 'Cognara is crafting your lesson…', duration: 14000 },
+  { label: 'Almost ready, hang tight…', duration: Infinity },
 ]
 
 export default function LessonGeneratingOverlay() {
@@ -115,7 +115,7 @@ export default function LessonGeneratingOverlay() {
               color: 'var(--color-primary)',
             }}
           >
-            AI Generation
+            Cognara
           </p>
           <p
             style={{

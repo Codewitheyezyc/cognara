@@ -28,8 +28,8 @@ export async function callClaudeJSON<T>(
 
   try {
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 8000,
+      model: 'claude-sonnet-4-5',
+      max_tokens: 5000,
       temperature: 0.2, // Low temperature for high structure compliance
       system: systemPrompt,
       messages: [
