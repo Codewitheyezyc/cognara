@@ -152,7 +152,7 @@ export function QuizResultModal({
             {passed ? 'Continue' : 'Back to Lesson'}
             <ArrowRight size={15} />
           </button>
-          {!passed && (
+          {score < 100 && (
             <button
               onClick={onRetry}
               style={{
