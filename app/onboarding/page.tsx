@@ -31,11 +31,12 @@ export default function OnboardingPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [isInitializing, setIsInitializing] = useState(true)
 
-  // Fetch initial profile name if logged in
+  // Fetch initial profile name if logged in & check pre-filled subject
   useEffect(() => {
-    async function loadProfile() {
+    async function loadProfileAndParams() {
       try {
         const { data: { user } } = await supabase.auth.getUser()
+        let hasName = false
         if (user) {
           const { data: profile } = await supabase
             .from('profiles')
@@ -45,6 +46,24 @@ export default function OnboardingPage() {
 
           if (profile?.name) {
             setName(profile.name)
+            hasName = true
+          }
+        }
+
+        // Parse query params
+        if (typeof window !== 'undefined') {
+          const params = new URLSearchParams(window.location.search)
+          const subjectParam = params.get('subject')
+          if (subjectParam) {
+            setSubject(subjectParam)
+            setGoalText(`I want to master ${subjectParam}`)
+            
+            // Go to Step 3 (Learning Style) if we have the name, else step 1
+            if (hasName) {
+              setStep(3)
+            } else {
+              setStep(1)
+            }
           }
         }
       } catch (err) {
@@ -53,7 +72,7 @@ export default function OnboardingPage() {
         setIsInitializing(false)
       }
     }
-    loadProfile()
+    loadProfileAndParams()
   }, [supabase])
 
   // Submit onboarding details to API route

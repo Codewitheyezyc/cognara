@@ -12,8 +12,9 @@ import { Label } from '@/components/ui/label'
 import { 
   User, Globe, Clock, Target, GraduationCap, Briefcase, 
   Settings2, Bell, Save, Upload, Camera, Check, AlertCircle, Loader2,
-  Award, Lock
+  Award, Lock, Share2
 } from 'lucide-react'
+import { LinkedinIcon, TwitterIcon, InstagramIcon, FacebookIcon } from '@/components/ui/SocialIcons'
 
 // Define Zod schemas
 const personalInfoSchema = z.object({
@@ -39,6 +40,14 @@ const notificationsSchema = z.object({
   reminder_time: z.string().optional(),
   weekly_summary_enabled: z.boolean(),
   achievement_notifications: z.boolean(),
+})
+
+const portfolioSocialSchema = z.object({
+  linkedin_url: z.string().url('Must be a valid URL').or(z.literal('')),
+  twitter_url: z.string().url('Must be a valid URL').or(z.literal('')),
+  instagram_url: z.string().url('Must be a valid URL').or(z.literal('')),
+  facebook_url: z.string().url('Must be a valid URL').or(z.literal('')),
+  portfolio_public: z.boolean(),
 })
 
 const countries = [
@@ -379,6 +388,17 @@ export default function ProfilePage() {
     }
   })
 
+  const portfolioSocialForm = useForm({
+    resolver: zodResolver(portfolioSocialSchema),
+    defaultValues: {
+      linkedin_url: '',
+      twitter_url: '',
+      instagram_url: '',
+      facebook_url: '',
+      portfolio_public: true
+    }
+  })
+
   // Load profile data
   useEffect(() => {
     async function fetchProfile() {
@@ -424,6 +444,14 @@ export default function ProfilePage() {
               reminder_time: profile.reminder_time || '09:00',
               weekly_summary_enabled: profile.weekly_summary_enabled ?? true,
               achievement_notifications: profile.achievement_notifications ?? true,
+            })
+
+            portfolioSocialForm.reset({
+              linkedin_url: profile.linkedin_url || '',
+              twitter_url: profile.twitter_url || '',
+              instagram_url: profile.instagram_url || '',
+              facebook_url: profile.facebook_url || '',
+              portfolio_public: profile.portfolio_public ?? true,
             })
           }
 
@@ -591,6 +619,31 @@ export default function ProfilePage() {
       toast('Failed to save notification preferences', 'error')
     } finally {
       setSavingSection(prev => ({ ...prev, notifications: false }))
+    }
+  }
+
+  const onSavePortfolioSocial = async (values: z.infer<typeof portfolioSocialSchema>) => {
+    if (!userId) return
+    setSavingSection(prev => ({ ...prev, portfolioSocial: true }))
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          linkedin_url: values.linkedin_url || null,
+          twitter_url: values.twitter_url || null,
+          instagram_url: values.instagram_url || null,
+          facebook_url: values.facebook_url || null,
+          portfolio_public: values.portfolio_public
+        })
+        .eq('id', userId)
+
+      if (error) throw error
+      toast('Portfolio and social links saved successfully!')
+    } catch (err) {
+      console.error(err)
+      toast('Failed to save portfolio settings', 'error')
+    } finally {
+      setSavingSection(prev => ({ ...prev, portfolioSocial: false }))
     }
   }
 
@@ -1147,6 +1200,118 @@ export default function ProfilePage() {
             <Button type="submit" disabled={savingSection['notifications']} className="flex items-center gap-1.5">
               {savingSection['notifications'] ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Save Notifications
+            </Button>
+          </div>
+        </form>
+      </div>
+
+      {/* SECTION 5 — PORTFOLIO & SOCIAL LINKS */}
+      <div className="rounded-[10px] border border-border bg-surface p-6 shadow-md space-y-6">
+        <div className="flex items-center space-x-2 text-primary border-b border-border pb-3">
+          <Share2 className="h-5 w-5" strokeWidth={1.5} />
+          <h2 className="font-heading text-xl font-bold text-text-1">Portfolio & Social Links</h2>
+        </div>
+
+        <form onSubmit={portfolioSocialForm.handleSubmit(onSavePortfolioSocial)} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* LinkedIn */}
+            <div className="space-y-1.5">
+              <Label htmlFor="linkedin_url" className="flex items-center gap-1.5">
+                <LinkedinIcon className="h-4 w-4 text-text-3" />
+                <span>LinkedIn Profile URL</span>
+              </Label>
+              <Input 
+                id="linkedin_url" 
+                placeholder="https://linkedin.com/in/username"
+                {...portfolioSocialForm.register('linkedin_url')} 
+              />
+              {portfolioSocialForm.formState.errors.linkedin_url && (
+                <p className="text-xs text-error mt-0.5">{portfolioSocialForm.formState.errors.linkedin_url.message}</p>
+              )}
+            </div>
+
+            {/* Twitter/X */}
+            <div className="space-y-1.5">
+              <Label htmlFor="twitter_url" className="flex items-center gap-1.5">
+                <TwitterIcon className="h-4 w-4 text-text-3" />
+                <span>Twitter / X Profile URL</span>
+              </Label>
+              <Input 
+                id="twitter_url" 
+                placeholder="https://x.com/username"
+                {...portfolioSocialForm.register('twitter_url')} 
+              />
+              {portfolioSocialForm.formState.errors.twitter_url && (
+                <p className="text-xs text-error mt-0.5">{portfolioSocialForm.formState.errors.twitter_url.message}</p>
+              )}
+            </div>
+
+            {/* Instagram */}
+            <div className="space-y-1.5">
+              <Label htmlFor="instagram_url" className="flex items-center gap-1.5">
+                <InstagramIcon className="h-4 w-4 text-text-3" />
+                <span>Instagram Profile URL</span>
+              </Label>
+              <Input 
+                id="instagram_url" 
+                placeholder="https://instagram.com/username"
+                {...portfolioSocialForm.register('instagram_url')} 
+              />
+              {portfolioSocialForm.formState.errors.instagram_url && (
+                <p className="text-xs text-error mt-0.5">{portfolioSocialForm.formState.errors.instagram_url.message}</p>
+              )}
+            </div>
+
+            {/* Facebook */}
+            <div className="space-y-1.5">
+              <Label htmlFor="facebook_url" className="flex items-center gap-1.5">
+                <FacebookIcon className="h-4 w-4 text-text-3" />
+                <span>Facebook Profile URL</span>
+              </Label>
+              <Input 
+                id="facebook_url" 
+                placeholder="https://facebook.com/username"
+                {...portfolioSocialForm.register('facebook_url')} 
+              />
+              {portfolioSocialForm.formState.errors.facebook_url && (
+                <p className="text-xs text-error mt-0.5">{portfolioSocialForm.formState.errors.facebook_url.message}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="h-px bg-border/50" />
+
+          {/* Visibility Toggle */}
+          <div className="flex items-center justify-between p-4 rounded-md bg-surface-alt/30 border border-border/30">
+            <div>
+              <h3 className="text-sm font-semibold text-text-1">Public Portfolio Shareable Link</h3>
+              <p className="text-xs text-text-2">Allow anyone with the link to view your verified learning progress and badges.</p>
+            </div>
+            <Controller
+              name="portfolio_public"
+              control={portfolioSocialForm.control}
+              render={({ field }) => (
+                <button
+                  type="button"
+                  onClick={() => field.onChange(!field.value)}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
+                    field.value ? 'bg-primary' : 'bg-border'
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      field.value ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              )}
+            />
+          </div>
+
+          <div className="flex justify-end pt-2 border-t border-border">
+            <Button type="submit" disabled={savingSection['portfolioSocial']} className="flex items-center gap-1.5">
+              {savingSection['portfolioSocial'] ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Save Portfolio Settings
             </Button>
           </div>
         </form>

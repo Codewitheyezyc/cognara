@@ -151,6 +151,44 @@ export async function POST(request: Request) {
       newLongestStreak = streak?.longest_streak || 0
     }
 
+    // Check if the entire roadmap is fully completed
+    let roadmapCompleted = false
+    let roadmapId = null
+
+    if (passed && quiz.lesson_id) {
+      const { data: lessonData } = await supabase
+        .from('lessons')
+        .select('roadmap_id')
+        .eq('id', quiz.lesson_id)
+        .maybeSingle()
+
+      if (lessonData?.roadmap_id) {
+        roadmapId = lessonData.roadmap_id
+
+        // Fetch all lesson IDs in the roadmap
+        const { data: roadmapLessons } = await supabase
+          .from('lessons')
+          .select('id')
+          .eq('roadmap_id', roadmapId)
+
+        const roadmapLessonIds = roadmapLessons?.map(l => l.id) || []
+
+        if (roadmapLessonIds.length > 0) {
+          // Fetch completed lessons from lesson_progress for this user
+          const { count: completedCount } = await supabase
+            .from('lesson_progress')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('status', 'completed')
+            .in('lesson_id', roadmapLessonIds)
+
+          if (completedCount === roadmapLessonIds.length) {
+            roadmapCompleted = true
+          }
+        }
+      }
+    }
+
     return NextResponse.json({
       attemptId: attempt.id,
       score,
@@ -161,6 +199,8 @@ export async function POST(request: Request) {
         current: newCurrentStreak,
         longest: newLongestStreak,
       },
+      roadmapCompleted,
+      roadmapId,
     })
   } catch (err) {
     console.error('[API Submit Quiz Error]', err)

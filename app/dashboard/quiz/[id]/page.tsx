@@ -46,6 +46,8 @@ export default function QuizPage() {
     correctCount: number
     totalCount: number
     streak: { current: number; longest: number }
+    roadmapCompleted?: boolean
+    roadmapId?: string | null
   } | null>(null)
 
   // Loading / Error
@@ -269,7 +271,9 @@ export default function QuizPage() {
           passed={quizResult.passed}
           lessonTitle={lessonTitle}
           onContinue={() => {
-            if (quizResult.passed) {
+            if (quizResult.roadmapCompleted && quizResult.roadmapId) {
+              router.push(`/dashboard/roadmap-complete/${quizResult.roadmapId}`)
+            } else if (quizResult.passed) {
               router.push('/dashboard/path')
             } else {
               router.push(`/dashboard/lesson/${lessonId}`)
