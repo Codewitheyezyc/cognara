@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
+import { logApiUsage } from '@/lib/ai/logUsage'
 
 const apiKey = process.env.ANTHROPIC_API_KEY
 
@@ -26,6 +27,13 @@ export async function POST(req: Request) {
 
     if (!anthropic) {
       console.warn('⚠️ ANTHROPIC_API_KEY is not set or is set to dev mock. Returning mock simplified explanation.')
+      await logApiUsage(
+        user.id,
+        'simplify',
+        'claude-haiku-4-5-20251001',
+        Math.floor(Math.random() * 50) + 80,
+        Math.floor(Math.random() * 80) + 120
+      )
       return NextResponse.json({ explanation: mockExpl })
     }
 
@@ -50,6 +58,16 @@ Student depth level: ${depthLevel}
 Give a simpler re-explanation from a fresh angle.`
         }]
       })
+      
+      // Log usage
+      await logApiUsage(
+        user.id,
+        'simplify',
+        'claude-haiku-4-5-20251001',
+        response.usage.input_tokens,
+        response.usage.output_tokens
+      )
+
       text = response.content[0].type === 'text' ? response.content[0].text : ''
     } catch (apiErr) {
       console.warn('❌ API request failed, falling back to mock explanation:', apiErr)

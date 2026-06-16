@@ -6,6 +6,7 @@ import { checkRateLimit } from '@/lib/ai/rateLimit'
 import { quizHasWrongContent } from '@/lib/ai/validateQuiz'
 import { anthropic } from '@/lib/ai/client'
 import { QUIZ_SYSTEM_PROMPT_STRICT, buildQuizUserMessage, isTechnicalSubject } from '@/lib/ai/prompts'
+import { logApiUsage } from '@/lib/ai/logUsage'
 
 
 export async function POST(request: Request) {
@@ -129,6 +130,17 @@ export async function POST(request: Request) {
       lessonSummary
     )
 
+    const usage = (generatedQuiz as any)._usage
+    if (usage) {
+      await logApiUsage(
+        user.id,
+        'quiz',
+        usage.model,
+        usage.input_tokens,
+        usage.output_tokens
+      )
+    }
+
     // Validate quiz content matches subject
     if (quizHasWrongContent(generatedQuiz.questions, goal.subject)) {
       console.warn('[Quiz] Wrong content detected — regenerating')
@@ -159,6 +171,15 @@ export async function POST(request: Request) {
                 'No technology, programming, or database content allowed.'
             }]
           })
+
+          // Log retry usage
+          await logApiUsage(
+            user.id,
+            'quiz',
+            'claude-haiku-4-5-20251001',
+            retryResponse.usage.input_tokens,
+            retryResponse.usage.output_tokens
+          )
 
           // Use retry response
           const retryText = retryResponse.content[0].type === 'text'

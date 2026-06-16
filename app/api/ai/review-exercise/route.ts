@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
+import { logApiUsage } from '@/lib/ai/logUsage'
 
 const apiKey = process.env.ANTHROPIC_API_KEY
 const isConfigured = 
@@ -40,6 +41,13 @@ export async function POST(req: Request) {
         suggestion: "Rewrite the opening sentence to use active voice and highlight the primary value proposition directly.",
         encouragement: "This is a solid attempt! With a few adjustments, it will be copy-ready."
       }
+      await logApiUsage(
+        user.id,
+        'insight',
+        'claude-haiku-4-5-20251001',
+        Math.floor(Math.random() * 100) + 150,
+        Math.floor(Math.random() * 150) + 200
+      )
       return NextResponse.json({ feedback: mockFeedback })
     }
 
@@ -76,6 +84,15 @@ Student submission:
       system: systemPrompt,
       messages: [{ role: 'user', content: userMessage }]
     })
+
+    // Log usage
+    await logApiUsage(
+      user.id,
+      'insight',
+      'claude-haiku-4-5-20251001',
+      response.usage.input_tokens,
+      response.usage.output_tokens
+    )
 
     const text = response.content[0].type === 'text' ? response.content[0].text : ''
     const clean = text.replace(/```json|```/g, '').trim()

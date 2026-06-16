@@ -23,6 +23,7 @@ export function ProfileDropdown({ profile, email, recentBadgeEmoji, onSignOut }:
   const name = profile?.name || 'Learner'
   const avatarUrl = profile?.avatar_url
   const initialsUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`
+  const isAdmin = profile?.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID
 
   // Click outside listener
   useEffect(() => {
@@ -111,6 +112,18 @@ export function ProfileDropdown({ profile, email, recentBadgeEmoji, onSignOut }:
 
           {/* Section 2: Main Links */}
           <div className="space-y-0.5">
+            {isAdmin && (
+              <Link
+                href="/admin"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-md transition duration-100 mb-1"
+                style={{ color: 'var(--color-accent-warm)', backgroundColor: 'rgba(245, 158, 11, 0.08)' }}
+              >
+                <Settings className="h-4 w-4" style={{ color: 'var(--color-accent-warm)' }} strokeWidth={2} />
+                <span>⚙️ Admin Panel</span>
+              </Link>
+            )}
+
             <Link
               href="/dashboard/profile"
               onClick={() => setIsOpen(false)}

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { generateRoadmap } from '@/lib/ai/roadmap'
 import { checkRateLimit } from '@/lib/ai/rateLimit'
+import { logApiUsage } from '@/lib/ai/logUsage'
 
 function slugify(text: string) {
   return text
@@ -63,6 +64,17 @@ export async function POST(request: Request) {
 
     // 4. Generate the curriculum roadmap (simulated AI)
     const generatedRoadmap = await generateRoadmap(goalText, subject, level, Number(dailyMinutes))
+
+    const usage = (generatedRoadmap as any)._usage
+    if (usage) {
+      await logApiUsage(
+        user.id,
+        'roadmap',
+        usage.model,
+        usage.input_tokens,
+        usage.output_tokens
+      )
+    }
 
     // 5. Deactivate prior learning goals for this user
     await supabase

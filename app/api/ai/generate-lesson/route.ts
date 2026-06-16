@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { generateLesson } from '@/lib/ai/lesson'
 import { checkRateLimit } from '@/lib/ai/rateLimit'
+import { logApiUsage } from '@/lib/ai/logUsage'
 
 export async function POST(request: Request) {
   try {
@@ -156,6 +157,17 @@ export async function POST(request: Request) {
       Number(depthLevel),
       profile
     )
+
+    const usage = (generatedLesson as any)._usage
+    if (usage) {
+      await logApiUsage(
+        user.id,
+        'lesson',
+        usage.model,
+        usage.input_tokens,
+        usage.output_tokens
+      )
+    }
 
     // 9. Only persist REAL Claude content to the DB — never cache mock/template data
     const generatedIsMock = (generatedLesson as any)._isMock === true

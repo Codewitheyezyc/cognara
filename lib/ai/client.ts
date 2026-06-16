@@ -30,6 +30,16 @@ export async function callClaudeJSON<T>(
   if (!anthropic) {
     console.warn('⚠️  ANTHROPIC_API_KEY not configured. Using mock fallback.')
     const result = await mockFallback()
+    if (result && typeof result === 'object') {
+      const mockInput = Math.floor(Math.random() * 300) + 400
+      const mockOutput = Math.floor(Math.random() * 500) + 600
+      ;(result as any)._usage = {
+        input_tokens: mockInput,
+        output_tokens: mockOutput,
+        model: 'claude-sonnet-4-6',
+        isMock: true
+      }
+    }
     return { ...result as object, _isMock: true } as T
   }
 
@@ -56,7 +66,15 @@ export async function callClaudeJSON<T>(
     const jsonMatch = textContent.match(/\{[\s\S]*\}/)
     const jsonString = jsonMatch ? jsonMatch[0] : textContent
 
-    return JSON.parse(jsonString) as T
+    const parsed = JSON.parse(jsonString) as T
+    if (parsed && typeof parsed === 'object') {
+      (parsed as any)._usage = {
+        input_tokens: response.usage.input_tokens,
+        output_tokens: response.usage.output_tokens,
+        model: response.model || 'claude-sonnet-4-6'
+      }
+    }
+    return parsed
 
   } catch (error: any) {
     // Extract meaningful reason from Anthropic's error structure

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { generateInsight } from '@/lib/ai/insight'
 import { checkRateLimit } from '@/lib/ai/rateLimit'
+import { logApiUsage } from '@/lib/ai/logUsage'
 
 export async function POST(request: Request) {
   try {
@@ -108,6 +109,17 @@ export async function POST(request: Request) {
     const rateLimit = await checkRateLimit(supabase, user.id, 'insight', 3)
 
     const coachInsight = await generateInsight(insightParams, !rateLimit.allowed)
+
+    const usage = (coachInsight as any)._usage
+    if (usage) {
+      await logApiUsage(
+        user.id,
+        'insight',
+        usage.model,
+        usage.input_tokens,
+        usage.output_tokens
+      )
+    }
 
     return NextResponse.json({ insight: coachInsight })
   } catch (err) {
