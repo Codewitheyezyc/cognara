@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { ChevronDown, ChevronUp, CheckCircle2, PlayCircle, Circle, Award } from 'lucide-react'
 
 interface Lesson {
@@ -25,67 +25,15 @@ export function RoadmapPhaseCard({
   phaseNumber,
   title,
   description,
-  lessons,
+  lessons = [],
   initiallyExpanded = false
 }: RoadmapPhaseCardProps) {
   const [expanded, setExpanded] = useState(initiallyExpanded)
-  const [lessonsList, setLessonsList] = useState<Lesson[]>(lessons)
-  const [loading, setLoading] = useState(false)
-  const [errorText, setErrorText] = useState('')
 
-  // Sync state with prop if prop changes
-  useEffect(() => {
-    setLessonsList(lessons)
-  }, [lessons])
-
-  const fetchLessonsForPhase = async () => {
-    if (loading) return
-    setLoading(true)
-    setErrorText('')
-    try {
-      const res = await fetch('/api/ai/generate-lessons-for-phase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phaseId })
-      })
-      const data = await res.json()
-      if (!res.ok || data.error) {
-        throw new Error(data.error || 'Failed to generate lessons')
-      }
-      const formatted = (data.lessons || []).map((lesson: any) => ({
-        id: lesson.id,
-        title: lesson.title,
-        description: `Lesson ${lesson.order_index} • Ready to learn`,
-        order_index: lesson.order_index,
-        isAccessible: true,
-        status: 'not_started' as const
-      }))
-      setLessonsList(formatted)
-    } catch (err: any) {
-      console.error(err)
-      setErrorText(err.message || 'Failed to load lessons.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Automatically trigger lesson generation on mount if expanded and empty
-  useEffect(() => {
-    if (expanded && lessonsList.length === 0) {
-      fetchLessonsForPhase()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [expanded, lessonsList.length, phaseId])
-
-  const completedCount = lessonsList.filter(l => l.status === 'completed').length
+  const completedCount = lessons.filter(l => l.status === 'completed').length
 
   const handleLessonClick = (lesson: Lesson) => {
     window.location.href = `/dashboard/lesson/${lesson.id}`
-  }
-
-  const handleRetry = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    fetchLessonsForPhase()
   }
 
   return (
@@ -95,14 +43,6 @@ export function RoadmapPhaseCard({
       overflow: 'hidden',
       marginBottom: '12px'
     }}>
-      {/* Pulse keyframe definitions for skeleton loading */}
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 0.6; }
-          50% { opacity: 1; }
-        }
-      `}</style>
-
       {/* Phase header */}
       <div
         onClick={() => {
@@ -153,16 +93,16 @@ export function RoadmapPhaseCard({
               </span>
             </div>
             <span style={{ color: 'var(--color-text-3)', fontSize: '12px' }}>
-              {lessonsList.length > 0
-                ? `${completedCount} of ${lessonsList.length} lessons completed`
-                : 'Click to unlock & explore this phase'
+              {lessons.length > 0
+                ? `${completedCount} of ${lessons.length} lessons completed`
+                : 'No lessons available for this phase.'
               }
             </span>
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {lessonsList.length > 0 && lessonsList.every(l => l.status === 'completed') && (
+          {lessons.length > 0 && lessons.every(l => l.status === 'completed') && (
             <button
               onClick={(e) => {
                 e.stopPropagation()
@@ -192,95 +132,15 @@ export function RoadmapPhaseCard({
         </div>
       </div>
 
-      {/* Expanded phase content (Lessons list or loading states) */}
+      {/* Expanded phase content (Lessons list) */}
       {expanded && (
         <div style={{
           borderTop: '1px solid var(--color-border)',
           background: 'var(--color-surface-alt)'
         }}>
-          {loading && (
+          {lessons.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {/* Skeleton loading list */}
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '16px 20px',
-                  borderBottom: i < 4 ? '1px solid var(--color-border)' : 'none',
-                  background: 'transparent'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '80%' }}>
-                    <div style={{
-                      width: '16px',
-                      height: '16px',
-                      borderRadius: '50%',
-                      background: 'var(--color-border)',
-                      animation: 'pulse 1.5s infinite ease-in-out',
-                      flexShrink: 0
-                    }} />
-                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <div style={{
-                        width: '40%',
-                        height: '14px',
-                        background: 'var(--color-border)',
-                        borderRadius: '4px',
-                        animation: 'pulse 1.5s infinite ease-in-out'
-                      }} />
-                      <div style={{
-                        width: '85%',
-                        height: '11px',
-                        background: 'var(--color-border)',
-                        borderRadius: '4px',
-                        opacity: 0.6,
-                        animation: 'pulse 1.5s infinite ease-in-out'
-                      }} />
-                    </div>
-                  </div>
-                  <div style={{
-                    width: '32px',
-                    height: '12px',
-                    background: 'var(--color-border)',
-                    borderRadius: '4px',
-                    animation: 'pulse 1.5s infinite ease-in-out'
-                  }} />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {errorText && (
-            <div style={{
-              padding: '24px 20px',
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '12px'
-            }}>
-              <span style={{ color: 'var(--color-error)', fontSize: '14px' }}>{errorText}</span>
-              <button
-                onClick={handleRetry}
-                style={{
-                  background: 'var(--color-primary)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '8px 16px',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                Retry Loading
-              </button>
-            </div>
-          )}
-
-          {!loading && !errorText && lessonsList.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {lessonsList.map((lesson, index) => (
+              {lessons.map((lesson, index) => (
                 <div
                   key={lesson.id}
                   onClick={() => handleLessonClick(lesson)}
@@ -289,7 +149,7 @@ export function RoadmapPhaseCard({
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '14px 20px',
-                    borderBottom: index < lessonsList.length - 1
+                    borderBottom: index < lessons.length - 1
                       ? '1px solid var(--color-border)'
                       : 'none',
                     cursor: 'pointer',
@@ -357,6 +217,10 @@ export function RoadmapPhaseCard({
                   </div>
                 </div>
               ))}
+            </div>
+          ) : (
+            <div style={{ padding: '20px', color: 'var(--color-text-3)', textAlign: 'center', fontSize: '14px' }}>
+              No lessons available for this phase.
             </div>
           )}
         </div>

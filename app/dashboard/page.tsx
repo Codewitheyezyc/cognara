@@ -141,22 +141,13 @@ export default async function DashboardPage() {
               <Zap className="h-4 w-4" strokeWidth={1.5} />
               <span className="text-[10px] font-mono uppercase tracking-wider font-semibold">Active Milestone</span>
             </div>
-            {activeLesson ? (
+            {activeLesson && (
               <>
                 <h3 className="font-heading text-2xl font-bold text-text-1 tracking-tight">
                   {activeLesson.title}
                 </h3>
                 <p className="text-text-2 text-xs leading-relaxed max-w-md">
                   Resume your custom path. We generated detailed explanations, code instances, exercises, and quizzes for this concept.
-                </p>
-              </>
-            ) : (
-              <>
-                <h3 className="font-heading text-2xl font-bold text-text-1 tracking-tight">
-                  Roadmap Completed!
-                </h3>
-                <p className="text-text-2 text-xs leading-relaxed max-w-md">
-                  Congratulations! You have completed every lesson in your roadmap. Head to onboarding to create a new goal.
                 </p>
               </>
             )}
@@ -166,17 +157,10 @@ export default async function DashboardPage() {
             <span className="text-xs text-text-2 font-medium">
               Goal: {goal.subject} ({goal.level})
             </span>
-            {activeLesson ? (
+            {activeLesson && (
               <Link href={`/dashboard/lesson/${activeLesson.id}`}>
                 <Button className="bg-primary hover:bg-primary/90 text-white text-xs px-4 h-9 shadow-[0_0_12px_rgba(91,142,255,0.2)] rounded-sm">
                   <span>Continue Lesson</span>
-                  <ArrowRight className="ml-1 h-3.5 w-3.5" strokeWidth={2} />
-                </Button>
-              </Link>
-            ) : (
-              <Link href="/onboarding">
-                <Button className="bg-accent hover:bg-accent/90 text-white text-xs px-4 h-9 rounded-sm">
-                  <span>New Goal</span>
                   <ArrowRight className="ml-1 h-3.5 w-3.5" strokeWidth={2} />
                 </Button>
               </Link>

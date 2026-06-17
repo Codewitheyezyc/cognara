@@ -14,16 +14,24 @@ The JSON must follow this exact structure:
       "title": "string - phase title",
       "description": "string - what this phase covers",
       "duration_weeks": number,
-      "lessons": []
+      "lessons": [
+        {
+          "order_index": number,
+          "title": "string - specific lesson title",
+          "description": "string - 1 sentence of what student will learn"
+        }
+      ]
     }
   ]
 }
 
 Rules:
-- Create 3 to 6 phases depending on complexity
-- The "lessons" array inside each phase MUST be empty ([]). Do NOT generate any lesson objects. Lessons will be dynamically generated later as the student progresses.
-- Sequence of phases must be logical — foundational concepts before advanced
-- When the subject is a broad discipline (e.g. Web Development), ensure the phases cover foundational sub-disciplines comprehensively and in logical sequence (e.g., Phase 1: Semantic HTML & Document Structure, Phase 2: Responsive CSS Layouts, Phase 3: JavaScript Core Programming, etc.). Do not skip core steps or rush into advanced application frameworks.
+- Create 3 to 8 phases depending on complexity (e.g., Web Development should have 6 to 8 phases to cover foundations, layouts, JS core, advanced JS, React foundations, React routing/state, and professional deployment comprehensively).
+- Each phase should have 5 to 15 lessons (up to 20 for highly complex, detailed pathways).
+- Lessons must be specific (not "Introduction to JavaScript" but "Variables and Data Types in JavaScript").
+- Sequence of phases and lessons must be logical — foundational concepts before advanced.
+- If a topic is complex, do not attempt to cover it in a single lesson. Instead, split the concept across multiple consecutive lessons (e.g., 'CSS Grid Layouts (Part 1): Grid Container & Columns', 'CSS Grid Layouts (Part 2): Grid Items & Template Areas') to ensure the user can thoroughly digest and master each sub-concept before progressing.
+- When the subject is a broad discipline (e.g. Web Development), ensure the phases cover foundational sub-disciplines comprehensively and in logical sequence. Do not skip core steps or rush into advanced application frameworks.
 - Match depth to their stated experience level`;
 
 export interface RoadmapParams {
@@ -54,7 +62,11 @@ export function isTechnicalSubject(subject: string): boolean {
 
 export function buildRoadmapUserMessage(params: RoadmapParams): string {
   const codeSubject = isCodeSubject(params.subject)
-  const depthInstruction = '\n- Set the "lessons" field of every phase to an empty array []. Do NOT generate any lessons inside the phases at this stage. They will be generated dynamically later.'
+  const depthInstruction = params.depthLevel === 3
+    ? '\n- The student has requested a HIGHLY DETAILED, IN-DEPTH, COMPREHENSIVE path. You must generate a thorough roadmap with a high density of lessons (e.g., 8 to 15 lessons per phase) splitting concepts into granular, logical parts (Part 1, Part 2, etc.) so no sub-concepts are skipped or glossed over.'
+    : params.depthLevel === 1
+      ? '\n- The student has requested a quick summary path. Keep the phase structures concise with 4 to 6 high-level lessons.'
+      : '\n- The student has requested a standard learning path (5 to 8 lessons per phase).'
 
   return `
 Student Goal: ${params.goalText}
@@ -189,11 +201,11 @@ specific concept being taught.
 
 RULE 5 — LESSONS MUST BE COMPREHENSIVE AND HIGH-DENSITY
 Provide comprehensive, detailed, and rich educational text to ensure the subject is thoroughly covered. Avoid superficial summaries or overly brief explanations.
-- Generate exactly 3 to 4 sections (never exceed 4).
-- Keep each explanation section concise and high-density (around 100-150 words of high-density, real-world educational content). No fluff or filler.
+- Generate exactly 4 to 5 sections (never exceed 6).
+- Keep each explanation section detailed and explanatory (around 150-250 words of high-density, real-world educational content).
 - Include clear definitions, step-by-step logic, code comments explaining every line (if technical), or practical domain examples.
 - Do not repeat information. Be direct, comprehensive, and engaging.
-- Keep the entire JSON payload under 2000 tokens to ensure fast response.
+- Keep the entire JSON payload under 3000 tokens to ensure fast response.
 
 For a lesson like "Essential Tailoring Tools and Their Uses":
 The lesson should cover at minimum:
@@ -251,7 +263,7 @@ For "Introduction to User-Centered Design" lesson:
 
 ---
 
-RULE 8 — SUBJECT TYPE CONTENT RULES (from previous fix)
+RULE 8 — SUBJECT TYPE CONTENT RULES
 Technical subjects (programming, web dev, etc.):
 → Include code sections, code_comparison, technical diagrams
 
@@ -263,19 +275,22 @@ Non-technical subjects (tailoring, business, design, cooking, etc.):
 
 GUIDELINE ON DYNAMIC SECTION STRUCTURE:
 
-Every lesson must design its own flow of 3 to 4 sections. Do not repeat the same layout.
+Every lesson must design its own flow of 4 to 5 sections. Do not repeat the same layout.
 Examples of appropriate lesson flows:
 
 A lesson about a single tool/concept:
 1. explanation — Subject-specific introduction
 2. analogy — Imaginative comparison
-3. callout (warning) or exercise — Practical domain practice
+3. callout (warning) — Common beginner mistakes or safety warnings
+4. exercise_task or exercise_writing — Actionable hands-on task
+5. summary — Domain-specific key takeaways
 
 A lesson about a complex process:
 1. explanation — High level overview
-2. diagram or table — Step-by-step visual process or comparison
-3. exercise_task — Practical walk-through exercise
-4. summary — Core process principles to remember
+2. diagram — Step-by-step visual process flow
+3. table — Comparison of alternative paths or materials
+4. exercise_task — Full practical walk-through exercise
+5. summary — Core process principles to remember
 
 ---
 
