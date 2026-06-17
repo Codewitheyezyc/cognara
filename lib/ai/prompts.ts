@@ -189,11 +189,11 @@ specific concept being taught.
 
 RULE 5 — LESSONS MUST BE COMPREHENSIVE AND HIGH-DENSITY
 Provide comprehensive, detailed, and rich educational text to ensure the subject is thoroughly covered. Avoid superficial summaries or overly brief explanations.
-- Generate exactly 4 to 5 sections (never exceed 6).
-- Keep each explanation section detailed and explanatory (around 150-250 words of high-density, real-world educational content).
+- Generate exactly 3 to 4 sections (never exceed 4).
+- Keep each explanation section concise and high-density (around 100-150 words of high-density, real-world educational content). No fluff or filler.
 - Include clear definitions, step-by-step logic, code comments explaining every line (if technical), or practical domain examples.
 - Do not repeat information. Be direct, comprehensive, and engaging.
-- Keep the entire JSON payload under 3000 tokens to ensure fast response.
+- Keep the entire JSON payload under 2000 tokens to ensure fast response.
 
 For a lesson like "Essential Tailoring Tools and Their Uses":
 The lesson should cover at minimum:
@@ -263,22 +263,19 @@ Non-technical subjects (tailoring, business, design, cooking, etc.):
 
 GUIDELINE ON DYNAMIC SECTION STRUCTURE:
 
-Every lesson must design its own flow of 4 to 5 sections. Do not repeat the same layout.
+Every lesson must design its own flow of 3 to 4 sections. Do not repeat the same layout.
 Examples of appropriate lesson flows:
 
 A lesson about a single tool/concept:
 1. explanation — Subject-specific introduction
 2. analogy — Imaginative comparison
-3. callout (warning) — Common beginner mistakes or safety warnings
-4. exercise_task or exercise_writing — Actionable hands-on task
-5. summary — Domain-specific key takeaways
+3. callout (warning) or exercise — Practical domain practice
 
 A lesson about a complex process:
 1. explanation — High level overview
-2. diagram — Step-by-step visual process flow
-3. table — Comparison of alternative paths or materials
-4. exercise_task — Full practical walk-through exercise
-5. summary — Core process principles to remember
+2. diagram or table — Step-by-step visual process or comparison
+3. exercise_task — Practical walk-through exercise
+4. summary — Core process principles to remember
 
 ---
 
@@ -639,16 +636,15 @@ The JSON must be an array of lessons, following this exact structure:
 [
   {
     "order_index": number,
-    "title": "string - specific lesson title",
-    "description": "string - 1 sentence of what student will learn"
+    "title": "string - specific lesson title"
   }
 ]
 
 Rules:
 - Generate exactly 8 to 12 lessons for this phase, depending on complexity.
-- Lessons must be specific (not "Introduction to CSS" but "Understanding padding, margins, and the CSS Box Model").
-- Sequence of lessons must be logical — foundational concepts of this phase before advanced ones.
-- If a topic is complex, do not attempt to cover it in a single lesson. Instead, split the concept across multiple consecutive lessons (e.g., 'CSS Grid Layouts (Part 1): Grid Container & Columns', 'CSS Grid Layouts (Part 2): Grid Items & Template Areas') to ensure the user can thoroughly digest and master each sub-concept before progressing.
+- Lessons must be highly specific, focused, and granular (e.g., instead of "HTML Forms" write "HTML Forms (Part 1): Basic structure and text inputs", "HTML Forms (Part 2): Dropdowns, Checkboxes, and Radio buttons", etc.).
+- Never summarize multiple large sub-topics in a single lesson stub. Always split complex, broad, or multi-step topics into multiple consecutive granular lessons (e.g., Part 1, Part 2, Part 3) to ensure the student can master each sub-concept before moving on.
+- The flow of learning must be unbroken, starting with the absolute basics of the phase and building progressively to advanced topics, ensuring the student achieves comprehensive mastery of the phase subject.
 - Match depth to their stated experience level.
 `;
 

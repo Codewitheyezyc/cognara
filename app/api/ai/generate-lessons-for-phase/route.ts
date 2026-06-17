@@ -96,8 +96,7 @@ export async function POST(request: Request) {
       for (let i = 1; i <= numLessons; i++) {
         generated.push({
           order_index: i,
-          title: `${phaseTitleText} Lesson ${i}`,
-          description: `Master core concept ${i} relating to ${phaseTitleText} in this detailed step.`
+          title: `${phaseTitleText} Lesson ${i}`
         })
       }
       return generated

@@ -58,7 +58,8 @@ export async function generateLesson(
   return callClaudeJSON<GeneratedLesson>(
     systemPrompt,
     userPrompt,
-    mockFallback
+    mockFallback,
+    'claude-haiku-4-5-20251001'
   )
 }
 

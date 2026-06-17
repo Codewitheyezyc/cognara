@@ -38,51 +38,44 @@ export function RoadmapPhaseCard({
     setLessonsList(lessons)
   }, [lessons])
 
-  // Automatically trigger lesson generation on expand if empty
-  useEffect(() => {
-    if (expanded && lessonsList.length === 0 && !loading) {
-      let active = true
-      const generateLessons = async () => {
-        setLoading(true)
-        setErrorText('')
-        try {
-          const res = await fetch('/api/ai/generate-lessons-for-phase', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phaseId })
-          })
-          const data = await res.json()
-          if (!res.ok || data.error) {
-            throw new Error(data.error || 'Failed to generate lessons')
-          }
-          if (active) {
-            const formatted = (data.lessons || []).map((lesson: any) => ({
-              id: lesson.id,
-              title: lesson.title,
-              description: `Lesson ${lesson.order_index} • Ready to learn`,
-              order_index: lesson.order_index,
-              isAccessible: true,
-              status: 'not_started' as const
-            }))
-            setLessonsList(formatted)
-          }
-        } catch (err: any) {
-          console.error(err)
-          if (active) {
-            setErrorText(err.message || 'Failed to load lessons.')
-          }
-        } finally {
-          if (active) {
-            setLoading(false)
-          }
-        }
+  const fetchLessonsForPhase = async () => {
+    if (loading) return
+    setLoading(true)
+    setErrorText('')
+    try {
+      const res = await fetch('/api/ai/generate-lessons-for-phase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phaseId })
+      })
+      const data = await res.json()
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Failed to generate lessons')
       }
-      generateLessons()
-      return () => {
-        active = false
-      }
+      const formatted = (data.lessons || []).map((lesson: any) => ({
+        id: lesson.id,
+        title: lesson.title,
+        description: `Lesson ${lesson.order_index} • Ready to learn`,
+        order_index: lesson.order_index,
+        isAccessible: true,
+        status: 'not_started' as const
+      }))
+      setLessonsList(formatted)
+    } catch (err: any) {
+      console.error(err)
+      setErrorText(err.message || 'Failed to load lessons.')
+    } finally {
+      setLoading(false)
     }
-  }, [expanded, lessonsList.length, phaseId, loading])
+  }
+
+  // Automatically trigger lesson generation on mount if expanded and empty
+  useEffect(() => {
+    if (expanded && lessonsList.length === 0) {
+      fetchLessonsForPhase()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expanded, lessonsList.length, phaseId])
 
   const completedCount = lessonsList.filter(l => l.status === 'completed').length
 
@@ -92,8 +85,7 @@ export function RoadmapPhaseCard({
 
   const handleRetry = (e: React.MouseEvent) => {
     e.stopPropagation()
-    // Trigger useEffect again by emptying error text and letting it fetch
-    setErrorText('')
+    fetchLessonsForPhase()
   }
 
   return (
@@ -113,7 +105,9 @@ export function RoadmapPhaseCard({
 
       {/* Phase header */}
       <div
-        onClick={() => setExpanded(!expanded)}
+        onClick={() => {
+          setExpanded(!expanded)
+        }}
         style={{
           padding: '16px 20px',
           background: 'var(--color-surface)',
