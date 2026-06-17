@@ -30,6 +30,7 @@ Rules:
 - Each phase should have 4 to 8 lessons
 - Lessons must be specific (not "Introduction to JavaScript" but "Variables and Data Types in JavaScript")
 - Sequence must be logical — foundational concepts before advanced
+- When the subject is a broad discipline (e.g. Web Development), ensure the phases cover foundational sub-disciplines comprehensively and in logical sequence (e.g., Phase 1: Semantic HTML & Document Structure, Phase 2: Responsive CSS Layouts, Phase 3: JavaScript Core Programming, etc.). Do not skip core steps or rush into advanced application frameworks.
 - Match depth to their stated experience level`;
 
 export interface RoadmapParams {

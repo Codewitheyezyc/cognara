@@ -168,13 +168,13 @@ export default function LessonPage() {
             setStatus('in_progress')
           } else {
             // API returned error (500 / 504 timeout / model error)
-            setGenerationErrorMsg(result.error || 'Unknown error — check Vercel logs.')
-            setGenerationError(true)
+            setGenerationErrorMsg(result.error || "Spark is having trouble compiling this lesson. Let's try reloading the page!");
+            setGenerationError(true);
           }
         } catch (err) {
           console.error('Error generating lesson content:', err)
-          setGenerationErrorMsg('Network error — could not reach the server.')
-          setGenerationError(true)
+          setGenerationErrorMsg('We had trouble connecting to the study server. Please check your internet connection or try again.');
+          setGenerationError(true);
         } finally {
           setIsGenerating(false)
           setIsAIGenerating(false)
@@ -185,21 +185,36 @@ export default function LessonPage() {
     loadLesson()
   }, [lessonId, supabase, router])
 
-  // Background prefetching for next lesson
+  // Background prefetching for next lesson and current quiz
   useEffect(() => {
-    if (!content || !nextLessonId) return
+    if (!content) return
 
     // Wait 3 seconds after lesson loads to avoid competing for network
     const prefetchTimer = setTimeout(async () => {
+      // 1. Prefetch current lesson's quiz
       try {
-        console.log(`[Prefetch] Proactively pre-generating next lesson: ${nextLessonId}`);
-        await fetch('/api/ai/generate-lesson', {
+        console.log(`[Prefetch] Proactively pre-generating quiz for current lesson: ${lessonId}`);
+        await fetch('/api/ai/generate-quiz', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lessonId: nextLessonId }),
+          body: JSON.stringify({ lessonId }),
         })
       } catch (err) {
-        console.warn('[Prefetch] Next lesson prefetch failed:', err)
+        console.warn('[Prefetch] Quiz prefetch failed:', err)
+      }
+
+      // 2. Prefetch next lesson
+      if (nextLessonId) {
+        try {
+          console.log(`[Prefetch] Proactively pre-generating next lesson: ${nextLessonId}`);
+          await fetch('/api/ai/generate-lesson', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lessonId: nextLessonId }),
+          })
+        } catch (err) {
+          console.warn('[Prefetch] Next lesson prefetch failed:', err)
+        }
       }
     }, 3000)
 
@@ -259,16 +274,16 @@ export default function LessonPage() {
           setContentMap(prev => ({ ...prev, [newDepth]: result.content }))
           setStatus('in_progress')
         } else {
-          setGenerationErrorMsg(result.error || 'Unknown error.')
-          setGenerationError(true)
+          setGenerationErrorMsg(result.error || "Spark is having trouble adapting this lesson. Let's try reloading the page!");
+          setGenerationError(true);
         }
       } catch (err) {
         console.error('Error changing depth level:', err)
-        setGenerationErrorMsg('Network error — could not reach the server.')
-        setGenerationError(true)
+        setGenerationErrorMsg('We had trouble connecting to the study server. Please check your internet connection or try again.');
+        setGenerationError(true);
       } finally {
-        setIsChangingDepth(false)
-        setIsAIGenerating(false)
+        setIsChangingDepth(false);
+        setIsAIGenerating(false);
       }
     } catch (err) {
       console.error('handleDepthChange outer error:', err)

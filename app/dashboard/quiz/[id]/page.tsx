@@ -109,9 +109,11 @@ export default function QuizPage() {
           body: JSON.stringify({ lessonId }),
         })
 
-        const data = await res.json()
-        if (!res.ok) {
-          throw new Error(data.error || 'Failed to load quiz')
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok || !data.questions) {
+          setErrorMsg(data.error || "Spark is having trouble building this assessment. Let's try reloading the page!");
+          setIsLoading(false);
+          return;
         }
 
         setQuizId(data.quizId)
@@ -125,7 +127,7 @@ export default function QuizPage() {
         }, 1000)
       } catch (err: any) {
         console.error(err)
-        setErrorMsg(err.message || 'An error occurred while building the quiz.')
+        setErrorMsg('We had trouble connecting to the study server. Please check your internet connection or try again.')
         setIsLoading(false)
       }
     }

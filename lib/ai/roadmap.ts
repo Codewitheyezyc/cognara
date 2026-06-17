@@ -34,7 +34,9 @@ export async function generateRoadmap(
 
     const query = (goalText + ' ' + subject).toLowerCase()
 
-    if (query.includes('react') || query.includes('next.js') || query.includes('frontend')) {
+    if (query.includes('web development') || query.includes('web dev') || query.includes('html') || query.includes('css') || query.includes('javascript') || query.includes('js')) {
+      return getWebDevelopmentRoadmap(level, dailyMinutes)
+    } else if (query.includes('react') || query.includes('next.js') || query.includes('frontend')) {
       return getReactRoadmap(level, dailyMinutes)
     } else if (query.includes('python') || query.includes('data science') || query.includes('backend')) {
       return getPythonRoadmap(level, dailyMinutes)
@@ -435,6 +437,101 @@ function getDefaultRoadmap(goalText: string, subject: string, level: string, dai
             order_index: 4,
             title: "Final Capstone Review & Assessment",
             description: "Synthesize all prior concepts into a complete comprehensive project review."
+          }
+        ]
+      }
+    ]
+  }
+}
+
+function getWebDevelopmentRoadmap(level: string, dailyMinutes: number): GeneratedRoadmap {
+  const weeksMultiplier = dailyMinutes < 30 ? 1.5 : dailyMinutes > 60 ? 0.75 : 1
+  return {
+    title: `Web Development Foundations Path (${level})`,
+    description: `A detailed, comprehensive path designed to build production-ready frontends starting with Semantic HTML, moving to Responsive CSS, and mastering JavaScript core concepts.`,
+    estimated_weeks: Math.round(10 * weeksMultiplier),
+    phases: [
+      {
+        phase_number: 1,
+        title: "Phase 1: Semantic HTML & Document Architecture",
+        description: "Master document standards, metadata, form controls, and web accessibility principles.",
+        duration_weeks: Math.round(3 * weeksMultiplier),
+        lessons: [
+          {
+            order_index: 1,
+            title: "HTML5 Document Structure & Metadata",
+            description: "Understand doctypes, head elements, script placement, and viewport configurations."
+          },
+          {
+            order_index: 2,
+            title: "Semantic HTML Elements & Content Layout",
+            description: "Learn to structure readable documents using section, article, nav, header, and footer elements."
+          },
+          {
+            order_index: 3,
+            title: "HTML Forms, Validations & User Inputs",
+            description: "Create interactive forms using secure inputs, fieldsets, labels, and native validation attributes."
+          },
+          {
+            order_index: 4,
+            title: "Web Accessibility (A11y) & WCAG Guidelines",
+            description: "Enforce accessible patterns with ARIA attributes, semantic landmarks, and screen-reader optimizations."
+          }
+        ]
+      },
+      {
+        phase_number: 2,
+        title: "Phase 2: CSS Box Model & Responsive Layouts",
+        description: "Deep dive into CSS selectors, Flexbox models, CSS Grid layout systems, and responsive design practices.",
+        duration_weeks: Math.round(3 * weeksMultiplier),
+        lessons: [
+          {
+            order_index: 1,
+            title: "CSS Selectors, Cascade & Box Model",
+            description: "Master padding, margins, borders, specificity weights, cascade rules, and layout rendering."
+          },
+          {
+            order_index: 2,
+            title: "Flexible Box Layouts (Flexbox)",
+            description: "Design flexible single-dimension containers using justify-content, align-items, and flex-wrap."
+          },
+          {
+            order_index: 3,
+            title: "CSS Grid Architecture",
+            description: "Construct responsive two-dimensional grid layouts, grid templates, areas, and auto-placement."
+          },
+          {
+            order_index: 4,
+            title: "Media Queries & Mobile-First Responsive Design",
+            description: "Use CSS breakpoints, fluid sizing units (rem, em, vh, vw), and mobile-first styles."
+          }
+        ]
+      },
+      {
+        phase_number: 3,
+        title: "Phase 3: JavaScript Programming Core & DOM API",
+        description: "Learn logical program structures, control flows, loops, functions, scopes, and modern DOM interactions.",
+        duration_weeks: Math.round(4 * weeksMultiplier),
+        lessons: [
+          {
+            order_index: 1,
+            title: "JS Variables, Scope & Data Types",
+            description: "Understand var/let/const hoisting, primitive types, type coercion, and memory scopes."
+          },
+          {
+            order_index: 2,
+            title: "Functions, Control Flow & Array Operations",
+            description: "Write clean closures, loop statements, and map/filter/reduce transformations on collections."
+          },
+          {
+            order_index: 3,
+            title: "DOM Manipulation & Event Propagation",
+            description: "Select elements, edit styles, attach listeners, and manage capturing and bubbling phases."
+          },
+          {
+            order_index: 4,
+            title: "Asynchronous JavaScript & Fetch API",
+            description: "Master Promises, async/await blocks, HTTP requests, and rendering fetched JSON payloads."
           }
         ]
       }
