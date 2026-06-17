@@ -191,19 +191,20 @@ specific concept being taught.
 
 ---
 
-RULE 5 — LESSONS MUST BE CONCISE AND HIGH-DENSITY (TO PREVENT TIMEOUTS)
-To prevent network timeouts on Vercel, keep the output highly concise, punchy, and dense. Avoid long prose.
+RULE 5 — LESSONS MUST BE COMPREHENSIVE AND HIGH-DENSITY
+Provide comprehensive, detailed, and rich educational text to ensure the subject is thoroughly covered. Avoid superficial summaries or overly brief explanations.
 - Generate exactly 4 to 5 sections (never exceed 6).
-- Keep each explanation section focused (around 80-120 words of real, high-value content).
-- Do not repeat information. Be direct and educational.
-- The entire JSON payload must be under 2000 tokens.
+- Keep each explanation section detailed and explanatory (around 150-250 words of high-density, real-world educational content).
+- Include clear definitions, step-by-step logic, code comments explaining every line (if technical), or practical domain examples.
+- Do not repeat information. Be direct, comprehensive, and engaging.
+- Keep the entire JSON payload under 3000 tokens to ensure fast response.
 
 For a lesson like "Essential Tailoring Tools and Their Uses":
 The lesson should cover at minimum:
 - What each major tool is (shears, measuring tape, tailor's chalk, seam ripper)
 - Why each tool matters, and one common beginner mistake
 - A practical exercise using real tools
-Keep descriptions short and high-value.
+Keep descriptions detailed and high-value.
 
 ---
 
@@ -410,9 +411,11 @@ IS TECHNICAL SUBJECT: {isTechnical}
 
 ---
 
-CRITICAL RULE — EVERY QUESTION AND ANSWER MUST BE ABOUT THE SUBJECT
+CRITICAL RULE 1 — EVERY QUESTION AND ANSWER MUST BE ABOUT THE SUBJECT
+Every single question, every single answer option, and every single explanation must be 100% relevant to {subject} and specifically about {lessonTitle}.
 
-This is the most important rule. Read it carefully.
+CRITICAL RULE 2 — DERIVE ALL QUESTIONS STRICTLY FROM THE LESSON TEXT
+Every question, option, correct answer, and explanation must be directly and strictly derived from the facts, guidelines, code snippets, or definitions explicitly written in the provided FULL LESSON TEXT. Do not ask about details, API methods, definitions, or operations that are not explicitly present in the text. If a fact or syntax is not explicitly explained in the lesson text, do not create a question about it. This is crucial to prevent user confusion.
 
 Every single question, every single answer option, and every
 single explanation must be 100% relevant to {subject} and
@@ -542,13 +545,14 @@ export interface QuizParams {
   level: string
   keyTakeaways: string[]
   lessonSummary: string
+  fullLessonText: string
 }
 
 export function buildQuizUserMessage(params: QuizParams): string {
   const technical = isTechnicalSubject(params.subject)
 
   return `
-You are generating a quiz for this specific lesson:
+You are generating a quiz for this specific lesson based strictly on the provided lesson text.
 
 Subject: ${params.subject}
 Lesson title: ${params.lessonTitle}
@@ -556,16 +560,18 @@ Technical subject: ${technical
   ? 'YES — questions and answers may include programming concepts'
   : 'NO — questions and answers must ONLY reference real-world concepts from ' + params.subject + '. Never include programming, databases, web development, or technology answer options.'}
 
+---
+FULL LESSON TEXT:
+${params.fullLessonText}
+---
+
 Lesson key takeaways (base your questions on these):
 ${params.keyTakeaways.map((t, i) => `${i + 1}. ${t}`).join('\n')}
 
 Lesson summary:
 ${params.lessonSummary}
 
-CRITICAL REMINDER: Every question and every answer option
-must be specifically about ${params.subject} — ${params.lessonTitle}.
-If any answer option could belong to a different subject,
-rewrite it immediately.
+CRITICAL: Every question, correct answer option, and explanation MUST be based strictly and directly on facts, guidelines, or code explicitly written in the FULL LESSON TEXT above. Do not ask about details, API methods, definitions, or operations that are not explicitly present in the text.
 `.trim()
 }
 

@@ -7,7 +7,8 @@ export async function generateQuiz(
   subject: string,
   level: string,
   keyTakeaways: string[],
-  lessonSummary: string
+  lessonSummary: string,
+  fullLessonText: string
 ): Promise<GeneratedQuiz> {
   const mockFallback = async () => {
     // Simulate network delay
@@ -35,7 +36,8 @@ export async function generateQuiz(
     subject,
     level,
     keyTakeaways,
-    lessonSummary
+    lessonSummary,
+    fullLessonText
   })
 
   const systemPrompt = QUIZ_SYSTEM_PROMPT

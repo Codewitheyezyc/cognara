@@ -100,7 +100,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Learning goal context not found' }, { status: 500 })
     }
 
-    // Extract takeaways if lesson has been generated
+    // Extract takeaways and full lesson text if lesson has been generated
     const contentMap = lesson.content as any
     const lessonContent = (contentMap && typeof contentMap === 'object')
       ? (contentMap[goal.depth_level ?? 2] || Object.values(contentMap)[0])
@@ -111,6 +111,21 @@ export async function POST(request: Request) {
       (s: any) => s.type === 'summary'
     )
     const lessonSummary = summarySection?.body || takeaways.join('\n')
+
+    // Build the full lesson text dynamically
+    const fullTextParts: string[] = []
+    if (lessonContent && Array.isArray((lessonContent as any).sections)) {
+      for (const section of (lessonContent as any).sections) {
+        if (section.heading) fullTextParts.push(`Heading: ${section.heading}`)
+        if (section.body) fullTextParts.push(section.body)
+        if (section.code_snippet) fullTextParts.push(`Code snippet:\n${section.code_snippet}`)
+        if (section.callout_body) fullTextParts.push(`Warning/Note: ${section.callout_body}`)
+        if (section.exercise_instructions) fullTextParts.push(`Exercise: ${section.exercise_instructions}`)
+      }
+    }
+    const fullLessonText = fullTextParts.length > 0 
+      ? fullTextParts.join('\n\n') 
+      : `${lesson.title} - ${lessonSummary}`
 
     // 6.5. Enforce Rate Limit (30 per day)
     const rateLimit = await checkRateLimit(supabase, user.id, 'quiz', 30)
@@ -127,7 +142,8 @@ export async function POST(request: Request) {
       goal.subject,
       goal.level,
       takeaways,
-      lessonSummary
+      lessonSummary,
+      fullLessonText
     )
 
     const usage = (generatedQuiz as any)._usage
@@ -152,7 +168,8 @@ export async function POST(request: Request) {
             subject: goal.subject,
             level: goal.level,
             keyTakeaways: takeaways,
-            lessonSummary: lessonSummary
+            lessonSummary: lessonSummary,
+            fullLessonText: fullLessonText
           }
 
           // Regenerate once with even stronger prompt

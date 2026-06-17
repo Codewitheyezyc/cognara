@@ -23,6 +23,28 @@ const BADGE_DESCRIPTIONS: Record<string, string> = {
   speed_learner: '3 lessons in one day'
 }
 
+function shuffleArray<T>(array: T[]): T[] {
+  const arr = [...array]
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr
+}
+
+function prepareQuizQuestions(questions: QuizQuestion[]): QuizQuestion[] {
+  const shuffledQuestions = shuffleArray(questions)
+  return shuffledQuestions.map(q => {
+    if (q.type === 'multiple_choice' && q.options) {
+      return {
+        ...q,
+        options: shuffleArray(q.options)
+      }
+    }
+    return q
+  })
+}
+
 export default function QuizPage() {
   const params = useParams()
   const router = useRouter()
@@ -117,7 +139,7 @@ export default function QuizPage() {
         }
 
         setQuizId(data.quizId)
-        setQuestions(data.questions || [])
+        setQuestions(prepareQuizQuestions(data.questions || []))
         setIsLoading(false)
 
         // Start timer
@@ -211,6 +233,8 @@ export default function QuizPage() {
 
   // Reset quiz state to retry
   const handleRetryQuiz = () => {
+    // Reshuffle questions and options on retake to reinforce active recall
+    setQuestions(prevQuestions => prepareQuizQuestions(prevQuestions))
     setCurrentIdx(0)
     setSelectedAnswer('')
     setIsAnswerChecked(false)
