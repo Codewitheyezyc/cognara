@@ -1,5 +1,10 @@
 import React from 'react'
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet, Svg, Path, Defs, LinearGradient, Stop, Font } from '@react-pdf/renderer'
+
+Font.register({
+  family: 'Dancing Script',
+  src: 'https://fonts.gstatic.com/s/dancingscript/v24/JeX3YFHgve54ZI1gM5GA9E-v.ttf'
+})
 
 const styles = StyleSheet.create({
   page: {
@@ -39,10 +44,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center'
   },
-  logo: {
-    fontSize: 20,
+  logoContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6
+  },
+  logoText: {
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#5B8EFF'
+    color: '#5B8EFF',
+    letterSpacing: 2
   },
   certificateTitle: {
     fontSize: 12,
@@ -107,6 +119,18 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     marginTop: 30
   },
+  signatureContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start'
+  },
+  signatureTextHandwritten: {
+    fontFamily: 'Dancing Script',
+    fontSize: 18,
+    color: '#5B8EFF',
+    marginBottom: 4,
+    marginLeft: 10
+  },
   signatureLine: {
     borderTop: '1px solid #1E2540',
     width: 180,
@@ -150,7 +174,29 @@ export function PhaseCertificate({
           
           {/* Header */}
           <View style={styles.headerRow}>
-            <Text style={styles.logo}>Cognara ⚡</Text>
+            <View style={styles.logoContainer}>
+              <Svg width={18} height={18} viewBox="0 0 512 512">
+                <Defs>
+                  <LinearGradient id="logoBlue" x1="10%" y1="10%" x2="90%" y2="90%">
+                    <Stop offset="0%" stopColor="#5B8EFF" />
+                    <Stop offset="100%" stopColor="#3B82F6" />
+                  </LinearGradient>
+                  <LinearGradient id="logoViolet" x1="10%" y1="10%" x2="90%" y2="90%">
+                    <Stop offset="0%" stopColor="#A78BFA" />
+                    <Stop offset="100%" stopColor="#8B5CF6" stopOpacity={0.8} />
+                  </LinearGradient>
+                </Defs>
+                <Path 
+                  d="M 290 40 L 150 260 L 240 260 L 170 480 L 370 220 L 280 220 Z" 
+                  fill="url(#logoBlue)" 
+                />
+                <Path 
+                  d="M 320 60 L 220 220 L 280 220 L 200 440 L 350 200 L 290 200 Z" 
+                  fill="url(#logoViolet)" 
+                />
+              </Svg>
+              <Text style={styles.logoText}>COGNARA</Text>
+            </View>
             <Text style={{ fontSize: 9, color: '#4A5272' }}>Official Achievement Record</Text>
           </View>
 
@@ -176,9 +222,12 @@ export function PhaseCertificate({
 
           {/* Footer */}
           <View style={styles.footer}>
-            <View style={styles.signatureLine}>
-              <Text style={styles.signatureText}>Cognara AI Learning Platform</Text>
-              <Text style={{ fontSize: 7, color: '#4A5272', marginTop: 2 }}>Verified issuer</Text>
+            <View style={styles.signatureContainer}>
+              <Text style={styles.signatureTextHandwritten}>Cognara Team</Text>
+              <View style={styles.signatureLine}>
+                <Text style={styles.signatureText}>Cognara AI Learning Platform</Text>
+                <Text style={{ fontSize: 7, color: '#4A5272', marginTop: 2 }}>Verified issuer</Text>
+              </View>
             </View>
             <Text style={styles.certId}>Certificate ID: {certId}</Text>
           </View>

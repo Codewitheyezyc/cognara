@@ -1,5 +1,10 @@
 import React from 'react'
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet, Svg, Path, Defs, LinearGradient, Stop, Font } from '@react-pdf/renderer'
+
+Font.register({
+  family: 'Dancing Script',
+  src: 'https://fonts.gstatic.com/s/dancingscript/v24/JeX3YFHgve54ZI1gM5GA9E-v.ttf'
+})
 
 const styles = StyleSheet.create({
   page: {
@@ -88,10 +93,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 4
   },
-  logo: {
-    fontSize: 22,
+  logoContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6
+  },
+  logoText: {
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#F59E0B'
+    color: '#F59E0B',
+    letterSpacing: 2
   },
   officialBadge: {
     fontSize: 8,
@@ -116,16 +128,22 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 2
   },
-  masterBadge: {
-    fontSize: 10,
-    letterSpacing: 5,
-    color: '#F59E0B',
-    textAlign: 'center',
-    textTransform: 'uppercase',
+  masterBadgeRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 16,
     paddingVertical: 5,
     border: '1px solid #92400E',
-    borderRadius: 3
+    borderRadius: 3,
+    backgroundColor: '#161310'
+  },
+  masterBadgeText: {
+    fontSize: 10,
+    letterSpacing: 5,
+    color: '#F59E0B',
+    textTransform: 'uppercase'
   },
 
   // Certificate title
@@ -227,6 +245,18 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     marginTop: 24
   },
+  signatureContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start'
+  },
+  signatureTextHandwritten: {
+    fontFamily: 'Dancing Script',
+    fontSize: 18,
+    color: '#F59E0B',
+    marginBottom: 4,
+    marginLeft: 10
+  },
   signatureLine: {
     borderTop: '1px solid #92400E',
     width: 200,
@@ -286,7 +316,29 @@ export function RoadmapCertificate({
 
           {/* Header */}
           <View style={styles.headerRow}>
-            <Text style={styles.logo}>Cognara ⚡</Text>
+            <View style={styles.logoContainer}>
+              <Svg width={18} height={18} viewBox="0 0 512 512">
+                <Defs>
+                  <LinearGradient id="logoBlue" x1="10%" y1="10%" x2="90%" y2="90%">
+                    <Stop offset="0%" stopColor="#5B8EFF" />
+                    <Stop offset="100%" stopColor="#3B82F6" />
+                  </LinearGradient>
+                  <LinearGradient id="logoViolet" x1="10%" y1="10%" x2="90%" y2="90%">
+                    <Stop offset="0%" stopColor="#A78BFA" />
+                    <Stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.8" />
+                  </LinearGradient>
+                </Defs>
+                <Path 
+                  d="M 290 40 L 150 260 L 240 260 L 170 480 L 370 220 L 280 220 Z" 
+                  fill="url(#logoBlue)" 
+                />
+                <Path 
+                  d="M 320 60 L 220 220 L 280 220 L 200 440 L 350 200 L 290 200 Z" 
+                  fill="url(#logoViolet)" 
+                />
+              </Svg>
+              <Text style={styles.logoText}>COGNARA</Text>
+            </View>
             <Text style={styles.officialBadge}>Official Mastery Record</Text>
           </View>
 
@@ -294,7 +346,51 @@ export function RoadmapCertificate({
 
           {/* Master Badge label */}
           <View style={styles.masterBadgeContainer}>
-            <Text style={styles.masterBadge}>🏆  Master Certificate</Text>
+            <View style={styles.masterBadgeRow}>
+              <Svg width={11} height={11} viewBox="0 0 24 24" style={{ marginRight: 6 }}>
+                <Path
+                  d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"
+                  fill="none"
+                  stroke="#F59E0B"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <Path
+                  d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"
+                  fill="none"
+                  stroke="#F59E0B"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <Path
+                  d="M4 22h16"
+                  fill="none"
+                  stroke="#F59E0B"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <Path
+                  d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"
+                  fill="none"
+                  stroke="#F59E0B"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <Path
+                  d="M12 2a6 6 0 0 1 6 6v2c0 2.2-1.8 4-4 4h-4c-2.2 0-4-1.8-4-4V8a6 6 0 0 1 6-6z"
+                  fill="none"
+                  stroke="#F59E0B"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </Svg>
+              <Text style={styles.masterBadgeText}>Master Certificate</Text>
+            </View>
           </View>
 
           <Text style={styles.certTitle}>Certificate of Full Course Completion</Text>
@@ -333,9 +429,12 @@ export function RoadmapCertificate({
 
           {/* Footer */}
           <View style={styles.footer}>
-            <View style={styles.signatureLine}>
-              <Text style={styles.signatureText}>Cognara AI Learning Platform</Text>
-              <Text style={styles.signatureSubText}>Verified Master Credential Issuer</Text>
+            <View style={styles.signatureContainer}>
+              <Text style={styles.signatureTextHandwritten}>Cognara Board</Text>
+              <View style={styles.signatureLine}>
+                <Text style={styles.signatureText}>Cognara AI Learning Platform</Text>
+                <Text style={styles.signatureSubText}>Verified Master Credential Issuer</Text>
+              </View>
             </View>
             <Text style={styles.certId}>MASTER CERT ID: {certId}</Text>
           </View>

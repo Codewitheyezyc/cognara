@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -302,4 +303,8 @@
 
 .animate-pulse-subtle {
   animation: pulseSubtle 1.5s infinite ease-in-out;
+}
+
+.font-signature {
+  font-family: 'Dancing Script', 'Brush Script MT', cursive;
 }

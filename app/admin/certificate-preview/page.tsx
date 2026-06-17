@@ -53,7 +53,23 @@ export default function CertificatePreviewPage() {
             }} />
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <span style={{ color: '#5B8EFF', fontWeight: 700, fontSize: 14 }}>Cognara ⚡</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <svg width="18" height="18" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+                  <path d="M 290 40 L 150 260 L 240 260 L 170 480 L 370 220 L 280 220 Z" fill="url(#prevLogoBlue1)" />
+                  <path d="M 320 60 L 220 220 L 280 220 L 200 440 L 350 200 L 290 200 Z" fill="url(#prevLogoViolet1)" />
+                  <defs>
+                    <linearGradient id="prevLogoBlue1" x1="10%" y1="10%" x2="90%" y2="90%">
+                      <stop offset="0%" stopColor="#5B8EFF" />
+                      <stop offset="100%" stopColor="#3B82F6" />
+                    </linearGradient>
+                    <linearGradient id="prevLogoViolet1" x1="10%" y1="10%" x2="90%" y2="90%">
+                      <stop offset="0%" stopColor="#A78BFA" />
+                      <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.8" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <span style={{ color: '#5B8EFF', fontWeight: 700, fontSize: 13, letterSpacing: 1.5 }}>COGNARA</span>
+              </div>
               <span style={{ color: '#4A5272', fontSize: 9 }}>Official Achievement Record</span>
             </div>
             <p style={{ color: '#8B95B3', fontSize: 9, textAlign: 'center', letterSpacing: 3, textTransform: 'uppercase', marginBottom: 8 }}>
@@ -67,14 +83,21 @@ export default function CertificatePreviewPage() {
               <p style={{ color: '#34D399', fontSize: 10 }}>under the subject of Web Development</p>
             </div>
             <div style={{
-              display: 'flex', justifyContent: 'center', gap: 12, marginTop: 10,
+              display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 10,
               borderTop: '1px solid #1E2540', paddingTop: 8
             }}>
-              <span style={{ color: '#8B95B3', fontSize: 9 }}>Avg Score: 92%</span>
-              <span style={{ color: '#4A5272' }}>•</span>
-              <span style={{ color: '#8B95B3', fontSize: 9 }}>Lessons: 6</span>
-              <span style={{ color: '#4A5272' }}>•</span>
-              <span style={{ color: '#8B95B3', fontSize: 9 }}>Jun 17, 2026</span>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <span className="font-signature text-xs text-primary leading-none" style={{ color: '#5B8EFF', fontSize: 12, marginBottom: 2 }}>Cognara Team</span>
+                <div style={{ borderTop: '1px solid #1E2540', width: 90, paddingTop: 2, opacity: 0.5 }}>
+                  <p style={{ color: '#8B95B3', fontSize: 6, margin: 0, lineHeight: 1 }}>Cognara AI Platform</p>
+                  <p style={{ color: '#4A5272', fontSize: 5, margin: 0 }}>Verified issuer</p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 6, color: '#8B95B3', fontSize: 8 }}>
+                <span>Score: <strong style={{ color: '#5B8EFF' }}>92%</strong></span>
+                <span style={{ color: '#4A5272' }}>•</span>
+                <span>Lessons: <strong style={{ color: '#5B8EFF' }}>6</strong></span>
+              </div>
             </div>
           </div>
 
@@ -174,15 +197,34 @@ export default function CertificatePreviewPage() {
             ))}
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <span style={{ color: '#F59E0B', fontWeight: 700, fontSize: 14 }}>Cognara ⚡</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <svg width="18" height="18" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+                  <path d="M 290 40 L 150 260 L 240 260 L 170 480 L 370 220 L 280 220 Z" fill="url(#prevLogoBlue2)" />
+                  <path d="M 320 60 L 220 220 L 280 220 L 200 440 L 350 200 L 290 200 Z" fill="url(#prevLogoViolet2)" />
+                  <defs>
+                    <linearGradient id="prevLogoBlue2" x1="10%" y1="10%" x2="90%" y2="90%">
+                      <stop offset="0%" stopColor="#5B8EFF" />
+                      <stop offset="100%" stopColor="#3B82F6" />
+                    </linearGradient>
+                    <linearGradient id="prevLogoViolet2" x1="10%" y1="10%" x2="90%" y2="90%">
+                      <stop offset="0%" stopColor="#A78BFA" />
+                      <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.8" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <span style={{ color: '#F59E0B', fontWeight: 700, fontSize: 13, letterSpacing: 1.5 }}>COGNARA</span>
+              </div>
               <span style={{ color: '#92400E', fontSize: 9 }}>Official Mastery Record</span>
             </div>
             <div style={{ textAlign: 'center', marginBottom: 4 }}>
               <span style={{
                 fontSize: 9, letterSpacing: 3, color: '#F59E0B',
-                border: '1px solid #92400E', padding: '2px 10px', borderRadius: 2
+                border: '1px solid #92400E', padding: '3px 10px', borderRadius: 2,
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                backgroundColor: '#161310'
               }}>
-                🏆  Master Certificate
+                <Trophy size={10} className="text-amber-500 shrink-0" />
+                MASTER CERTIFICATE
               </span>
             </div>
             <div style={{ textAlign: 'center', marginTop: 8 }}>
@@ -192,17 +234,21 @@ export default function CertificatePreviewPage() {
               <p style={{ color: '#34D399', fontSize: 10 }}>Subject Specialization: Web Development</p>
             </div>
             <div style={{
-              display: 'flex', justifyContent: 'center', gap: 10, marginTop: 10,
+              display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 10,
               borderTop: '1px solid #92400E', paddingTop: 8
             }}>
-              <span style={{ color: '#F59E0B', fontSize: 9, fontWeight: 700 }}>88%</span>
-              <span style={{ color: '#6B5B3A', fontSize: 9 }}>Avg</span>
-              <span style={{ color: '#6B5B3A' }}>·</span>
-              <span style={{ color: '#F59E0B', fontSize: 9, fontWeight: 700 }}>18</span>
-              <span style={{ color: '#6B5B3A', fontSize: 9 }}>Lessons</span>
-              <span style={{ color: '#6B5B3A' }}>·</span>
-              <span style={{ color: '#F59E0B', fontSize: 9, fontWeight: 700 }}>3</span>
-              <span style={{ color: '#6B5B3A', fontSize: 9 }}>Phases</span>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <span className="font-signature text-xs text-amber-500 leading-none" style={{ color: '#F59E0B', fontSize: 12, marginBottom: 2 }}>Cognara Board</span>
+                <div style={{ borderTop: '1px solid #92400E', width: 90, paddingTop: 2, opacity: 0.5 }}>
+                  <p style={{ color: '#A8956A', fontSize: 6, margin: 0, lineHeight: 1 }}>Cognara AI Platform</p>
+                  <p style={{ color: '#6B5B3A', fontSize: 5, margin: 0 }}>Verified Master Issuer</p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 6, color: '#6B5B3A', fontSize: 8 }}>
+                <span>Avg: <strong style={{ color: '#F59E0B' }}>88%</strong></span>
+                <span>•</span>
+                <span>Lessons: <strong style={{ color: '#F59E0B' }}>18</strong></span>
+              </div>
             </div>
           </div>
 
