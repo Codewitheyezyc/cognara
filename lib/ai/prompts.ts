@@ -27,9 +27,10 @@ The JSON must follow this exact structure:
 
 Rules:
 - Create 3 to 6 phases depending on complexity
-- Each phase should have 4 to 8 lessons
+- Each phase should have 5 to 15 lessons (up to 20 for highly complex, detailed pathways)
 - Lessons must be specific (not "Introduction to JavaScript" but "Variables and Data Types in JavaScript")
 - Sequence must be logical — foundational concepts before advanced
+- If a topic is complex, do not attempt to cover it in a single lesson. Instead, split the concept across multiple consecutive lessons (e.g., 'CSS Grid Layouts (Part 1): Grid Container & Columns', 'CSS Grid Layouts (Part 2): Grid Items & Template Areas') to ensure the user can thoroughly digest and master each sub-concept before progressing.
 - When the subject is a broad discipline (e.g. Web Development), ensure the phases cover foundational sub-disciplines comprehensively and in logical sequence (e.g., Phase 1: Semantic HTML & Document Structure, Phase 2: Responsive CSS Layouts, Phase 3: JavaScript Core Programming, etc.). Do not skip core steps or rush into advanced application frameworks.
 - Match depth to their stated experience level`;
 
@@ -38,6 +39,7 @@ export interface RoadmapParams {
   subject: string
   level: string
   dailyMinutes: number
+  depthLevel?: number
 }
 
 const CODE_SUBJECTS = [
@@ -60,6 +62,11 @@ export function isTechnicalSubject(subject: string): boolean {
 
 export function buildRoadmapUserMessage(params: RoadmapParams): string {
   const codeSubject = isCodeSubject(params.subject)
+  const depthInstruction = params.depthLevel === 3
+    ? '\n- The student has requested a HIGHLY DETAILED, IN-DEPTH, COMPREHENSIVE path. You must generate a thorough roadmap with a high density of lessons (e.g., 8 to 15 lessons per phase) splitting concepts into granular, logical parts (Part 1, Part 2, etc.) so no sub-concepts are skipped or glossed over.'
+    : params.depthLevel === 1
+      ? '\n- The student has requested a quick summary path. Keep the phase structures concise with 4 to 6 high-level lessons.'
+      : '\n- The student has requested a standard learning path (5 to 8 lessons per phase).'
 
   return `
 Student Goal: ${params.goalText}
@@ -67,6 +74,7 @@ Subject: ${params.subject}
 Experience Level: ${params.level}
 Daily Study Time: ${params.dailyMinutes} minutes
 Subject Type: ${codeSubject ? 'CODE-BASED / PROGRAMMING — include programming and code-related phases' : 'NON-CODING — phases must be entirely practical real-world skills. No code. No programming.'}
+${depthInstruction}
 
 Generate a roadmap that feels like it was designed by an expert
 teacher of ${params.subject} — not a software developer.

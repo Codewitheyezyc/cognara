@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     }
 
     // 4. Generate the curriculum roadmap (simulated AI)
-    const generatedRoadmap = await generateRoadmap(goalText, subject, level, Number(dailyMinutes))
+    const generatedRoadmap = await generateRoadmap(goalText, subject, level, Number(dailyMinutes), Number(learningDepth || 2))
 
     const usage = (generatedRoadmap as any)._usage
     if (usage) {
