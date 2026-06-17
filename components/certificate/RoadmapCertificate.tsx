@@ -3,7 +3,7 @@ import { Document, Page, Text, View, StyleSheet, Svg, Path, Defs, LinearGradient
 
 Font.register({
   family: 'Dancing Script',
-  src: 'https://fonts.gstatic.com/s/dancingscript/v24/JeX3YFHgve54ZI1gM5GA9E-v.ttf'
+  src: 'https://fonts.gstatic.com/s/dancingscript/v29/If2cXTr6YS-zF4S-kcSWSVi_sxjsohD9F50Ruu7BMSoHTQ.ttf'
 })
 
 const styles = StyleSheet.create({
