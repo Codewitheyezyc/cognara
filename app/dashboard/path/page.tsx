@@ -119,6 +119,7 @@ export default async function PathPage() {
                 title={phase.title}
                 description={phase.description || ''}
                 lessons={mappedLessons}
+                hasMore={(phase as any).has_more ?? true}
               />
             </div>
           )

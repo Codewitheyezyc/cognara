@@ -511,7 +511,6 @@ function getUXRoadmap(level: string, dailyMinutes: number, depthLevel: number): 
 function getDefaultRoadmap(goalText: string, subject: string, level: string, dailyMinutes: number, depthLevel: number): GeneratedRoadmap {
   const weeksMultiplier = dailyMinutes < 30 ? 1.5 : dailyMinutes > 60 ? 0.75 : 1
   const topic = subject || goalText || "Selected Subject"
-  const isDetailed = depthLevel === 3
 
   const phase1Lessons = [
     {
@@ -536,21 +535,6 @@ function getDefaultRoadmap(goalText: string, subject: string, level: string, dai
     }
   ]
 
-  if (isDetailed) {
-    phase1Lessons.push(
-      {
-        order_index: 5,
-        title: `Introduction to ${topic} (Part 2): Core Mental Models`,
-        description: "Deep dive into structural terminology and conceptual building blocks."
-      },
-      {
-        order_index: 6,
-        title: "Advanced Tooling Setup & Troubleshooting",
-        description: "Configure auxiliary tools, compile compilers, and resolve system path conflicts."
-      }
-    )
-  }
-
   const phase2Lessons = [
     {
       order_index: 1,
@@ -573,21 +557,6 @@ function getDefaultRoadmap(goalText: string, subject: string, level: string, dai
       description: "Expand core capabilities by importing community plugins and packages."
     }
   ]
-
-  if (isDetailed) {
-    phase2Lessons.push(
-      {
-        order_index: 5,
-        title: "Intermediate Practical Techniques (Part 2): Scale Operations",
-        description: "Apply intermediate patterns to higher volumes of actions or structured datasets."
-      },
-      {
-        order_index: 6,
-        title: "Debugging (Part 2): Advanced Logs & Profiling",
-        description: "Incorporate execution timers, trace stacks, and memory profile analyzers."
-      }
-    )
-  }
 
   const phase3Lessons = [
     {
@@ -612,45 +581,30 @@ function getDefaultRoadmap(goalText: string, subject: string, level: string, dai
     }
   ]
 
-  if (isDetailed) {
-    phase3Lessons.push(
-      {
-        order_index: 5,
-        title: "Performance Optimizations & Scaling (Part 2)",
-        description: "Troubleshoot bottlenecks, optimize loops, and apply caching middleware."
-      },
-      {
-        order_index: 6,
-        title: "Final Capstone Project Construction & Deploy",
-        description: "Build and publish a comprehensive project demonstrating all learnings of this curriculum."
-      }
-    )
-  }
-
   return {
     title: `Mastery Path for ${topic} (${level})`,
     description: `A custom generated learning path created by Cognara to help you achieve your goals in ${topic}.`,
-    estimated_weeks: Math.round((isDetailed ? 9 : 6) * weeksMultiplier),
+    estimated_weeks: Math.round(6 * weeksMultiplier),
     phases: [
       {
         phase_number: 1,
         title: `Phase 1: Foundations of ${topic}`,
         description: `Establish core definitions, setups, and baseline vocabulary in the field of ${topic}.`,
-        duration_weeks: Math.round((isDetailed ? 3 : 2) * weeksMultiplier),
+        duration_weeks: Math.round(2 * weeksMultiplier),
         lessons: phase1Lessons
       },
       {
         phase_number: 2,
         title: "Phase 2: Core Practical Applications",
         description: "Translate core theory into practical steps, managing errors and working with real patterns.",
-        duration_weeks: Math.round((isDetailed ? 3 : 2) * weeksMultiplier),
+        duration_weeks: Math.round(2 * weeksMultiplier),
         lessons: phase2Lessons
       },
       {
         phase_number: 3,
         title: "Phase 3: Advanced Methods & Scaling",
         description: "Focus on optimization, security configurations, and deploying your final project capstone.",
-        duration_weeks: Math.round((isDetailed ? 3 : 2) * weeksMultiplier),
+        duration_weeks: Math.round(2 * weeksMultiplier),
         lessons: phase3Lessons
       }
     ]
@@ -659,7 +613,6 @@ function getDefaultRoadmap(goalText: string, subject: string, level: string, dai
 
 function getWebDevelopmentRoadmap(level: string, dailyMinutes: number, depthLevel: number): GeneratedRoadmap {
   const weeksMultiplier = dailyMinutes < 30 ? 1.5 : dailyMinutes > 60 ? 0.75 : 1
-  const isDetailed = depthLevel === 3
   
   // Phase 1 lessons
   const phase1Lessons = [
@@ -685,21 +638,6 @@ function getWebDevelopmentRoadmap(level: string, dailyMinutes: number, depthLeve
     }
   ]
 
-  if (isDetailed) {
-    phase1Lessons.push(
-      {
-        order_index: 5,
-        title: "HTML Forms (Part 2): Advanced Inputs & File Uploads",
-        description: "Handle file uploads, datepickers, range inputs, and custom form styling constraints."
-      },
-      {
-        order_index: 6,
-        title: "HTML SEO Best Practices & Meta Tags",
-        description: "Optimise document headers with OpenGraph, JSON-LD schema markup, and Google crawl standards."
-      }
-    )
-  }
-
   // Phase 2 lessons
   const phase2Lessons = [
     {
@@ -723,21 +661,6 @@ function getWebDevelopmentRoadmap(level: string, dailyMinutes: number, depthLeve
       description: "Use CSS breakpoints, fluid sizing units (rem, em, vh, vw), and mobile-first styles."
     }
   ]
-
-  if (isDetailed) {
-    phase2Lessons.push(
-      {
-        order_index: 5,
-        title: "CSS Custom Variables & Theme Customization",
-        description: "Implement dark mode and theme toggles dynamically using CSS custom properties (variables)."
-      },
-      {
-        order_index: 6,
-        title: "CSS Transitions & Micro-Animations",
-        description: "Bring static components to life with keyframe animations, bezier timing paths, and hardware acceleration."
-      }
-    )
-  }
 
   // Phase 3 lessons
   const phase3Lessons = [
@@ -763,45 +686,30 @@ function getWebDevelopmentRoadmap(level: string, dailyMinutes: number, depthLeve
     }
   ]
 
-  if (isDetailed) {
-    phase3Lessons.push(
-      {
-        order_index: 5,
-        title: "JS Closures & Advanced Scope Scenarios",
-        description: "Understand execution contexts, scopes, modular patterns, and memoized helper functions."
-      },
-      {
-        order_index: 6,
-        title: "JS Fetch API (Part 2): Error Handling & Retry Policies",
-        description: "Learn to handle network dropouts, rate limit responses, and construct offline sync managers."
-      }
-    )
-  }
-
   return {
     title: `Web Development Foundations Path (${level})`,
     description: `A detailed, comprehensive path designed to build production-ready frontends starting with Semantic HTML, moving to Responsive CSS, and mastering JavaScript core concepts.`,
-    estimated_weeks: Math.round((isDetailed ? 14 : 10) * weeksMultiplier),
+    estimated_weeks: Math.round(10 * weeksMultiplier),
     phases: [
       {
         phase_number: 1,
         title: "Phase 1: Semantic HTML & Document Architecture",
         description: "Master document standards, metadata, form controls, and web accessibility principles.",
-        duration_weeks: Math.round((isDetailed ? 4 : 3) * weeksMultiplier),
+        duration_weeks: Math.round(3 * weeksMultiplier),
         lessons: phase1Lessons
       },
       {
         phase_number: 2,
         title: "Phase 2: CSS Box Model & Responsive Layouts",
         description: "Deep dive into CSS selectors, Flexbox models, CSS Grid layout systems, and responsive design practices.",
-        duration_weeks: Math.round((isDetailed ? 4 : 3) * weeksMultiplier),
+        duration_weeks: Math.round(3 * weeksMultiplier),
         lessons: phase2Lessons
       },
       {
         phase_number: 3,
         title: "Phase 3: JavaScript Programming Core & DOM API",
         description: "Learn logical program structures, control flows, loops, functions, scopes, and modern DOM interactions.",
-        duration_weeks: Math.round((isDetailed ? 6 : 4) * weeksMultiplier),
+        duration_weeks: Math.round(4 * weeksMultiplier),
         lessons: phase3Lessons
       }
     ]
