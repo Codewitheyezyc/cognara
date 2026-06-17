@@ -24,7 +24,8 @@ export const anthropic = isConfigured
 export async function callClaudeJSON<T>(
   systemPrompt: string,
   userPrompt: string,
-  mockFallback: () => Promise<T>
+  mockFallback: () => Promise<T>,
+  model: string = 'claude-sonnet-4-6'
 ): Promise<T> {
   // No API key — fall back to mock (dev mode)
   if (!anthropic) {
@@ -36,7 +37,7 @@ export async function callClaudeJSON<T>(
       ;(result as any)._usage = {
         input_tokens: mockInput,
         output_tokens: mockOutput,
-        model: 'claude-sonnet-4-6',
+        model: model,
         isMock: true
       }
     }
@@ -46,7 +47,7 @@ export async function callClaudeJSON<T>(
   // API key present — call Claude
   try {
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
+      model: model,
       max_tokens: 4000,
       temperature: 0.2,
       system: systemPrompt,

@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ChevronDown, ChevronUp, CheckCircle2, PlayCircle, Circle, Award } from 'lucide-react'
 
 interface Lesson {
@@ -17,7 +17,7 @@ interface RoadmapPhaseCardProps {
   title: string
   description: string
   lessons: Lesson[]
-  hasMore?: boolean
+  initiallyExpanded?: boolean
 }
 
 export function RoadmapPhaseCard({
@@ -26,44 +26,74 @@ export function RoadmapPhaseCard({
   title,
   description,
   lessons,
-  hasMore = true
+  initiallyExpanded = false
 }: RoadmapPhaseCardProps) {
-  const [expanded, setExpanded] = useState(false)
-  const [loadingMore, setLoadingMore] = useState(false)
-  const [completeState, setCompleteState] = useState(!hasMore)
+  const [expanded, setExpanded] = useState(initiallyExpanded)
+  const [lessonsList, setLessonsList] = useState<Lesson[]>(lessons)
+  const [loading, setLoading] = useState(false)
   const [errorText, setErrorText] = useState('')
 
-  const completedCount = lessons.filter(l => l.status === 'completed').length
+  // Sync state with prop if prop changes
+  useEffect(() => {
+    setLessonsList(lessons)
+  }, [lessons])
+
+  // Automatically trigger lesson generation on expand if empty
+  useEffect(() => {
+    if (expanded && lessonsList.length === 0 && !loading) {
+      let active = true
+      const generateLessons = async () => {
+        setLoading(true)
+        setErrorText('')
+        try {
+          const res = await fetch('/api/ai/generate-lessons-for-phase', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phaseId })
+          })
+          const data = await res.json()
+          if (!res.ok || data.error) {
+            throw new Error(data.error || 'Failed to generate lessons')
+          }
+          if (active) {
+            const formatted = (data.lessons || []).map((lesson: any) => ({
+              id: lesson.id,
+              title: lesson.title,
+              description: `Lesson ${lesson.order_index} • Ready to learn`,
+              order_index: lesson.order_index,
+              isAccessible: true,
+              status: 'not_started' as const
+            }))
+            setLessonsList(formatted)
+          }
+        } catch (err: any) {
+          console.error(err)
+          if (active) {
+            setErrorText(err.message || 'Failed to load lessons.')
+          }
+        } finally {
+          if (active) {
+            setLoading(false)
+          }
+        }
+      }
+      generateLessons()
+      return () => {
+        active = false
+      }
+    }
+  }, [expanded, lessonsList.length, phaseId, loading])
+
+  const completedCount = lessonsList.filter(l => l.status === 'completed').length
 
   const handleLessonClick = (lesson: Lesson) => {
     window.location.href = `/dashboard/lesson/${lesson.id}`
   }
 
-  const handleGenerateMore = async (e: React.MouseEvent) => {
+  const handleRetry = (e: React.MouseEvent) => {
     e.stopPropagation()
-    setLoadingMore(true)
+    // Trigger useEffect again by emptying error text and letting it fetch
     setErrorText('')
-    try {
-      const res = await fetch('/api/ai/generate-more-lessons', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phaseId })
-      })
-      const data = await res.json()
-      if (!res.ok || data.error) {
-        throw new Error(data.error || 'Failed to generate lessons')
-      }
-      if (data.complete) {
-        setCompleteState(true)
-      } else {
-        window.location.reload()
-      }
-    } catch (err: any) {
-      console.error(err)
-      setErrorText(err.message || 'An error occurred. Please try again.')
-    } finally {
-      setLoadingMore(false)
-    }
   }
 
   return (
@@ -73,6 +103,14 @@ export function RoadmapPhaseCard({
       overflow: 'hidden',
       marginBottom: '12px'
     }}>
+      {/* Pulse keyframe definitions for skeleton loading */}
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 0.6; }
+          50% { opacity: 1; }
+        }
+      `}</style>
+
       {/* Phase header */}
       <div
         onClick={() => setExpanded(!expanded)}
@@ -121,13 +159,16 @@ export function RoadmapPhaseCard({
               </span>
             </div>
             <span style={{ color: 'var(--color-text-3)', fontSize: '12px' }}>
-              {completedCount} of {lessons.length} lessons completed
+              {lessonsList.length > 0
+                ? `${completedCount} of ${lessonsList.length} lessons completed`
+                : 'Click to unlock & explore this phase'
+              }
             </span>
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {lessons.length > 0 && lessons.every(l => l.status === 'completed') && (
+          {lessonsList.length > 0 && lessonsList.every(l => l.status === 'completed') && (
             <button
               onClick={(e) => {
                 e.stopPropagation()
@@ -157,172 +198,171 @@ export function RoadmapPhaseCard({
         </div>
       </div>
 
-      {/* Lesson list */}
+      {/* Expanded phase content (Lessons list or loading states) */}
       {expanded && (
         <div style={{
           borderTop: '1px solid var(--color-border)',
           background: 'var(--color-surface-alt)'
         }}>
-          {lessons.map((lesson, index) => (
-            <div
-              key={lesson.id}
-              onClick={() => handleLessonClick(lesson)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px 20px',
-                borderBottom: '1px solid var(--color-border)',
-                cursor: 'pointer',
-                transition: 'background 0.15s ease',
-                background: 'transparent'
-              }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLDivElement).style.background = 'var(--color-surface)'
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLDivElement).style.background = 'transparent'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                {/* Status icon */}
-                <div style={{ flexShrink: 0 }}>
-                  {lesson.status === 'completed' ? (
-                    <CheckCircle2 size={16} style={{ color: 'var(--color-success)' }} />
-                  ) : lesson.status === 'in_progress' ? (
-                    <PlayCircle size={16} style={{ color: 'var(--color-primary)' }} />
-                  ) : (
-                    <Circle size={16} style={{ color: 'var(--color-text-3)' }} />
-                  )}
-                </div>
-
-                <div>
-                  <div style={{
-                    color: 'var(--color-text-1)',
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    marginBottom: '2px'
-                  }}>
-                    {lesson.title}
-                  </div>
-                  {lesson.description && (
-                    <div style={{
-                      color: 'var(--color-text-3)',
-                      fontSize: '12px'
-                    }}>
-                      {lesson.description}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Right side indicator */}
-              <div style={{ flexShrink: 0 }}>
-                {lesson.status === 'completed' ? (
-                  <span style={{
-                    color: 'var(--color-success)',
-                    fontSize: '12px',
-                    fontWeight: 500
-                  }}>
-                    Done
-                  </span>
-                ) : (
-                  <span style={{
-                    color: 'var(--color-primary)',
-                    fontSize: '12px',
-                    fontWeight: 500
-                  }}>
-                    {lesson.status === 'in_progress' ? 'Continue →' : 'Start →'}
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
-
-          {/* Generate More Lessons button */}
-          {!completeState && (
-            <div style={{
-              padding: '16px 20px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '8px',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'var(--color-surface)'
-            }}>
-              {errorText && (
-                <span style={{ color: 'var(--color-error)', fontSize: '13px', textAlign: 'center', marginBottom: '4px' }}>
-                  {errorText}
-                </span>
-              )}
-              <button
-                onClick={handleGenerateMore}
-                disabled={loadingMore}
-                style={{
-                  width: '100%',
+          {loading && (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {/* Skeleton loading list */}
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} style={{
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
+                  justifyContent: 'space-between',
+                  padding: '16px 20px',
+                  borderBottom: i < 4 ? '1px solid var(--color-border)' : 'none',
+                  background: 'transparent'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '80%' }}>
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
+                      borderRadius: '50%',
+                      background: 'var(--color-border)',
+                      animation: 'pulse 1.5s infinite ease-in-out',
+                      flexShrink: 0
+                    }} />
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{
+                        width: '40%',
+                        height: '14px',
+                        background: 'var(--color-border)',
+                        borderRadius: '4px',
+                        animation: 'pulse 1.5s infinite ease-in-out'
+                      }} />
+                      <div style={{
+                        width: '85%',
+                        height: '11px',
+                        background: 'var(--color-border)',
+                        borderRadius: '4px',
+                        opacity: 0.6,
+                        animation: 'pulse 1.5s infinite ease-in-out'
+                      }} />
+                    </div>
+                  </div>
+                  <div style={{
+                    width: '32px',
+                    height: '12px',
+                    background: 'var(--color-border)',
+                    borderRadius: '4px',
+                    animation: 'pulse 1.5s infinite ease-in-out'
+                  }} />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {errorText && (
+            <div style={{
+              padding: '24px 20px',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '12px'
+            }}>
+              <span style={{ color: 'var(--color-error)', fontSize: '14px' }}>{errorText}</span>
+              <button
+                onClick={handleRetry}
+                style={{
                   background: 'var(--color-primary)',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '8px',
-                  padding: '10px 16px',
-                  fontSize: '14px',
+                  borderRadius: '6px',
+                  padding: '8px 16px',
+                  fontSize: '13px',
                   fontWeight: 600,
-                  cursor: loadingMore ? 'not-allowed' : 'pointer',
-                  opacity: loadingMore ? 0.7 : 1,
-                  transition: 'background 0.2s ease, transform 0.1s ease',
-                  boxShadow: '0 2px 4px rgba(91, 142, 255, 0.2)'
-                }}
-                onMouseEnter={e => {
-                  if (!loadingMore) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-primary-hover)'
-                }}
-                onMouseLeave={e => {
-                  if (!loadingMore) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-primary)'
+                  cursor: 'pointer'
                 }}
               >
-                {loadingMore ? (
-                  <>
-                    <svg
-                      style={{
-                        animation: 'spin 1s linear infinite',
-                        width: '16px',
-                        height: '16px',
-                        marginRight: '6px'
-                      }}
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Generating Lessons...
-                  </>
-                ) : (
-                  '+ Generate More Lessons'
-                )}
+                Retry Loading
               </button>
             </div>
           )}
 
-          {completeState && (
-            <div style={{
-              padding: '14px 20px',
-              textAlign: 'center',
-              color: 'var(--color-success)',
-              fontSize: '13px',
-              fontWeight: 500,
-              background: 'var(--color-surface)',
-              borderTop: '1px solid var(--color-border)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px'
-            }}>
-              <span>✨ End of lessons for this phase. Ready to move to the next phase!</span>
+          {!loading && !errorText && lessonsList.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {lessonsList.map((lesson, index) => (
+                <div
+                  key={lesson.id}
+                  onClick={() => handleLessonClick(lesson)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '14px 20px',
+                    borderBottom: index < lessonsList.length - 1
+                      ? '1px solid var(--color-border)'
+                      : 'none',
+                    cursor: 'pointer',
+                    transition: 'background 0.15s ease',
+                    background: 'transparent'
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLDivElement).style.background = 'var(--color-surface)'
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLDivElement).style.background = 'transparent'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {/* Status icon */}
+                    <div style={{ flexShrink: 0 }}>
+                      {lesson.status === 'completed' ? (
+                        <CheckCircle2 size={16} style={{ color: 'var(--color-success)' }} />
+                      ) : lesson.status === 'in_progress' ? (
+                        <PlayCircle size={16} style={{ color: 'var(--color-primary)' }} />
+                      ) : (
+                        <Circle size={16} style={{ color: 'var(--color-text-3)' }} />
+                      )}
+                    </div>
+
+                    <div>
+                      <div style={{
+                        color: 'var(--color-text-1)',
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        marginBottom: '2px'
+                      }}>
+                        {lesson.title}
+                      </div>
+                      {lesson.description && (
+                        <div style={{
+                          color: 'var(--color-text-3)',
+                          fontSize: '12px'
+                        }}>
+                          {lesson.description}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right side indicator */}
+                  <div style={{ flexShrink: 0 }}>
+                    {lesson.status === 'completed' ? (
+                      <span style={{
+                        color: 'var(--color-success)',
+                        fontSize: '12px',
+                        fontWeight: 500
+                      }}>
+                        Done
+                      </span>
+                    ) : (
+                      <span style={{
+                        color: 'var(--color-primary)',
+                        fontSize: '12px',
+                        fontWeight: 500
+                      }}>
+                        {lesson.status === 'in_progress' ? 'Continue →' : 'Start →'}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

@@ -66,147 +66,31 @@ export async function generateRoadmap(
 
 function getReactRoadmap(level: string, dailyMinutes: number, depthLevel: number): GeneratedRoadmap {
   const weeksMultiplier = dailyMinutes < 30 ? 1.5 : dailyMinutes > 60 ? 0.75 : 1
-  const isDetailed = depthLevel === 3
-
-  const phase1Lessons = [
-    {
-      order_index: 1,
-      title: "ES6+ Modern Syntax Refresher",
-      description: "Master destructuring, arrow functions, template literals, and rest/spread operators."
-    },
-    {
-      order_index: 2,
-      title: "Understanding JSX and Rendering",
-      description: "Learn how JSX is compiled into React elements and how DOM commits are scheduled."
-    },
-    {
-      order_index: 3,
-      title: "Reusable Components and Props",
-      description: "Learn to build modular components, pass state data down, and enforce prop safety."
-    },
-    {
-      order_index: 4,
-      title: "Event Handling in React",
-      description: "Capture user interactions and handle synthesized event states efficiently."
-    }
-  ]
-
-  if (isDetailed) {
-    phase1Lessons.push(
-      {
-        order_index: 5,
-        title: "React Portals & DOM Manipulation (Part 2)",
-        description: "Mount overlays directly onto body nodes using createPortal and manage parent DOM interactions."
-      },
-      {
-        order_index: 6,
-        title: "Strict Mode & DevTools Debugging",
-        description: "Diagnose rendering side-effects, find memory leaks, and profile component tree executions."
-      }
-    )
-  }
-
-  const phase2Lessons = [
-    {
-      order_index: 1,
-      title: "Managing Component State with useState",
-      description: "Initialize state, manage schedules, and coordinate complex form objects."
-    },
-    {
-      order_index: 2,
-      title: "Side Effects with useEffect",
-      description: "Understand side effect cleanup, dependency arrays, and calling external APIs."
-    },
-    {
-      order_index: 3,
-      title: "Form Handling and Validations",
-      description: "Control input forms and validate user data before state commits."
-    },
-    {
-      order_index: 4,
-      title: "Writing Custom Hook Services",
-      description: "Extract reusable logic into clean, testable, and isolated custom hooks."
-    }
-  ]
-
-  if (isDetailed) {
-    phase2Lessons.push(
-      {
-        order_index: 5,
-        title: "State Management Patterns (Reducer & Context Combo)",
-        description: "Coordinate deep state updates using dispatch structures combined with dynamic providers."
-      },
-      {
-        order_index: 6,
-        title: "Memoization Deep Dive (useMemo & useCallback)",
-        description: "Avoid redundant sub-tree renders using strict dependency audits and cached values."
-      }
-    )
-  }
-
-  const phase3Lessons = [
-    {
-      order_index: 1,
-      title: "Global State with Context API",
-      description: "Avoid prop-drilling by providing global variables down the component tree."
-    },
-    {
-      order_index: 2,
-      title: "Routing and Page Navigation",
-      description: "Implement page layouts, dynamic route paths, and navigation guards."
-    },
-    {
-      order_index: 3,
-      title: "Fetching Data with TanStack Query",
-      description: "Incorporate server state management, query caching, and mutations."
-    },
-    {
-      order_index: 4,
-      title: "Performance Tuning in React",
-      description: "Optimize render trees using React.memo, useMemo, and useCallback hooks."
-    }
-  ]
-
-  if (isDetailed) {
-    phase3Lessons.push(
-      {
-        order_index: 5,
-        title: "Authentication Integration in React Apps",
-        description: "Set up login route guards, persist token headers, and handle invalid credentials."
-      },
-      {
-        order_index: 6,
-        title: "Testing React Components with Jest & React Testing Library",
-        description: "Verify render expectations, simulate user click events, and mock API fetch hooks."
-      }
-    )
-  }
-
   return {
     title: `React & Frontend Engineering Path (${level})`,
     description: `A comprehensive track designed to take you from core JavaScript paradigms to deploying production-ready Next.js application layers.`,
-    estimated_weeks: Math.round((isDetailed ? 12 : 8) * weeksMultiplier),
+    estimated_weeks: Math.round(8 * weeksMultiplier),
     phases: [
       {
         phase_number: 1,
         title: "Phase 1: Modern JavaScript & React Basics",
         description: "Revisit ES6+ concepts and understand JSX syntax, rendering cycles, and custom components.",
-        duration_weeks: Math.round((isDetailed ? 3 : 2) * weeksMultiplier),
-        lessons: phase1Lessons
+        duration_weeks: Math.round(2 * weeksMultiplier),
+        lessons: []
       },
       {
         phase_number: 2,
         title: "Phase 2: React State & Custom Hooks",
         description: "Learn the core hooks of functional React components to trigger UI changes and isolate state behaviors.",
-        duration_weeks: Math.round((isDetailed ? 4 : 3) * weeksMultiplier),
-        lessons: phase2Lessons
+        duration_weeks: Math.round(3 * weeksMultiplier),
+        lessons: []
       },
       {
         phase_number: 3,
         title: "Phase 3: Routing, Context & State Management",
         description: "Scale your application to multi-page navigation and centralize global state variables.",
-        duration_weeks: Math.round((isDetailed ? 5 : 3) * weeksMultiplier),
-        lessons: phase3Lessons
+        duration_weeks: Math.round(3 * weeksMultiplier),
+        lessons: []
       }
     ]
   }
@@ -214,147 +98,31 @@ function getReactRoadmap(level: string, dailyMinutes: number, depthLevel: number
 
 function getPythonRoadmap(level: string, dailyMinutes: number, depthLevel: number): GeneratedRoadmap {
   const weeksMultiplier = dailyMinutes < 30 ? 1.5 : dailyMinutes > 60 ? 0.75 : 1
-  const isDetailed = depthLevel === 3
-
-  const phase1Lessons = [
-    {
-      order_index: 1,
-      title: "Variables and basic data types",
-      description: "Understand integers, floats, strings, booleans, and type conversion logic."
-    },
-    {
-      order_index: 2,
-      title: "Control Flow and Logical Operators",
-      description: "Construct conditional blocks and iterate through collection items."
-    },
-    {
-      order_index: 3,
-      title: "Python Lists, Sets, and Dictionaries",
-      description: "Understand data structures, list comprehensions, and mapping key-value stores."
-    },
-    {
-      order_index: 4,
-      title: "Writing Modular Functions",
-      description: "Establish function scopes, define defaults, and handle return statements."
-    }
-  ]
-
-  if (isDetailed) {
-    phase1Lessons.push(
-      {
-        order_index: 5,
-        title: "Python Lambdas & Functional Programming Helpers",
-        description: "Utilize anonymous expressions, filter, map, and zip primitives on data collections."
-      },
-      {
-        order_index: 6,
-        title: "Generator Functions & Iterators",
-        description: "Produce lazy-evaluated streams using yield operators to preserve system memory."
-      }
-    )
-  }
-
-  const phase2Lessons = [
-    {
-      order_index: 1,
-      title: "Python Classes and Instances",
-      description: "Define class scopes, initializers, object attributes, and instance methods."
-    },
-    {
-      order_index: 2,
-      title: "Inheritance and Polymorphism",
-      description: "Build parent-child relationships and overwrite standard attributes."
-    },
-    {
-      order_index: 3,
-      title: "Exception Handling Protocols",
-      description: "Build try-except-finally blocks to manage errors without crashing."
-    },
-    {
-      order_index: 4,
-      title: "File Operations and Context Managers",
-      description: "Safely read and write file data using context managers."
-    }
-  ]
-
-  if (isDetailed) {
-    phase2Lessons.push(
-      {
-        order_index: 5,
-        title: "Dunder Methods & Operator Overloading",
-        description: "Customize default class actions with magic methods like __str__, __repr__, and mathematical operators."
-      },
-      {
-        order_index: 6,
-        title: "Decorators & Meta-programming Basics",
-        description: "Inject behaviors across functions or classes dynamically using decorator wraps."
-      }
-    )
-  }
-
-  const phase3Lessons = [
-    {
-      order_index: 1,
-      title: "Virtual Environments and PIP",
-      description: "Create isolated virtual environments and install packages."
-    },
-    {
-      order_index: 2,
-      title: "Interacting with Web APIs",
-      description: "Perform HTTP request methods and parse JSON payloads."
-    },
-    {
-      order_index: 3,
-      title: "Data Manipulation with Pandas",
-      description: "Load dataset tables, structure data frames, and query statistics."
-    },
-    {
-      order_index: 4,
-      title: "Deploying Script Automations",
-      description: "Set up scheduling cron scripts and batch process reports."
-    }
-  ]
-
-  if (isDetailed) {
-    phase3Lessons.push(
-      {
-        order_index: 5,
-        title: "Database Connections with SQLite/SQLAlchemy",
-        description: "Perform CRUD queries and define declarative ORM schemas in python applications."
-      },
-      {
-        order_index: 6,
-        title: "Asyncio & Concurrent Programming",
-        description: "Manage multiple non-blocking async tasks using asyncio event loop systems."
-      }
-    )
-  }
-
   return {
     title: `Python Masterclass & Programming Path (${level})`,
     description: `A structural path exploring standard Python libraries, object-oriented concepts, and API integrations.`,
-    estimated_weeks: Math.round((isDetailed ? 13 : 9) * weeksMultiplier),
+    estimated_weeks: Math.round(9 * weeksMultiplier),
     phases: [
       {
         phase_number: 1,
         title: "Phase 1: Python Core Foundations",
         description: "Learn basic scripting, logical statements, collection lists, and procedural programming.",
-        duration_weeks: Math.round((isDetailed ? 4 : 3) * weeksMultiplier),
-        lessons: phase1Lessons
+        duration_weeks: Math.round(3 * weeksMultiplier),
+        lessons: []
       },
       {
         phase_number: 2,
         title: "Phase 2: Object-Oriented Programming (OOP)",
         description: "Translate real-world concepts into code classes, inheritance lines, and modular systems.",
-        duration_weeks: Math.round((isDetailed ? 4 : 3) * weeksMultiplier),
-        lessons: phase2Lessons
+        duration_weeks: Math.round(3 * weeksMultiplier),
+        lessons: []
       },
       {
         phase_number: 3,
         title: "Phase 3: Python in Practice (APIs & Tools)",
         description: "Deploy scripts to fetch third-party data and set up environments.",
-        duration_weeks: Math.round((isDetailed ? 5 : 3) * weeksMultiplier),
-        lessons: phase3Lessons
+        duration_weeks: Math.round(3 * weeksMultiplier),
+        lessons: []
       }
     ]
   }
@@ -362,147 +130,31 @@ function getPythonRoadmap(level: string, dailyMinutes: number, depthLevel: numbe
 
 function getUXRoadmap(level: string, dailyMinutes: number, depthLevel: number): GeneratedRoadmap {
   const weeksMultiplier = dailyMinutes < 30 ? 1.5 : dailyMinutes > 60 ? 0.75 : 1
-  const isDetailed = depthLevel === 3
-
-  const phase1Lessons = [
-    {
-      order_index: 1,
-      title: "Introduction to User-Centered Design",
-      description: "Examine UX principles, human interaction models, and standard designs."
-    },
-    {
-      order_index: 2,
-      title: "User Research & User Personas",
-      description: "Conduct surveys, interviews, and compile structural user personas."
-    },
-    {
-      order_index: 3,
-      title: "Information Architecture & Sitemaps",
-      description: "Structure navigation layouts and page hierarchies for low friction."
-    },
-    {
-      order_index: 4,
-      title: "Sketching and Low-Fidelity Wireframes",
-      description: "Quickly iterate design ideas on paper or basic shapes before digital wireframes."
-    }
-  ]
-
-  if (isDetailed) {
-    phase1Lessons.push(
-      {
-        order_index: 5,
-        title: "Competitive Analysis & Heuristic Evaluation",
-        description: "Analyze market alternatives and audit interfaces against Nielsen's design heuristics."
-      },
-      {
-        order_index: 6,
-        title: "Creating User Journey Maps",
-        description: "Trace user emotional flows, pain points, and action tracks across product phases."
-      }
-    )
-  }
-
-  const phase2Lessons = [
-    {
-      order_index: 1,
-      title: "Figma Environment and Vector Tools",
-      description: "Master layers, vectors, styling, and frame alignments in Figma."
-    },
-    {
-      order_index: 2,
-      title: "Typography and Color Hierarchies",
-      description: "Establish a clear type scale, typographic contrasts, and accessible color values."
-    },
-    {
-      order_index: 3,
-      title: "Figma Auto-Layout & Constraints",
-      description: "Build responsive grids and layouts that adapt dynamically."
-    },
-    {
-      order_index: 4,
-      title: "Modular Components & Variants",
-      description: "Create reusable components, variants, and design tokens."
-    }
-  ]
-
-  if (isDetailed) {
-    phase2Lessons.push(
-      {
-        order_index: 5,
-        title: "Design Systems & Component Libraries in Figma",
-        description: "Manage global styles, build structured libraries, and coordinate color palettes."
-      },
-      {
-        order_index: 6,
-        title: "Advanced Auto-Layout: Wrapping & Constraints",
-        description: "Manage advanced flex-wrap layouts and specify precise element constraints."
-      }
-    )
-  }
-
-  const phase3Lessons = [
-    {
-      order_index: 1,
-      title: "Interactive Prototyping in Figma",
-      description: "Apply triggers, transitions, and navigate clicks across screens."
-    },
-    {
-      order_index: 2,
-      title: "Figma Smart Animate Extensions",
-      description: "Build micro-interactions, page slides, and animations."
-    },
-    {
-      order_index: 3,
-      title: "Conducting Usability Testing",
-      description: "Test your designs with users and log usability issues."
-    },
-    {
-      order_index: 4,
-      title: "Design-to-Development Handoffs",
-      description: "Document layouts, CSS tokens, assets, and specs for developers."
-    }
-  ]
-
-  if (isDetailed) {
-    phase3Lessons.push(
-      {
-        order_index: 5,
-        title: "High-Fidelity Prototype Animations & Transitions",
-        description: "Utilize complex triggers, custom delay timing, and interactive component events."
-      },
-      {
-        order_index: 6,
-        title: "Accessibility (A11y) Auditing in UX Design",
-        description: "Audit visual contrast, tap target sizing, and screen reader labels for WCAG standards."
-      }
-    )
-  }
-
   return {
     title: `UI/UX Product Design Specialization (${level})`,
     description: `A path tailored to learning user research methodologies, typography layouts, Figma wireframing, and interactive prototyping.`,
-    estimated_weeks: Math.round((isDetailed ? 9 : 6) * weeksMultiplier),
+    estimated_weeks: Math.round(6 * weeksMultiplier),
     phases: [
       {
         phase_number: 1,
         title: "Phase 1: Design Principles & Research",
         description: "Understand user-centric guidelines, wireframes, and interface hierarchies.",
-        duration_weeks: Math.round((isDetailed ? 3 : 2) * weeksMultiplier),
-        lessons: phase1Lessons
+        duration_weeks: Math.round(2 * weeksMultiplier),
+        lessons: []
       },
       {
         phase_number: 2,
         title: "Phase 2: Figma & High-Fidelity Design",
         description: "Create grids, style guides, components, and auto-layouts inside Figma.",
-        duration_weeks: Math.round((isDetailed ? 3 : 2) * weeksMultiplier),
-        lessons: phase2Lessons
+        duration_weeks: Math.round(2 * weeksMultiplier),
+        lessons: []
       },
       {
         phase_number: 3,
         title: "Phase 3: Prototyping & Testing",
         description: "Interlink frames, apply smart animations, and conduct usability testings.",
-        duration_weeks: Math.round((isDetailed ? 3 : 2) * weeksMultiplier),
-        lessons: phase3Lessons
+        duration_weeks: Math.round(2 * weeksMultiplier),
+        lessons: []
       }
     ]
   }
@@ -511,75 +163,6 @@ function getUXRoadmap(level: string, dailyMinutes: number, depthLevel: number): 
 function getDefaultRoadmap(goalText: string, subject: string, level: string, dailyMinutes: number, depthLevel: number): GeneratedRoadmap {
   const weeksMultiplier = dailyMinutes < 30 ? 1.5 : dailyMinutes > 60 ? 0.75 : 1
   const topic = subject || goalText || "Selected Subject"
-
-  const phase1Lessons = [
-    {
-      order_index: 1,
-      title: `Introduction to ${topic}`,
-      description: "Overview of the ecosystem, key histories, and what makes it essential today."
-    },
-    {
-      order_index: 2,
-      title: "Essential Glossary and Concepts",
-      description: "Familiarize yourself with the terminology and basic conceptual mental models."
-    },
-    {
-      order_index: 3,
-      title: "Standard Setup and Environment",
-      description: "Install, compile, configure, and verify the basic tooling required."
-    },
-    {
-      order_index: 4,
-      title: "Building your First Hello World Project",
-      description: "Apply your initial learnings to compile a simple working project from scratch."
-    }
-  ]
-
-  const phase2Lessons = [
-    {
-      order_index: 1,
-      title: "Intermediate Practical Techniques",
-      description: "Solve practical problems using standard approaches and frameworks."
-    },
-    {
-      order_index: 2,
-      title: "Debugging and Error Resolutions",
-      description: "Learn how to read logs, inspect data, and troubleshoot common issues."
-    },
-    {
-      order_index: 3,
-      title: "Modular Clean Code Principles",
-      description: "Organize files, separate concerns, and design refactoring methods."
-    },
-    {
-      order_index: 4,
-      title: "Integrating with Libraries and Plugins",
-      description: "Expand core capabilities by importing community plugins and packages."
-    }
-  ]
-
-  const phase3Lessons = [
-    {
-      order_index: 1,
-      title: "Optimizations and Performance Limits",
-      description: "Analyze latency, measure bottlenecks, and optimize execution profiles."
-    },
-    {
-      order_index: 2,
-      title: "Security Protocols and Best Practices",
-      description: "Secure data keys, restrict networks, and validate user permissions."
-    },
-    {
-      order_index: 3,
-      title: "Deployments and Public Publishing",
-      description: "Build production packages and deploy to public hosts."
-    },
-    {
-      order_index: 4,
-      title: "Final Capstone Review & Assessment",
-      description: "Synthesize all prior concepts into a complete comprehensive project review."
-    }
-  ]
 
   return {
     title: `Mastery Path for ${topic} (${level})`,
@@ -591,21 +174,21 @@ function getDefaultRoadmap(goalText: string, subject: string, level: string, dai
         title: `Phase 1: Foundations of ${topic}`,
         description: `Establish core definitions, setups, and baseline vocabulary in the field of ${topic}.`,
         duration_weeks: Math.round(2 * weeksMultiplier),
-        lessons: phase1Lessons
+        lessons: []
       },
       {
         phase_number: 2,
         title: "Phase 2: Core Practical Applications",
         description: "Translate core theory into practical steps, managing errors and working with real patterns.",
         duration_weeks: Math.round(2 * weeksMultiplier),
-        lessons: phase2Lessons
+        lessons: []
       },
       {
         phase_number: 3,
         title: "Phase 3: Advanced Methods & Scaling",
         description: "Focus on optimization, security configurations, and deploying your final project capstone.",
         duration_weeks: Math.round(2 * weeksMultiplier),
-        lessons: phase3Lessons
+        lessons: []
       }
     ]
   }
@@ -613,79 +196,6 @@ function getDefaultRoadmap(goalText: string, subject: string, level: string, dai
 
 function getWebDevelopmentRoadmap(level: string, dailyMinutes: number, depthLevel: number): GeneratedRoadmap {
   const weeksMultiplier = dailyMinutes < 30 ? 1.5 : dailyMinutes > 60 ? 0.75 : 1
-  
-  // Phase 1 lessons
-  const phase1Lessons = [
-    {
-      order_index: 1,
-      title: "HTML5 Document Structure & Metadata",
-      description: "Understand doctypes, head elements, script placement, and viewport configurations."
-    },
-    {
-      order_index: 2,
-      title: "Semantic HTML Elements & Content Layout",
-      description: "Learn to structure readable documents using section, article, nav, header, and footer elements."
-    },
-    {
-      order_index: 3,
-      title: "HTML Forms, Validations & User Inputs",
-      description: "Create interactive forms using secure inputs, fieldsets, labels, and native validation attributes."
-    },
-    {
-      order_index: 4,
-      title: "Web Accessibility (A11y) & WCAG Guidelines",
-      description: "Enforce accessible patterns with ARIA attributes, semantic landmarks, and screen-reader optimizations."
-    }
-  ]
-
-  // Phase 2 lessons
-  const phase2Lessons = [
-    {
-      order_index: 1,
-      title: "CSS Selectors, Cascade & Box Model",
-      description: "Master padding, margins, borders, specificity weights, cascade rules, and layout rendering."
-    },
-    {
-      order_index: 2,
-      title: "Flexible Box Layouts (Flexbox)",
-      description: "Design flexible single-dimension containers using justify-content, align-items, and flex-wrap."
-    },
-    {
-      order_index: 3,
-      title: "CSS Grid Architecture",
-      description: "Construct responsive two-dimensional grid layouts, grid templates, areas, and auto-placement."
-    },
-    {
-      order_index: 4,
-      title: "Media Queries & Mobile-First Responsive Design",
-      description: "Use CSS breakpoints, fluid sizing units (rem, em, vh, vw), and mobile-first styles."
-    }
-  ]
-
-  // Phase 3 lessons
-  const phase3Lessons = [
-    {
-      order_index: 1,
-      title: "JS Variables, Scope & Data Types",
-      description: "Understand var/let/const hoisting, primitive types, type coercion, and memory scopes."
-    },
-    {
-      order_index: 2,
-      title: "Functions, Control Flow & Array Operations",
-      description: "Write clean closures, loop statements, and map/filter/reduce transformations on collections."
-    },
-    {
-      order_index: 3,
-      title: "DOM Manipulation & Event Propagation",
-      description: "Select elements, edit styles, attach listeners, and manage capturing and bubbling phases."
-    },
-    {
-      order_index: 4,
-      title: "Asynchronous JavaScript & Fetch API",
-      description: "Master Promises, async/await blocks, HTTP requests, and rendering fetched JSON payloads."
-    }
-  ]
-
   return {
     title: `Web Development Foundations Path (${level})`,
     description: `A detailed, comprehensive path designed to build production-ready frontends starting with Semantic HTML, moving to Responsive CSS, and mastering JavaScript core concepts.`,
@@ -696,21 +206,21 @@ function getWebDevelopmentRoadmap(level: string, dailyMinutes: number, depthLeve
         title: "Phase 1: Semantic HTML & Document Architecture",
         description: "Master document standards, metadata, form controls, and web accessibility principles.",
         duration_weeks: Math.round(3 * weeksMultiplier),
-        lessons: phase1Lessons
+        lessons: []
       },
       {
         phase_number: 2,
         title: "Phase 2: CSS Box Model & Responsive Layouts",
         description: "Deep dive into CSS selectors, Flexbox models, CSS Grid layout systems, and responsive design practices.",
         duration_weeks: Math.round(3 * weeksMultiplier),
-        lessons: phase2Lessons
+        lessons: []
       },
       {
         phase_number: 3,
         title: "Phase 3: JavaScript Programming Core & DOM API",
         description: "Learn logical program structures, control flows, loops, functions, scopes, and modern DOM interactions.",
         duration_weeks: Math.round(4 * weeksMultiplier),
-        lessons: phase3Lessons
+        lessons: []
       }
     ]
   }

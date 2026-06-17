@@ -14,23 +14,15 @@ The JSON must follow this exact structure:
       "title": "string - phase title",
       "description": "string - what this phase covers",
       "duration_weeks": number,
-      "lessons": [
-        {
-          "order_index": number,
-          "title": "string - specific lesson title",
-          "description": "string - 1 sentence of what student will learn"
-        }
-      ]
+      "lessons": []
     }
   ]
 }
 
 Rules:
 - Create 3 to 6 phases depending on complexity
-- Each phase MUST have EXACTLY 4 lessons initially (this keeps initial generation fast and avoids timeouts). Do NOT generate more than 4 lessons.
-- Lessons must be specific (not "Introduction to JavaScript" but "Variables and Data Types in JavaScript")
-- Sequence must be logical — foundational concepts before advanced
-- If a topic is complex, do not attempt to cover it in a single lesson. Instead, split the concept across multiple consecutive lessons (e.g., 'CSS Grid Layouts (Part 1): Grid Container & Columns', 'CSS Grid Layouts (Part 2): Grid Items & Template Areas') to ensure the user can thoroughly digest and master each sub-concept before progressing.
+- The "lessons" array inside each phase MUST be empty ([]). Do NOT generate any lesson objects. Lessons will be dynamically generated later as the student progresses.
+- Sequence of phases must be logical — foundational concepts before advanced
 - When the subject is a broad discipline (e.g. Web Development), ensure the phases cover foundational sub-disciplines comprehensively and in logical sequence (e.g., Phase 1: Semantic HTML & Document Structure, Phase 2: Responsive CSS Layouts, Phase 3: JavaScript Core Programming, etc.). Do not skip core steps or rush into advanced application frameworks.
 - Match depth to their stated experience level`;
 
@@ -62,7 +54,7 @@ export function isTechnicalSubject(subject: string): boolean {
 
 export function buildRoadmapUserMessage(params: RoadmapParams): string {
   const codeSubject = isCodeSubject(params.subject)
-  const depthInstruction = '\n- Keep the phase structures concise with EXACTLY 4 lessons initially. Cover the basic/initial foundations of each phase. The user will dynamically generate more lessons later as they progress.'
+  const depthInstruction = '\n- Set the "lessons" field of every phase to an empty array []. Do NOT generate any lessons inside the phases at this stage. They will be generated dynamically later.'
 
   return `
 Student Goal: ${params.goalText}
@@ -638,57 +630,49 @@ Use this context to calibrate the learning coach feedback and recommendations.
   `.trim()
 }
 
-// System prompt for dynamically generating more lessons
-export const MORE_LESSONS_SYSTEM_PROMPT = `You are Cognara's curriculum architect. The user is currently learning a subject and wants to add more lessons to their active learning phase to explore it in greater depth.
+// System prompt for dynamically generating lessons for a specific phase
+export const PHASE_LESSONS_SYSTEM_PROMPT = `You are Cognara's curriculum architect. Your job is to create a precise list of lessons for a specific phase of a learning roadmap.
 
 Return ONLY valid JSON. No markdown, no explanations, no preamble.
 
-The JSON must follow this exact structure:
-{
-  "complete": boolean,
-  "lessons": [
-    {
-      "title": "string - specific lesson title",
-      "description": "string - 1 sentence overview of what they will learn"
-    }
-  ]
-}
+The JSON must be an array of lessons, following this exact structure:
+[
+  {
+    "order_index": number,
+    "title": "string - specific lesson title",
+    "description": "string - 1 sentence of what student will learn"
+  }
+]
 
 Rules:
-- Generate 2 to 4 additional consecutive lessons.
-- Ensure the new lessons start exactly where the last existing lesson left off.
-- If the last existing lesson was a multi-part lesson (e.g., "Intro to HTML (Part 1)") and needs continuation, generate the next part (e.g., "Intro to HTML (Part 2)") to cover the remaining sub-concepts.
-- Ensure the new lessons are structured logically, going from intermediate/advanced topics to capstones.
-- Do NOT repeat any of the existing lessons.
-- If the existing lessons already cover the phase's subject completely, set "complete": true and "lessons": [].
+- Generate exactly 8 to 12 lessons for this phase, depending on complexity.
+- Lessons must be specific (not "Introduction to CSS" but "Understanding padding, margins, and the CSS Box Model").
+- Sequence of lessons must be logical — foundational concepts of this phase before advanced ones.
+- If a topic is complex, do not attempt to cover it in a single lesson. Instead, split the concept across multiple consecutive lessons (e.g., 'CSS Grid Layouts (Part 1): Grid Container & Columns', 'CSS Grid Layouts (Part 2): Grid Items & Template Areas') to ensure the user can thoroughly digest and master each sub-concept before progressing.
+- Match depth to their stated experience level.
 `;
 
-export interface MoreLessonsParams {
+export interface PhaseLessonsParams {
   goalText: string
   subject: string
   level: string
+  phaseNumber: number
   phaseTitle: string
   phaseDescription: string
-  existingLessons: Array<{ title: string; description: string }>
   depthLevel: number
 }
 
-export function buildMoreLessonsUserMessage(params: MoreLessonsParams): string {
-  const existingList = params.existingLessons
-    .map((l, idx) => `${idx + 1}. ${l.title}: ${l.description}`)
-    .join('\n')
-
+export function buildPhaseLessonsUserMessage(params: PhaseLessonsParams): string {
+  const depthText = params.depthLevel === 3 ? 'HIGHLY DETAILED, IN-DEPTH' : 'STANDARD'
   return `
 Student Goal: ${params.goalText}
 Subject: ${params.subject}
 Experience Level: ${params.level}
-Learning Depth: ${params.depthLevel === 3 ? 'HIGHLY DETAILED, IN-DEPTH' : 'STANDARD'}
-Active Phase Title: ${params.phaseTitle}
-Active Phase Description: ${params.phaseDescription}
+Learning Depth: ${depthText}
 
-Existing Lessons in this Phase:
-${existingList}
+Active Phase: Phase ${params.phaseNumber} - ${params.phaseTitle}
+Phase Description: ${params.phaseDescription}
 
-Provide the next 2 to 4 consecutive lessons for this phase, or mark it as complete if all key concepts are fully addressed.
+Generate the list of 8 to 12 lessons for this phase.
 `.trim()
 }

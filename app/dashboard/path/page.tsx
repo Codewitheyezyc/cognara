@@ -91,7 +91,7 @@ export default async function PathPage() {
 
       {/* Visual Timeline Path */}
       <div className="relative border-l border-border pl-6 ml-4 space-y-12">
-        {phases?.map((phase) => {
+        {phases?.map((phase, index) => {
           const phaseLessons = lessonsByPhase[phase.id] || []
           
           const mappedLessons = phaseLessons.map(lesson => {
@@ -106,6 +106,20 @@ export default async function PathPage() {
             }
           })
 
+          // Calculate active phase index (first phase that is not fully completed)
+          let activePhaseIndex = 0
+          for (let i = 0; i < (phases?.length || 0); i++) {
+            const p = phases![i]
+            const pLessons = lessonsByPhase[p.id] || []
+            const pCompleted = pLessons.length > 0 && pLessons.every(l => progressMap.get(l.id) === 'completed')
+            if (!pCompleted) {
+              activePhaseIndex = i
+              break
+            }
+          }
+
+          const initiallyExpanded = index === activePhaseIndex
+
           return (
             <div key={phase.id} className="relative">
               {/* Timeline dot identifier */}
@@ -119,7 +133,7 @@ export default async function PathPage() {
                 title={phase.title}
                 description={phase.description || ''}
                 lessons={mappedLessons}
-                hasMore={(phase as any).has_more ?? true}
+                initiallyExpanded={initiallyExpanded}
               />
             </div>
           )
