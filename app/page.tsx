@@ -133,7 +133,7 @@ export default function MarketingPage() {
                 href="/signup"
                 className="w-full sm:w-auto h-12 px-8 inline-flex items-center justify-center rounded-lg font-bold text-sm bg-primary hover:bg-primary-hover text-white shadow-[0_0_20px_rgba(91,142,255,0.3)] transition-all duration-150 hover:-translate-y-0.5"
               >
-                <span>Start Learning for Free</span>
+                <span>Start Learning For Free</span>
                 <ArrowRight className="ml-2 h-4 w-4" strokeWidth={2.5} />
               </Link>
               <Link
@@ -289,8 +289,8 @@ export default function MarketingPage() {
                       }}
                       type="button"
                       className={`px-3 py-2 text-left rounded-md border text-xs font-semibold transition-all cursor-pointer ${activeSubject === sub.id
-                          ? 'border-primary bg-primary/5 text-primary'
-                          : 'border-border bg-surface-alt text-text-2 hover:text-text-1'
+                        ? 'border-primary bg-primary/5 text-primary'
+                        : 'border-border bg-surface-alt text-text-2 hover:text-text-1'
                         }`}
                     >
                       {sub.label}
@@ -310,8 +310,8 @@ export default function MarketingPage() {
                     onClick={() => setActiveDepth(lvl)}
                     type="button"
                     className={`px-3 py-1.5 rounded-sm font-mono text-[10px] uppercase font-bold tracking-wide transition-all cursor-pointer ${activeDepth === lvl
-                        ? 'bg-primary text-white shadow-[0_0_12px_rgba(91,142,255,0.25)]'
-                        : 'bg-surface-alt border border-border text-text-2 hover:text-text-1'
+                      ? 'bg-primary text-white shadow-[0_0_12px_rgba(91,142,255,0.25)]'
+                      : 'bg-surface-alt border border-border text-text-2 hover:text-text-1'
                       }`}
                   >
                     <span>Lvl {lvl}</span>
@@ -465,8 +465,8 @@ export default function MarketingPage() {
                       onClick={() => setSparkEmotion(emotion)}
                       type="button"
                       className={`px-2.5 py-1 rounded-md text-[10px] font-mono font-bold capitalize transition-all cursor-pointer border ${sparkEmotion === emotion
-                          ? 'border-primary bg-primary/10 text-primary shadow-[0_0_12px_rgba(91,142,255,0.15)]'
-                          : 'border-border bg-surface text-text-2 hover:text-text-1'
+                        ? 'border-primary bg-primary/10 text-primary shadow-[0_0_12px_rgba(91,142,255,0.15)]'
+                        : 'border-border bg-surface text-text-2 hover:text-text-1'
                         }`}
                     >
                       {emotion}
