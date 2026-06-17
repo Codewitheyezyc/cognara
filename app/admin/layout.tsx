@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { 
   LayoutDashboard, Users, BookOpen, 
-  Sparkles, Cpu, LogOut, Menu, X, ArrowLeft
+  Sparkles, Cpu, LogOut, Menu, X, ArrowLeft, FileText
 } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
 
@@ -62,6 +62,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: 'Users', href: '/admin/users', icon: Users },
     { label: 'Learning Activity', href: '/admin/activity', icon: BookOpen },
     { label: 'Content Quality', href: '/admin/content', icon: Sparkles },
+    { label: 'Certificates', href: '/admin/certificate-preview', icon: FileText },
     { label: 'System Status', href: '/admin/system', icon: Cpu },
   ]
 

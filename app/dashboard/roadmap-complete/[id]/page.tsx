@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Spark } from '@/components/mascot/Spark'
-import { Award, ArrowRight, ArrowLeft, BookOpen, GraduationCap, ChevronRight, Loader2 } from 'lucide-react'
+import { Award, ArrowRight, ArrowLeft, BookOpen, GraduationCap, ChevronRight, Loader2, Download } from 'lucide-react'
 
 interface Recommendation {
   title: string
@@ -163,6 +163,34 @@ export default function RoadmapCompletePage() {
             <span>Back to Dashboard</span>
             <ArrowRight className="h-4 w-4" />
           </Button>
+        </div>
+
+        {/* Master Certificate Download — gold CTA */}
+        <div className="flex flex-col items-center space-y-2 pt-2">
+          <p className="text-[10px] text-text-3 font-mono uppercase tracking-widest">You&apos;ve earned it</p>
+          <button
+            onClick={() => window.open(`/api/certificate/generate-roadmap?roadmapId=${roadmapId}`, '_blank')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.06))',
+              border: '1px solid rgba(245,158,11,0.4)',
+              color: '#F59E0B',
+              borderRadius: '12px',
+              padding: '12px 28px',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 0 20px rgba(245,158,11,0.12)',
+              letterSpacing: '0.02em'
+            }}
+          >
+            <Download size={15} />
+            <span>Download Master Certificate</span>
+            <Award size={15} />
+          </button>
+          <p className="text-[10px] text-text-3">Full course · All phases · Verified by Cognara</p>
         </div>
 
         <div className="h-px bg-border/50 max-w-md mx-auto" />
