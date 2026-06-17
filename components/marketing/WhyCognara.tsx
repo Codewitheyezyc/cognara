@@ -14,7 +14,7 @@ interface WhyCardProps {
 
 function WhyCard({ icon, headline, body, index }: WhyCardProps) {
   const delayMs = index * 80 // Card 1: 0ms, Card 2: 80ms, Card 3: 160ms, Card 4: 240ms, Card 5: 320ms, Card 6: 400ms
-  
+
   return (
     <div
       className="why-card"
@@ -276,7 +276,7 @@ export function WhyCognara() {
               transition: 'transform 0.2s ease, box-shadow 0.2s ease'
             }}
           >
-            Start learning free
+            Start learning for free
           </a>
         </div>
 
