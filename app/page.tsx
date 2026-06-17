@@ -2,19 +2,19 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { 
-  Map, 
-  BookOpen, 
-  Award, 
-  ArrowRight, 
-  BrainCircuit, 
-  Sliders, 
-  FileText, 
-  Layers, 
-  HelpCircle, 
-  Check, 
-  Flame, 
-  Grid 
+import {
+  Map,
+  BookOpen,
+  Award,
+  ArrowRight,
+  BrainCircuit,
+  Sliders,
+  FileText,
+  Layers,
+  HelpCircle,
+  Check,
+  Flame,
+  Grid
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { Logo } from '@/components/ui/Logo'
@@ -31,7 +31,7 @@ export default function MarketingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   const depthLabels = ["", "Like I'm 10", "Beginner", "Intermediate", "Advanced", "Expert"]
-  
+
   const subjects = [
     { id: 'tech', label: 'Tech & Code', concept: 'JavaScript Closures' },
     { id: 'business', label: 'Business & Marketing', concept: 'Customer Acquisition Cost (CAC)' },
@@ -101,8 +101,8 @@ export default function MarketingPage() {
           <Link href="/login" className="text-xs text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
             Sign In
           </Link>
-          <Link 
-            href="/signup" 
+          <Link
+            href="/signup"
             className="h-9 px-4 inline-flex items-center justify-center rounded-md font-semibold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-colors shadow-[0_0_12px_rgba(91,142,255,0.2)]"
           >
             Sign Up
@@ -113,7 +113,7 @@ export default function MarketingPage() {
 
       {/* 2. Main content container */}
       <main className="relative z-10 max-w-6xl w-full mx-auto px-6 space-y-24 mt-12 md:mt-20">
-        
+
         {/* HERO SECTION */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-7 space-y-6 text-left">
@@ -129,14 +129,14 @@ export default function MarketingPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
-              <Link 
+              <Link
                 href="/signup"
                 className="w-full sm:w-auto h-12 px-8 inline-flex items-center justify-center rounded-lg font-bold text-sm bg-primary hover:bg-primary-hover text-white shadow-[0_0_20px_rgba(91,142,255,0.3)] transition-all duration-150 hover:-translate-y-0.5"
               >
-                <span>Start Learning Free</span>
+                <span>Start Learning for Free</span>
                 <ArrowRight className="ml-2 h-4 w-4" strokeWidth={2.5} />
               </Link>
-              <Link 
+              <Link
                 href="/login"
                 className="w-full sm:w-auto h-12 px-8 inline-flex items-center justify-center rounded-lg font-bold text-sm border border-border bg-surface hover:bg-surface-alt text-text-1 transition-all duration-150"
               >
@@ -193,21 +193,21 @@ export default function MarketingPage() {
               Manage your milestones, track learning vitals, and receive custom coach insights inside a responsive dashboard.
             </p>
           </div>
-          
+
           <div className="relative rounded-[16px] border border-border bg-surface p-2 shadow-2xl overflow-hidden group max-w-5xl mx-auto">
             {/* Ambient background glow */}
             <div className="absolute -inset-10 bg-gradient-to-r from-primary/10 to-accent/10 rounded-[24px] blur-3xl pointer-events-none opacity-50 group-hover:opacity-75 transition-opacity duration-500" />
-            
+
             <div className="relative rounded-[12px] overflow-hidden border border-border/60">
-              <img 
-                src="/images/dashboard-light.png" 
-                alt="Cognara Dashboard Light Mode" 
-                className="w-full h-auto block dark:hidden object-cover transition-all duration-700 ease-out group-hover:scale-[1.005]" 
+              <img
+                src="/images/dashboard-light.png"
+                alt="Cognara Dashboard Light Mode"
+                className="w-full h-auto block dark:hidden object-cover transition-all duration-700 ease-out group-hover:scale-[1.005]"
               />
-              <img 
-                src="/images/dashboard-dark.png" 
-                alt="Cognara Dashboard Dark Mode" 
-                className="w-full h-auto hidden dark:block object-cover transition-all duration-700 ease-out group-hover:scale-[1.005]" 
+              <img
+                src="/images/dashboard-dark.png"
+                alt="Cognara Dashboard Dark Mode"
+                className="w-full h-auto hidden dark:block object-cover transition-all duration-700 ease-out group-hover:scale-[1.005]"
               />
             </div>
           </div>
@@ -262,7 +262,7 @@ export default function MarketingPage() {
         {/* INTERACTIVE DEMONSTRATOR: ADAPTIVE DEPTH SIMULATOR */}
         <section className="bg-surface border border-border rounded-[12px] p-6 md:p-8 space-y-8 shadow-md relative overflow-hidden">
           <div className="absolute right-0 top-0 w-36 h-36 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-5 space-y-4">
               <div className="inline-flex items-center space-x-1.5 text-accent font-mono text-xs uppercase tracking-wider font-bold">
@@ -275,7 +275,7 @@ export default function MarketingPage() {
               <p className="text-text-2 text-xs leading-relaxed">
                 Watch how Cognara re-structures explanations across 5 distinct cognitive levels. Select a domain tab and click on the depths to see the explanation transform.
               </p>
-              
+
               {/* Category tabs */}
               <div className="flex flex-col space-y-2 pt-2">
                 <span className="text-[10px] font-mono text-text-3 uppercase tracking-wider">Select Domain</span>
@@ -288,11 +288,10 @@ export default function MarketingPage() {
                         setActiveDepth(3) // reset depth to intermediate
                       }}
                       type="button"
-                      className={`px-3 py-2 text-left rounded-md border text-xs font-semibold transition-all cursor-pointer ${
-                        activeSubject === sub.id
+                      className={`px-3 py-2 text-left rounded-md border text-xs font-semibold transition-all cursor-pointer ${activeSubject === sub.id
                           ? 'border-primary bg-primary/5 text-primary'
                           : 'border-border bg-surface-alt text-text-2 hover:text-text-1'
-                      }`}
+                        }`}
                     >
                       {sub.label}
                     </button>
@@ -310,11 +309,10 @@ export default function MarketingPage() {
                     key={lvl}
                     onClick={() => setActiveDepth(lvl)}
                     type="button"
-                    className={`px-3 py-1.5 rounded-sm font-mono text-[10px] uppercase font-bold tracking-wide transition-all cursor-pointer ${
-                      activeDepth === lvl
+                    className={`px-3 py-1.5 rounded-sm font-mono text-[10px] uppercase font-bold tracking-wide transition-all cursor-pointer ${activeDepth === lvl
                         ? 'bg-primary text-white shadow-[0_0_12px_rgba(91,142,255,0.25)]'
                         : 'bg-surface-alt border border-border text-text-2 hover:text-text-1'
-                    }`}
+                      }`}
                   >
                     <span>Lvl {lvl}</span>
                   </button>
@@ -329,7 +327,7 @@ export default function MarketingPage() {
                     GENERATED — Lvl {activeDepth} ({depthLabels[activeDepth]})
                   </span>
                 </div>
-                
+
                 <h4 className="font-heading text-sm font-bold text-text-1 mt-2">
                   Concept: {subjects.find(s => s.id === activeSubject)?.concept}
                 </h4>
@@ -382,7 +380,7 @@ export default function MarketingPage() {
             <div className="p-4 bg-surface border border-border rounded-[10px] space-y-3 shadow-sm">
               <span className="text-[8px] font-mono text-accent">DIAGRAM BLOCK</span>
               <pre className="text-[9px] font-mono text-text-2 leading-tight">
-{`[Target Audience]
+                {`[Target Audience]
    └── conversion 
          └── [Acquired User]`}</pre>
             </div>
@@ -400,7 +398,7 @@ export default function MarketingPage() {
         {/* PROGRESS & COACH WIDGET SHOWCASE */}
         <section className="bg-surface border border-border rounded-[12px] p-6 md:p-8 space-y-8 shadow-md">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            
+
             {/* Visual Dashboard Card Mockup */}
             <div className="lg:col-span-6 space-y-4 order-last lg:order-first">
               <div className="p-5 bg-surface-alt border border-border/80 rounded-[8px] space-y-4">
@@ -449,15 +447,15 @@ export default function MarketingPage() {
         {/* INTERACTIVE MASCOT SHOWCASE */}
         <section className="bg-surface border border-border rounded-[12px] p-6 md:p-8 space-y-8 shadow-md relative overflow-hidden">
           <div className="absolute left-0 top-0 w-36 h-36 rounded-full bg-accent/5 blur-2xl pointer-events-none" />
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            
+
             {/* Spark mascot column */}
             <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 bg-surface-alt border border-border/60 rounded-[8px] min-h-[300px] relative">
               <div className="mb-6 flex justify-center items-center w-full">
                 <Spark emotion={sparkEmotion} size={120} />
               </div>
-              
+
               <div className="w-full space-y-3">
                 <span className="text-[10px] font-mono text-text-3 uppercase tracking-wider block text-center">Tap to Change Spark's Emotion</span>
                 <div className="flex flex-wrap gap-2 justify-center">
@@ -466,11 +464,10 @@ export default function MarketingPage() {
                       key={emotion}
                       onClick={() => setSparkEmotion(emotion)}
                       type="button"
-                      className={`px-2.5 py-1 rounded-md text-[10px] font-mono font-bold capitalize transition-all cursor-pointer border ${
-                        sparkEmotion === emotion
+                      className={`px-2.5 py-1 rounded-md text-[10px] font-mono font-bold capitalize transition-all cursor-pointer border ${sparkEmotion === emotion
                           ? 'border-primary bg-primary/10 text-primary shadow-[0_0_12px_rgba(91,142,255,0.15)]'
                           : 'border-border bg-surface text-text-2 hover:text-text-1'
-                      }`}
+                        }`}
                     >
                       {emotion}
                     </button>
@@ -488,7 +485,7 @@ export default function MarketingPage() {
               <p className="text-text-2 text-xs sm:text-sm leading-relaxed">
                 Learning is a journey, and we believe it deserves an emotional, engaging companion. Spark is constructed entirely from CSS and SVG layers (no static images) ensuring crisp, responsive presentation on any size screen:
               </p>
-              
+
               <ul className="space-y-3">
                 {[
                   { title: "Friendly Welcome Greetings", desc: "Spark greets you inside the dashboard and helps you initialize your onboarding goals." },
@@ -521,8 +518,8 @@ export default function MarketingPage() {
             {faqs.map((faq, idx) => {
               const isOpen = openFaq === idx
               return (
-                <div 
-                  key={idx} 
+                <div
+                  key={idx}
                   className="bg-surface border border-border rounded-[10px] transition-all duration-200"
                 >
                   <button
@@ -547,7 +544,7 @@ export default function MarketingPage() {
         {/* BOTTOM CALL TO ACTION (CTA) PANEL */}
         <section className="relative overflow-hidden rounded-[16px] border border-border bg-surface p-8 md:p-12 text-center space-y-6 shadow-lg">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10 pointer-events-none blur-3xl" />
-          
+
           <div className="max-w-2xl mx-auto space-y-4 relative">
             <h2 className="font-heading text-3xl md:text-4xl font-extrabold text-text-1 tracking-tight leading-tight">
               Ready to claim your path?
