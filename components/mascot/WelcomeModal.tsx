@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Spark } from './Spark'
 import { ArrowRight } from 'lucide-react'
 
@@ -9,6 +10,7 @@ interface WelcomeModalProps {
 }
 
 export function WelcomeModal({ userName, onDismiss }: WelcomeModalProps) {
+  const [mounted, setMounted] = useState(false)
   const [visible, setVisible] = useState(false)
   const [textStep, setTextStep] = useState(0)
   const [sparkEmotion, setSparkEmotion] = useState<'wave' | 'happy' | 'idle'>('wave')
@@ -21,34 +23,32 @@ export function WelcomeModal({ userName, onDismiss }: WelcomeModalProps) {
   ]
 
   useEffect(() => {
+    setMounted(true)
     // Slide in from bottom
     setTimeout(() => setVisible(true), 100)
-
-    // Cycle through messages
-    const interval = setInterval(() => {
-      setTextStep(prev => {
-        if (prev < messages.length - 1) return prev + 1
-        clearInterval(interval)
-        setSparkEmotion('happy')
-        return prev
-      })
-    }, 1800)
-
-    return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    if (textStep === 0) setSparkEmotion('wave')
+    else if (textStep === 1) setSparkEmotion('idle')
+    else if (textStep === 2) setSparkEmotion('wave')
+    else if (textStep === 3) setSparkEmotion('happy')
+  }, [textStep])
 
   const handleDismiss = () => {
     setVisible(false)
     setTimeout(onDismiss, 300)
   }
 
-  return (
+  if (!mounted) return null
+
+  return createPortal(
     <>
       {/* Backdrop */}
       <div style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0,0,0,0.5)',
+        background: 'rgba(0,0,0,0.6)',
         backdropFilter: 'blur(6px)',
         zIndex: 200,
         opacity: visible ? 1 : 0,
@@ -64,7 +64,7 @@ export function WelcomeModal({ userName, onDismiss }: WelcomeModalProps) {
           ? 'translate(-50%, -50%) scale(1)'
           : 'translate(-50%, -50%) scale(0.85)',
         opacity: visible ? 1 : 0,
-        width: '90%',
+        width: '95%',
         maxWidth: '440px',
         background: 'var(--color-surface)',
         borderRadius: '24px',
@@ -90,15 +90,17 @@ export function WelcomeModal({ userName, onDismiss }: WelcomeModalProps) {
           alignItems: 'center',
           justifyContent: 'center'
         }}>
-          <h2 style={{
-            color: 'var(--color-text-1)',
-            fontSize: '20px',
-            fontWeight: 700,
-            fontFamily: 'Sora, sans-serif',
-            margin: 0,
-            animation: 'fadeInUp 0.4s ease',
-            key: textStep
-          } as any}>
+          <h2 
+            key={textStep}
+            style={{
+              color: 'var(--color-text-1)',
+              fontSize: '20px',
+              fontWeight: 700,
+              fontFamily: 'Sora, sans-serif',
+              margin: 0,
+              animation: 'fadeInUp 0.4s ease'
+            }}
+          >
             {messages[textStep]}
           </h2>
         </div>
@@ -111,39 +113,48 @@ export function WelcomeModal({ userName, onDismiss }: WelcomeModalProps) {
           margin: '20px 0 28px'
         }}>
           {messages.map((_, i) => (
-            <div key={i} style={{
-              width: i === textStep ? '20px' : '6px',
-              height: '6px',
-              borderRadius: '999px',
-              background: i === textStep ? 'var(--color-primary)' : 'var(--color-border)',
-              transition: 'all 0.3s ease'
-            }} />
+            <div 
+              key={i} 
+              onClick={() => setTextStep(i)}
+              style={{
+                width: i === textStep ? '20px' : '6px',
+                height: '6px',
+                borderRadius: '999px',
+                background: i === textStep ? 'var(--color-primary)' : 'var(--color-border)',
+                transition: 'all 0.3s ease',
+                cursor: 'pointer'
+              }} 
+            />
           ))}
         </div>
 
-        {/* CTA Button */}
-        {textStep === messages.length - 1 && (
-          <button
-            onClick={handleDismiss}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              background: 'var(--color-primary)',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '12px',
-              padding: '14px 28px',
-              fontSize: '15px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              animation: 'fadeInUp 0.4s ease'
-            }}
-          >
-            Let's start learning
-            <ArrowRight size={16} />
-          </button>
-        )}
+        {/* Action Button */}
+        <button
+          onClick={textStep === messages.length - 1 ? handleDismiss : () => setTextStep(prev => prev + 1)}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'var(--color-primary)',
+            color: '#FFFFFF',
+            border: 'none',
+            borderRadius: '12px',
+            padding: '14px 28px',
+            fontSize: '15px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          {textStep === messages.length - 1 ? (
+            <>
+              Let's start learning
+              <ArrowRight size={16} />
+            </>
+          ) : (
+            'Next'
+          )}
+        </button>
       </div>
 
       <style>{`
@@ -152,6 +163,7 @@ export function WelcomeModal({ userName, onDismiss }: WelcomeModalProps) {
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
-    </>
+    </>,
+    document.body
   )
 }
