@@ -26,8 +26,8 @@ The JSON must follow this exact structure:
 }
 
 Rules:
-- Create 3 to 8 phases depending on complexity (e.g., Web Development should have 6 to 8 phases to cover foundations, layouts, JS core, advanced JS, React foundations, React routing/state, and professional deployment comprehensively).
-- Each phase should have 5 to 15 lessons (up to 20 for highly complex, detailed pathways).
+- Create 3 to 4 phases depending on complexity (e.g., Web Development should have 3 to 4 phases to cover foundations, layouts, JS core, and advanced applications comprehensively).
+- Each phase should have 3 to 6 lessons (up to 8 for highly complex, detailed pathways).
 - Lessons must be specific (not "Introduction to JavaScript" but "Variables and Data Types in JavaScript").
 - Sequence of phases and lessons must be logical — foundational concepts before advanced.
 - If a topic is complex, do not attempt to cover it in a single lesson. Instead, split the concept across multiple consecutive lessons (e.g., 'CSS Grid Layouts (Part 1): Grid Container & Columns', 'CSS Grid Layouts (Part 2): Grid Items & Template Areas') to ensure the user can thoroughly digest and master each sub-concept before progressing.
@@ -63,10 +63,10 @@ export function isTechnicalSubject(subject: string): boolean {
 export function buildRoadmapUserMessage(params: RoadmapParams): string {
   const codeSubject = isCodeSubject(params.subject)
   const depthInstruction = params.depthLevel === 3
-    ? '\n- The student has requested a HIGHLY DETAILED, IN-DEPTH, COMPREHENSIVE path. You must generate a thorough roadmap with a high density of lessons (e.g., 8 to 15 lessons per phase) splitting concepts into granular, logical parts (Part 1, Part 2, etc.) so no sub-concepts are skipped or glossed over.'
+    ? '\n- The student has requested a detailed, in-depth path. You must generate a roadmap with 5 to 8 lessons per phase splitting concepts logically.'
     : params.depthLevel === 1
-      ? '\n- The student has requested a quick summary path. Keep the phase structures concise with 4 to 6 high-level lessons.'
-      : '\n- The student has requested a standard learning path (5 to 8 lessons per phase).'
+      ? '\n- The student has requested a quick summary path. Keep the phase structures concise with 3 to 4 high-level lessons.'
+      : '\n- The student has requested a standard learning path (4 to 5 lessons per phase).'
 
   return `
 Student Goal: ${params.goalText}

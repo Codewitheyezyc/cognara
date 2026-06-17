@@ -1,4 +1,4 @@
-﻿import { callClaudeJSON } from './client'
+import { callClaudeJSON } from './client'
 import { ROADMAP_SYSTEM_PROMPT, buildRoadmapUserMessage } from './prompts'
 
 export interface LessonStub {
@@ -60,7 +60,8 @@ export async function generateRoadmap(
   return callClaudeJSON<GeneratedRoadmap>(
     ROADMAP_SYSTEM_PROMPT,
     userPrompt,
-    mockFallback
+    mockFallback,
+    'claude-haiku-4-5-20251001'
   )
 }
 
