@@ -64,7 +64,7 @@ export default function PrivacyPolicyPage() {
             <SubHeading>2.3 Information from third parties</SubHeading>
             <ul>
               <li><strong>Google OAuth:</strong> If you sign in with Google, we receive your name, email, and profile picture from Google as permitted by your Google account settings.</li>
-              <li><strong>Payment Processors:</strong> If you subscribe to a Pro plan, payment is handled by LemonSqueezy. We do not store your card details.</li>
+              <li><strong>Payment Processors:</strong> If you subscribe to a Pro plan, payment is handled securely by Paystack. We do not store your card details.</li>
             </ul>
           </Section>
 
@@ -108,7 +108,7 @@ export default function PrivacyPolicyPage() {
               <li><strong>Vercel</strong> — Hosting and edge computing</li>
               <li><strong>Anthropic (Claude AI)</strong> — AI-generated lesson and quiz content</li>
               <li><strong>Resend</strong> — Transactional email delivery</li>
-              <li><strong>LemonSqueezy</strong> — Subscription payment processing</li>
+              <li><strong>Paystack</strong> — Subscription payment processing</li>
             </ul>
             <p>Each provider has their own privacy policies. We encourage you to review them.</p>
           </Section>

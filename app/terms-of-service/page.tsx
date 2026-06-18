@@ -98,7 +98,7 @@ export default function TermsOfServicePage() {
             </p>
             <SubHeading>5.2 Pro Plan</SubHeading>
             <p>
-              The Cognara Pro plan provides unlimited roadmaps, lessons, and advanced features for a recurring monthly or annual subscription fee. Payments are processed securely by <strong>LemonSqueezy</strong>. We do not store your payment card details.
+              The Cognara Pro plan provides unlimited roadmaps, lessons, and advanced features for a recurring monthly or annual subscription fee. Payments are processed securely by <strong>Paystack</strong>. We do not store your payment card details.
             </p>
             <SubHeading>5.3 Billing & Cancellation</SubHeading>
             <p>
