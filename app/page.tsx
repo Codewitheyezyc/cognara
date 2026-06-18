@@ -92,18 +92,18 @@ export default function MarketingPage() {
 
       {/* 1. Header Navigation */}
       <header className="relative z-10 max-w-7xl w-full mx-auto px-6 h-20 flex items-center justify-between border-b border-border/40 bg-bg/50 backdrop-blur-md sticky top-0">
-        <div className="flex items-center space-x-2 text-primary">
-          <Logo className="h-6 w-6" />
-          <span className="font-heading text-xl font-bold tracking-tight text-text-1">Cognara</span>
+        <div className="flex items-center space-x-1.5 sm:space-x-2 text-primary">
+          <Logo className="h-5 w-5 sm:h-6 sm:w-6" />
+          <span className="font-heading text-lg sm:text-xl font-bold tracking-tight text-text-1">Cognara</span>
         </div>
 
-        <nav className="flex items-center space-x-6">
-          <Link href="/login" className="text-xs text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
+        <nav className="flex items-center space-x-3 sm:space-x-6">
+          <Link href="/login" className="hidden sm:inline-block text-xs text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
             Sign In
           </Link>
           <Link
             href="/signup"
-            className="h-9 px-4 inline-flex items-center justify-center rounded-md font-semibold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-colors shadow-[0_0_12px_rgba(91,142,255,0.2)]"
+            className="h-8 sm:h-9 px-3 sm:px-4 inline-flex items-center justify-center rounded-md font-semibold text-[11px] sm:text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-colors shadow-[0_0_12px_rgba(91,142,255,0.2)]"
           >
             Sign Up
           </Link>
@@ -567,8 +567,19 @@ export default function MarketingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="max-w-6xl w-full mx-auto px-6 pt-16 mt-16 text-center text-xs text-text-3 border-t border-border/40 relative z-10">
-        &copy; {new Date().getFullYear()} Cognara. Built for modern learning operating systems. All rights reserved.
+      <footer className="max-w-6xl w-full mx-auto px-6 pt-16 mt-16 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-text-3 border-t border-border/40 relative z-10">
+        <div>
+          &copy; {new Date().getFullYear()} Cognara. Built for modern learning operating systems. All rights reserved.
+        </div>
+        <div className="flex items-center space-x-4">
+          <Link href="/privacy-policy" className="hover:text-text-2 transition-colors">
+            Privacy Policy
+          </Link>
+          <span>&bull;</span>
+          <Link href="/terms-of-service" className="hover:text-text-2 transition-colors">
+            Terms of Service
+          </Link>
+        </div>
       </footer>
     </div>
   )
