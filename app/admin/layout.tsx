@@ -112,6 +112,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           --color-primary-hover: #D97706 !important;
           --color-primary-glow: rgba(245, 158, 11, 0.12) !important;
           --color-accent: #F59E0B !important;
+          --color-logo-start: #F59E0B !important;
           --color-accent-warm: #F59E0B !important;
           --color-text-1: #F4F3F1 !important;
           --color-text-2: #A8A29E !important;

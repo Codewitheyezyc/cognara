@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cognara Logo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0A0C14;
+      font-family: 'Inter', sans-serif;
+      color: #F0F4FF;
+      padding: 48px 32px;
+      min-height: 100vh;
+    }
+
+    .page-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #4A5272;
+      margin-bottom: 48px;
+    }
+
+    .section {
+      margin-bottom: 56px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #4A5272;
+      margin-bottom: 24px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #1E2540;
+    }
+
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 48px;
+      flex-wrap: wrap;
+    }
+
+    .logo-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-card span {
+      font-size: 11px;
+      color: #4A5272;
+      letter-spacing: 0.08em;
+    }
+
+    /* Light background card */
+    .light-bg {
+      background: #F4F6FC;
+      border-radius: 12px;
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dark-bg {
+      background: #0A0C14;
+      border: 1px solid #1E2540;
+      border-radius: 12px;
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .surface-bg {
+      background: #111520;
+      border: 1px solid #1E2540;
+      border-radius: 12px;
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ==================== */
+    /* THE LOGO SVG INLINE  */
+    /* ==================== */
+
+    .spark-mark {
+      position: relative;
+      display: inline-block;
+    }
+
+    /* Keyframe animations */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-3px); }
+    }
+
+    @keyframes orbitSlow {
+      from { transform-origin: 40px 40px; transform: rotate(0deg); }
+      to   { transform-origin: 40px 40px; transform: rotate(360deg); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.65; transform: scale(1); }
+      50%       { opacity: 1;    transform: scale(1.15); }
+    }
+
+    .logo-animated .logo-diamond {
+      animation: float 4s ease-in-out infinite;
+      transform-origin: 40px 40px;
+    }
+
+    .logo-animated .p1 { animation: pulse 3s ease-in-out 0s infinite; transform-origin: 40px 14px; }
+    .logo-animated .p2 { animation: pulse 3s ease-in-out 0.5s infinite; transform-origin: 61px 22px; }
+    .logo-animated .p3 { animation: pulse 3s ease-in-out 1s infinite; transform-origin: 67px 40px; }
+    .logo-animated .p4 { animation: pulse 3s ease-in-out 1.5s infinite; transform-origin: 61px 58px; }
+    .logo-animated .p5 { animation: pulse 3s ease-in-out 2s infinite; transform-origin: 40px 66px; }
+    .logo-animated .p6 { animation: pulse 3s ease-in-out 2.5s infinite; transform-origin: 13px 40px; }
+
+  </style>
+</head>
+<body>
+
+  <p class="page-title">Cognara · Brand Identity · Logo System</p>
+
+  <!-- ========================= -->
+  <!-- SECTION 1: PRIMARY LOGO   -->
+  <!-- ========================= -->
+  <div class="section">
+    <p class="section-label">Primary Logo — Dark Background</p>
+    <div class="logo-row">
+      <div class="logo-card">
+        <div class="dark-bg">
+          <!-- FULL LOGO: MARK + WORDMARK -->
+          <svg class="logo-animated" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" width="320" height="80">
+            <defs>
+              <linearGradient id="mg1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#7BA7FF"/>
+                <stop offset="50%" style="stop-color:#5B8EFF"/>
+                <stop offset="100%" style="stop-color:#A78BFA"/>
+              </linearGradient>
+              <filter id="glow1">
+                <feGaussianBlur stdDeviation="2.5" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+              <filter id="pglow1">
+                <feGaussianBlur stdDeviation="1.2" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <!-- Ambient rings -->
+            <circle cx="40" cy="40" r="26" fill="rgba(91,142,255,0.07)"/>
+            <circle cx="40" cy="40" r="20" fill="rgba(91,142,255,0.04)"/>
+            <!-- Particles -->
+            <circle class="p1" cx="40" cy="14" r="2.8" fill="#A78BFA" opacity="0.85" filter="url(#pglow1)"/>
+            <circle class="p2" cx="61" cy="22" r="2"   fill="#5B8EFF" opacity="0.7"  filter="url(#pglow1)"/>
+            <circle class="p3" cx="67" cy="40" r="2.5" fill="#7BA7FF" opacity="0.75" filter="url(#pglow1)"/>
+            <circle class="p4" cx="61" cy="58" r="1.8" fill="#A78BFA" opacity="0.65" filter="url(#pglow1)"/>
+            <circle class="p5" cx="40" cy="66" r="2.8" fill="#5B8EFF" opacity="0.8"  filter="url(#pglow1)"/>
+            <circle class="p6" cx="13" cy="40" r="2"   fill="#A78BFA" opacity="0.65" filter="url(#pglow1)"/>
+            <!-- Diamond core -->
+            <g class="logo-diamond">
+              <polygon points="40,16 56,40 40,64 24,40" fill="url(#mg1)" filter="url(#glow1)"/>
+              <polygon points="40,22 50,40 40,52 34,40" fill="rgba(255,255,255,0.12)"/>
+              <!-- Eyes -->
+              <circle cx="36.5" cy="37" r="2.8" fill="rgba(10,12,20,0.85)"/>
+              <circle cx="43.5" cy="37" r="2.8" fill="rgba(10,12,20,0.85)"/>
+              <circle cx="37.3" cy="36.2" r="1"   fill="rgba(255,255,255,0.9)"/>
+              <circle cx="44.3" cy="36.2" r="1"   fill="rgba(255,255,255,0.9)"/>
+            </g>
+            <!-- Divider -->
+            <line x1="82" y1="22" x2="82" y2="58" stroke="#1E2540" stroke-width="1"/>
+            <!-- Wordmark -->
+            <text x="94" y="49" font-family="'Sora', sans-serif" font-size="29" font-weight="700" letter-spacing="-0.5" fill="#F0F4FF">Cognara</text>
+            <!-- Tagline -->
+            <text x="95" y="64" font-family="'Inter', sans-serif" font-size="9" font-weight="400" letter-spacing="2.8" fill="#4A5272">LEARN · GROW · MASTER</text>
+          </svg>
+        </div>
+        <span>Full Logo — Dark</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!-- SECTION 2: LIGHT VERSION  -->
+  <!-- ========================= -->
+  <div class="section">
+    <p class="section-label">Primary Logo — Light Background</p>
+    <div class="logo-row">
+      <div class="logo-card">
+        <div class="light-bg">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" width="320" height="80">
+            <defs>
+              <linearGradient id="mg2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#4A7AFF"/>
+                <stop offset="50%" style="stop-color:#3D6AFF"/>
+                <stop offset="100%" style="stop-color:#7C5CFA"/>
+              </linearGradient>
+              <filter id="glow2">
+                <feGaussianBlur stdDeviation="2" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <circle cx="40" cy="40" r="26" fill="rgba(61,106,255,0.08)"/>
+            <circle cx="40" cy="40" r="20" fill="rgba(61,106,255,0.05)"/>
+            <circle cx="40" cy="14" r="2.8" fill="#7C5CFA" opacity="0.7"/>
+            <circle cx="61" cy="22" r="2"   fill="#3D6AFF" opacity="0.6"/>
+            <circle cx="67" cy="40" r="2.5" fill="#4A7AFF" opacity="0.65"/>
+            <circle cx="61" cy="58" r="1.8" fill="#7C5CFA" opacity="0.55"/>
+            <circle cx="40" cy="66" r="2.8" fill="#3D6AFF" opacity="0.7"/>
+            <circle cx="13" cy="40" r="2"   fill="#7C5CFA" opacity="0.55"/>
+            <polygon points="40,16 56,40 40,64 24,40" fill="url(#mg2)" filter="url(#glow2)"/>
+            <polygon points="40,22 50,40 40,52 34,40" fill="rgba(255,255,255,0.2)"/>
+            <circle cx="36.5" cy="37" r="2.8" fill="rgba(255,255,255,0.9)"/>
+            <circle cx="43.5" cy="37" r="2.8" fill="rgba(255,255,255,0.9)"/>
+            <circle cx="37.3" cy="36.2" r="1"   fill="rgba(61,106,255,0.8)"/>
+            <circle cx="44.3" cy="36.2" r="1"   fill="rgba(61,106,255,0.8)"/>
+            <line x1="82" y1="22" x2="82" y2="58" stroke="#D8DEF0" stroke-width="1"/>
+            <text x="94" y="49" font-family="'Sora', sans-serif" font-size="29" font-weight="700" letter-spacing="-0.5" fill="#0D1117">Cognara</text>
+            <text x="95" y="64" font-family="'Inter', sans-serif" font-size="9" font-weight="400" letter-spacing="2.8" fill="#9BA3BC">LEARN · GROW · MASTER</text>
+          </svg>
+        </div>
+        <span>Full Logo — Light</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!-- SECTION 3: MARK ONLY      -->
+  <!-- ========================= -->
+  <div class="section">
+    <p class="section-label">Mark Only — Icon / Favicon / App Icon</p>
+    <div class="logo-row">
+
+      <!-- Large mark -->
+      <div class="logo-card">
+        <div class="dark-bg">
+          <svg class="logo-animated" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+            <defs>
+              <linearGradient id="mg3" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#7BA7FF"/>
+                <stop offset="50%" style="stop-color:#5B8EFF"/>
+                <stop offset="100%" style="stop-color:#A78BFA"/>
+              </linearGradient>
+              <filter id="glow3">
+                <feGaussianBlur stdDeviation="3" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+              <filter id="pg3">
+                <feGaussianBlur stdDeviation="1.5" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <circle cx="40" cy="40" r="36" fill="rgba(91,142,255,0.07)"/>
+            <circle cx="40" cy="40" r="28" fill="rgba(91,142,255,0.05)"/>
+            <circle class="p1" cx="40" cy="6"  r="3.5" fill="#A78BFA" opacity="0.85" filter="url(#pg3)"/>
+            <circle class="p2" cx="69" cy="21" r="2.5" fill="#5B8EFF" opacity="0.7"  filter="url(#pg3)"/>
+            <circle class="p3" cx="74" cy="40" r="3"   fill="#7BA7FF" opacity="0.75" filter="url(#pg3)"/>
+            <circle class="p4" cx="69" cy="59" r="2.2" fill="#A78BFA" opacity="0.65" filter="url(#pg3)"/>
+            <circle class="p5" cx="40" cy="74" r="3.5" fill="#5B8EFF" opacity="0.8"  filter="url(#pg3)"/>
+            <circle class="p6" cx="6"  cy="40" r="2.5" fill="#A78BFA" opacity="0.65" filter="url(#pg3)"/>
+            <g class="logo-diamond">
+              <polygon points="40,10 62,40 40,70 18,40" fill="url(#mg3)" filter="url(#glow3)"/>
+              <polygon points="40,18 56,40 40,58 30,40" fill="rgba(255,255,255,0.13)"/>
+              <circle cx="35" cy="37" r="3.5" fill="rgba(10,12,20,0.85)"/>
+              <circle cx="45" cy="37" r="3.5" fill="rgba(10,12,20,0.85)"/>
+              <circle cx="36.2" cy="35.8" r="1.4" fill="rgba(255,255,255,0.95)"/>
+              <circle cx="46.2" cy="35.8" r="1.4" fill="rgba(255,255,255,0.95)"/>
+            </g>
+          </svg>
+        </div>
+        <span>80px</span>
+      </div>
+
+      <!-- Medium mark -->
+      <div class="logo-card">
+        <div class="surface-bg">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="48" height="48">
+            <defs>
+              <linearGradient id="mg4" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#7BA7FF"/>
+                <stop offset="50%" style="stop-color:#5B8EFF"/>
+                <stop offset="100%" style="stop-color:#A78BFA"/>
+              </linearGradient>
+              <filter id="glow4">
+                <feGaussianBlur stdDeviation="3" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <circle cx="40" cy="40" r="36" fill="rgba(91,142,255,0.08)"/>
+            <circle cx="40" cy="6"  r="3.5" fill="#A78BFA" opacity="0.8"/>
+            <circle cx="74" cy="40" r="3"   fill="#5B8EFF" opacity="0.7"/>
+            <circle cx="40" cy="74" r="3.5" fill="#5B8EFF" opacity="0.75"/>
+            <circle cx="6"  cy="40" r="2.5" fill="#A78BFA" opacity="0.6"/>
+            <polygon points="40,10 62,40 40,70 18,40" fill="url(#mg4)" filter="url(#glow4)"/>
+            <polygon points="40,18 56,40 40,58 30,40" fill="rgba(255,255,255,0.13)"/>
+            <circle cx="35" cy="37" r="3.5" fill="rgba(10,12,20,0.85)"/>
+            <circle cx="45" cy="37" r="3.5" fill="rgba(10,12,20,0.85)"/>
+            <circle cx="36.2" cy="35.8" r="1.4" fill="rgba(255,255,255,0.95)"/>
+            <circle cx="46.2" cy="35.8" r="1.4" fill="rgba(255,255,255,0.95)"/>
+          </svg>
+        </div>
+        <span>48px</span>
+      </div>
+
+      <!-- Small mark / favicon -->
+      <div class="logo-card">
+        <div class="surface-bg">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="32" height="32">
+            <defs>
+              <linearGradient id="mg5" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#7BA7FF"/>
+                <stop offset="50%" style="stop-color:#5B8EFF"/>
+                <stop offset="100%" style="stop-color:#A78BFA"/>
+              </linearGradient>
+            </defs>
+            <polygon points="40,10 62,40 40,70 18,40" fill="url(#mg5)"/>
+            <polygon points="40,18 56,40 40,58 30,40" fill="rgba(255,255,255,0.15)"/>
+            <circle cx="35" cy="37" r="3.5" fill="rgba(10,12,20,0.85)"/>
+            <circle cx="45" cy="37" r="3.5" fill="rgba(10,12,20,0.85)"/>
+            <circle cx="36.2" cy="35.8" r="1.4" fill="white"/>
+            <circle cx="46.2" cy="35.8" r="1.4" fill="white"/>
+          </svg>
+        </div>
+        <span>32px — Favicon</span>
+      </div>
+
+      <!-- Tiny mark -->
+      <div class="logo-card">
+        <div class="surface-bg">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="20" height="20">
+            <defs>
+              <linearGradient id="mg6" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#7BA7FF"/>
+                <stop offset="50%" style="stop-color:#5B8EFF"/>
+                <stop offset="100%" style="stop-color:#A78BFA"/>
+              </linearGradient>
+            </defs>
+            <polygon points="40,10 62,40 40,70 18,40" fill="url(#mg6)"/>
+            <circle cx="34" cy="37" r="4" fill="rgba(10,12,20,0.8)"/>
+            <circle cx="46" cy="37" r="4" fill="rgba(10,12,20,0.8)"/>
+          </svg>
+        </div>
+        <span>20px</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================================ -->
+  <!-- SECTION 4: WORDMARK ONLY         -->
+  <!-- ================================ -->
+  <div class="section">
+    <p class="section-label">Wordmark Only — Text Contexts</p>
+    <div class="logo-row">
+      <div class="logo-card">
+        <div class="dark-bg">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" width="200" height="40">
+            <defs>
+              <linearGradient id="wg1" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#7BA7FF"/>
+                <stop offset="100%" style="stop-color:#A78BFA"/>
+              </linearGradient>
+            </defs>
+            <text x="0" y="30" font-family="'Sora', sans-serif" font-size="30" font-weight="700" letter-spacing="-0.5" fill="url(#wg1)">Cognara</text>
+          </svg>
+        </div>
+        <span>Gradient wordmark</span>
+      </div>
+
+      <div class="logo-card">
+        <div class="dark-bg">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" width="200" height="40">
+            <text x="0" y="30" font-family="'Sora', sans-serif" font-size="30" font-weight="700" letter-spacing="-0.5" fill="#F0F4FF">Cognara</text>
+          </svg>
+        </div>
+        <span>White wordmark</span>
+      </div>
+
+      <div class="logo-card">
+        <div class="light-bg">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" width="200" height="40">
+            <text x="0" y="30" font-family="'Sora', sans-serif" font-size="30" font-weight="700" letter-spacing="-0.5" fill="#0D1117">Cognara</text>
+          </svg>
+        </div>
+        <span>Dark wordmark — light bg</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================ -->
+  <!-- SECTION 5: NAVBAR SIZE           -->
+  <!-- ================================ -->
+  <div class="section">
+    <p class="section-label">Navbar Size — As it appears in your app</p>
+    <div class="logo-row">
+      <div class="logo-card" style="width: 100%;">
+        <!-- Simulated navbar -->
+        <div style="
+          background: #111520;
+          border: 1px solid #1E2540;
+          border-radius: 12px;
+          padding: 0 24px;
+          height: 60px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          max-width: 600px;
+        ">
+          <!-- Logo in navbar -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 50" width="140" height="35">
+            <defs>
+              <linearGradient id="mg7" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#7BA7FF"/>
+                <stop offset="50%" style="stop-color:#5B8EFF"/>
+                <stop offset="100%" style="stop-color:#A78BFA"/>
+              </linearGradient>
+              <filter id="glow7">
+                <feGaussianBlur stdDeviation="1.5" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <!-- Mini mark -->
+            <circle cx="25" cy="25" r="16" fill="rgba(91,142,255,0.07)"/>
+            <circle cx="25" cy="9"  r="1.8" fill="#A78BFA" opacity="0.8"/>
+            <circle cx="40" cy="25" r="1.6" fill="#5B8EFF" opacity="0.7"/>
+            <circle cx="25" cy="41" r="1.8" fill="#5B8EFF" opacity="0.75"/>
+            <circle cx="10" cy="25" r="1.4" fill="#A78BFA" opacity="0.6"/>
+            <polygon points="25,9 37,25 25,41 13,25" fill="url(#mg7)" filter="url(#glow7)"/>
+            <polygon points="25,14 33,25 25,36 19,25" fill="rgba(255,255,255,0.12)"/>
+            <circle cx="22.5" cy="23" r="1.8" fill="rgba(10,12,20,0.85)"/>
+            <circle cx="27.5" cy="23" r="1.8" fill="rgba(10,12,20,0.85)"/>
+            <circle cx="23.2" cy="22.2" r="0.7" fill="white"/>
+            <circle cx="28.2" cy="22.2" r="0.7" fill="white"/>
+            <!-- Divider -->
+            <line x1="50" y1="12" x2="50" y2="38" stroke="#1E2540" stroke-width="1"/>
+            <!-- Wordmark -->
+            <text x="58" y="31" font-family="'Sora', sans-serif" font-size="18" font-weight="700" letter-spacing="-0.3" fill="#F0F4FF">Cognara</text>
+          </svg>
+
+          <!-- Fake nav items -->
+          <div style="display: flex; gap: 20px; align-items: center;">
+            <span style="font-size: 13px; color: #4A5272;">Home</span>
+            <span style="font-size: 13px; color: #4A5272;">My Path</span>
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #5B8EFF, #A78BFA); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white;">IC</div>
+          </div>
+        </div>
+        <span>Logo in app navbar context</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================ -->
+  <!-- SECTION 6: COLOR SPECS           -->
+  <!-- ================================ -->
+  <div class="section">
+    <p class="section-label">Logo Color Specifications</p>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; max-width: 600px;">
+
+      <div style="background: #111520; border: 1px solid #1E2540; border-radius: 10px; padding: 16px;">
+        <div style="width: 40px; height: 40px; border-radius: 8px; background: #5B8EFF; margin-bottom: 12px;"></div>
+        <div style="font-size: 13px; font-weight: 600; color: #F0F4FF; margin-bottom: 4px;">Primary Blue</div>
+        <div style="font-size: 12px; color: #4A5272; font-family: monospace;">#5B8EFF</div>
+        <div style="font-size: 11px; color: #4A5272; margin-top: 4px;">Diamond core</div>
+      </div>
+
+      <div style="background: #111520; border: 1px solid #1E2540; border-radius: 10px; padding: 16px;">
+        <div style="width: 40px; height: 40px; border-radius: 8px; background: #7BA7FF; margin-bottom: 12px;"></div>
+        <div style="font-size: 13px; font-weight: 600; color: #F0F4FF; margin-bottom: 4px;">Light Blue</div>
+        <div style="font-size: 12px; color: #4A5272; font-family: monospace;">#7BA7FF</div>
+        <div style="font-size: 11px; color: #4A5272; margin-top: 4px;">Gradient start</div>
+      </div>
+
+      <div style="background: #111520; border: 1px solid #1E2540; border-radius: 10px; padding: 16px;">
+        <div style="width: 40px; height: 40px; border-radius: 8px; background: #A78BFA; margin-bottom: 12px;"></div>
+        <div style="font-size: 13px; font-weight: 600; color: #F0F4FF; margin-bottom: 4px;">Violet</div>
+        <div style="font-size: 12px; color: #4A5272; font-family: monospace;">#A78BFA</div>
+        <div style="font-size: 11px; color: #4A5272; margin-top: 4px;">Gradient end · Particles</div>
+      </div>
+
+      <div style="background: #111520; border: 1px solid #1E2540; border-radius: 10px; padding: 16px;">
+        <div style="width: 40px; height: 40px; border-radius: 8px; background: #F0F4FF; margin-bottom: 12px;"></div>
+        <div style="font-size: 13px; font-weight: 600; color: #F0F4FF; margin-bottom: 4px;">Near White</div>
+        <div style="font-size: 12px; color: #4A5272; font-family: monospace;">#F0F4FF</div>
+        <div style="font-size: 11px; color: #4A5272; margin-top: 4px;">Wordmark — dark bg</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================================ -->
+  <!-- SECTION 7: USAGE RULES           -->
+  <!-- ================================ -->
+  <div class="section">
+    <p class="section-label">Usage Rules</p>
+    <div style="display: flex; flex-direction: column; gap: 10px; max-width: 500px;">
+      <div style="display: flex; gap: 12px; align-items: flex-start;">
+        <span style="color: #34D399; font-size: 14px; flex-shrink: 0;">✓</span>
+        <span style="font-size: 13px; color: #8B95B3;">Use the full logo (mark + wordmark) in navbar and headers</span>
+      </div>
+      <div style="display: flex; gap: 12px; align-items: flex-start;">
+        <span style="color: #34D399; font-size: 14px; flex-shrink: 0;">✓</span>
+        <span style="font-size: 13px; color: #8B95B3;">Use the mark only for favicon, app icon, and small contexts under 40px</span>
+      </div>
+      <div style="display: flex; gap: 12px; align-items: flex-start;">
+        <span style="color: #34D399; font-size: 14px; flex-shrink: 0;">✓</span>
+        <span style="font-size: 13px; color: #8B95B3;">Minimum size for full logo: 120px wide</span>
+      </div>
+      <div style="display: flex; gap: 12px; align-items: flex-start;">
+        <span style="color: #F87171; font-size: 14px; flex-shrink: 0;">✗</span>
+        <span style="font-size: 13px; color: #8B95B3;">Never stretch or distort the mark proportions</span>
+      </div>
+      <div style="display: flex; gap: 12px; align-items: flex-start;">
+        <span style="color: #F87171; font-size: 14px; flex-shrink: 0;">✗</span>
+        <span style="font-size: 13px; color: #8B95B3;">Never use the logo on a busy background without a clear backdrop</span>
+      </div>
+      <div style="display: flex; gap: 12px; align-items: flex-start;">
+        <span style="color: #F87171; font-size: 14px; flex-shrink: 0;">✗</span>
+        <span style="font-size: 13px; color: #8B95B3;">Never change the diamond mark colors — blue to violet gradient is fixed</span>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -45,6 +45,7 @@
   --color-primary-hover:#4A7AEE;
   --color-primary-glow: rgba(61,106,255,0.12);
   --color-accent:       #A78BFA;
+  --color-logo-start:   #7BA7FF;
   --color-accent-warm:  #F59E0B;
   --color-text-1:       #F0F4FF;
   --color-text-2:       #8B95B3;
@@ -107,6 +108,7 @@
   --color-primary-hover:#2D5AEF;
   --color-primary-glow: rgba(61,106,255,0.10);
   --color-accent:       #7C5CFA;
+  --color-logo-start:   #4A7AFF;
   --color-accent-warm:  #D97706;
   --color-text-1:       #0D1117;
   --color-text-2:       #4A5272;
@@ -140,6 +142,7 @@
   --color-primary-hover: var(--color-primary-hover);
   --color-primary-glow: var(--color-primary-glow);
   --color-accent: var(--color-accent);
+  --color-logo-start: var(--color-logo-start);
   --color-accent-warm: var(--color-accent-warm);
   --color-text-1: var(--color-text-1);
   --color-text-2: var(--color-text-2);
