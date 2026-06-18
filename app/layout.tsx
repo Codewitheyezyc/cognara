@@ -25,8 +25,47 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.cognaralearn.com'),
   title: "Cognara — AI Learning Operating System",
   description: "Your mind. Your path. Your era. Dynamically generated personalized roadmaps, lessons, and quizzes.",
+  keywords: [
+    "Cognara", "Cognaralearn", "AI learning", "personalized roadmaps", 
+    "adaptive learning", "AI education", "study planner", "learning operating system"
+  ],
+  authors: [{ name: "Cognara Team" }],
+  openGraph: {
+    title: "Cognara — AI Learning Operating System",
+    description: "Your mind. Your path. Your era. Dynamically generated personalized roadmaps, lessons, and quizzes.",
+    url: "https://www.cognaralearn.com",
+    siteName: "Cognara",
+    images: [
+      {
+        url: "/logo.svg",
+        width: 512,
+        height: 512,
+        alt: "Cognara Logo",
+      }
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Cognara — AI Learning Operating System",
+    description: "Your mind. Your path. Your era. Dynamically generated personalized roadmaps, lessons, and quizzes.",
+    images: ["/logo.svg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function RootLayout({
