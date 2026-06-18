@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Logo } from '@/components/ui/Logo'
+import { Eye, EyeOff } from 'lucide-react'
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
@@ -24,6 +25,7 @@ export default function LoginPage() {
   const supabase = createClient()
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const {
     register,
@@ -102,14 +104,23 @@ export default function LoginPage() {
               Password
             </Label>
           </div>
-          <Input
-            id="password"
-            type="password"
-            placeholder="••••••••"
-            disabled={isLoading}
-            className="h-10 border-border bg-surface-alt text-text-1 placeholder-text-3 focus:border-primary focus:ring-1 focus:ring-primary rounded-sm"
-            {...register('password')}
-          />
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="••••••••"
+              disabled={isLoading}
+              className="h-10 pr-10 border-border bg-surface-alt text-text-1 placeholder-text-3 focus:border-primary focus:ring-1 focus:ring-primary rounded-sm"
+              {...register('password')}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-3 hover:text-text-2 transition duration-150 cursor-pointer"
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
           <div className="flex justify-end">
             <Link href="/forgot-password" className="text-xs font-medium text-primary hover:underline transition duration-150">
               Forgot password?
