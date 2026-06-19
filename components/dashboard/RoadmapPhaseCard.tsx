@@ -277,7 +277,7 @@ export function RoadmapPhaseCard({
                   }}
                 >
                   <span style={{ color: 'var(--color-text-2)', fontSize: '13px' }}>
-                    Unlock all {lessons.length} lessons in Phase {phaseNumber} · From ₦5,000/month
+                    Unlock all {lessons.length} lessons in Phase {phaseNumber} · From ₦4,500/month
                   </span>
                   <button
                     onClick={(e) => {

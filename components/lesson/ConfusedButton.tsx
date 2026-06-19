@@ -133,12 +133,12 @@ export function ConfusedButton({
   return (
     <div className="space-y-3 w-full">
       {/* Header row: heading | [bookmark icon] [confused pill] */}
-      <div className="flex items-start justify-between gap-2 w-full">
-        <h3 className="font-heading text-lg font-semibold text-text-1 min-w-0 flex-1">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 w-full">
+        <h3 className="font-heading text-base sm:text-lg font-semibold text-text-1 min-w-0 flex-1">
           {sectionHeading}
         </h3>
 
-        <div className="flex items-center gap-1.5 flex-shrink-0 pt-0.5">
+        <div className="flex items-center gap-1.5 flex-shrink-0 pt-0.5 sm:self-start self-start sm:mt-0 mt-1 flex-wrap">
           {/* BookmarkButton injected from parent — rendered inline, no z-index clash */}
           {bookmarkSlot}
 

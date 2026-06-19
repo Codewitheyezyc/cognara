@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { createPortal } from 'react-dom'
 import { X, Lock, Sparkles, Check, Zap } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -20,16 +21,22 @@ export function LessonPreviewModal({
   phaseNumber
 }: LessonPreviewModalProps) {
   const router = useRouter()
+  const [mounted, setMounted] = React.useState(false)
 
-  if (!isOpen) return null
+  React.useEffect(() => {
+    setMounted(true)
+    return () => setMounted(false)
+  }, [])
+
+  if (!isOpen || !mounted) return null
 
   const handleUpgradeClick = () => {
     onClose()
     router.push('/dashboard/settings')
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md animate-fadeIn">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md animate-fadeIn">
       {/* Modal Container */}
       <div 
         className="relative bg-surface border border-border rounded-2xl max-w-lg w-full overflow-hidden shadow-[0_0_50px_rgba(91,142,255,0.15)] flex flex-col animate-scaleIn"
@@ -101,23 +108,48 @@ export function LessonPreviewModal({
 
           <div className="border-t border-border/60 pt-6" />
 
-          {/* Pricing Summary */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-primary/5 border border-primary/10 rounded-xl p-4">
-            <div className="text-center sm:text-left">
-              <span className="text-xs text-text-2">Unlock all phases & features</span>
-              <p className="text-xl font-bold text-text-1 font-mono mt-0.5">From ₦5,000<span className="text-xs text-text-3 font-normal font-sans">/mo</span></p>
+          {/* Pricing Options */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Monthly Card */}
+            <div className="border border-border/85 rounded-xl p-4 flex flex-col justify-between bg-surface-alt/20 hover:bg-surface-alt/40 transition duration-150">
+              <div>
+                <span className="text-[9px] uppercase font-mono tracking-wider text-text-3 font-bold block mb-1">Monthly Plan</span>
+                <p className="text-lg font-bold text-text-1 font-mono">₦4,500<span className="text-xs text-text-3 font-normal font-sans">/mo</span></p>
+                <p className="text-[10px] text-text-3 mt-1">Billed monthly, cancel anytime.</p>
+              </div>
+              <button
+                onClick={handleUpgradeClick}
+                className="mt-3.5 w-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 font-bold py-2 rounded-lg text-[10px] flex items-center justify-center gap-1 transition-all cursor-pointer"
+              >
+                <Zap className="h-3 w-3 fill-current animate-pulse" />
+                <span>Choose Monthly</span>
+              </button>
             </div>
-            <button
-              onClick={handleUpgradeClick}
-              className="w-full sm:w-auto bg-primary hover:bg-primary/95 text-white font-bold px-6 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(91,142,255,0.3)] transition-all cursor-pointer hover:scale-[1.02]"
-            >
-              <Zap className="h-3.5 w-3.5 fill-current" />
-              <span>Upgrade to Pro</span>
-            </button>
+
+            {/* Yearly Card */}
+            <div className="border border-primary/35 rounded-xl p-4 flex flex-col justify-between bg-primary/5 hover:bg-primary/10 transition duration-150 relative overflow-hidden">
+              {/* Save Badge */}
+              <div className="absolute top-0 right-0 bg-accent text-white font-bold text-[8px] px-2 py-0.5 rounded-bl uppercase font-mono">
+                Save 16%
+              </div>
+              <div>
+                <span className="text-[9px] uppercase font-mono tracking-wider text-accent font-bold block mb-1">Yearly Plan</span>
+                <p className="text-lg font-bold text-text-1 font-mono">₦45,000<span className="text-xs text-text-3 font-normal font-sans">/yr</span></p>
+                <p className="text-[10px] text-text-3 mt-1">Billed annually, best value.</p>
+              </div>
+              <button
+                onClick={handleUpgradeClick}
+                className="mt-3.5 w-full bg-primary hover:bg-primary/95 text-white font-bold py-2 rounded-lg text-[10px] flex items-center justify-center gap-1 transition-all cursor-pointer shadow-[0_0_10px_rgba(91,142,255,0.2)]"
+              >
+                <Zap className="h-3 w-3 fill-current" />
+                <span>Choose Yearly</span>
+              </button>
+            </div>
           </div>
 
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

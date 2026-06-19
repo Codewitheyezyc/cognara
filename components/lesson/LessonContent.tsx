@@ -16,6 +16,7 @@ import { createClient } from '@/lib/supabase/client'
 import { BookmarkButton } from './BookmarkButton'
 import { ConfusedButton } from './ConfusedButton'
 import { LessonPreviewModal } from '../dashboard/LessonPreviewModal'
+import { useToast } from '@/components/ui/toast'
 
 
 interface LessonContentProps {
@@ -60,27 +61,54 @@ export default function LessonContent({
   const supabase = createClient()
   const [bookmarks, setBookmarks] = React.useState<any[]>([])
 
+  const { toast } = useToast()
+  const [isDownloaded, setIsDownloaded] = React.useState(false)
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('cognara_downloaded_lessons')
+        const downloads = stored ? JSON.parse(stored) : {}
+        if (downloads[lessonId]) {
+          setIsDownloaded(true)
+        }
+      } catch (err) {
+        console.error('Failed to check downloads cache:', err)
+      }
+    }
+  }, [lessonId])
+
   const handleDownload = () => {
     if (!isPro && phaseNumber > 1) {
       setIsModalOpen(true)
       return
     }
-    // Generate markdown content
-    let md = `# ${lesson.title}\n\n`
-    lesson.sections?.forEach(s => {
-      md += `## ${s.heading}\n\n`
-      if (s.body) md += `${s.body}\n\n`
-      if (s.code_snippet) md += `\`\`\`${s.code_language || 'js'}\n${s.code_snippet}\n\`\`\`\n\n`
-    })
-    const blob = new Blob([md], { type: 'text/markdown' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${lesson.title.toLowerCase().replace(/\s+/g, '_')}_lesson.md`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+
+    try {
+      const stored = localStorage.getItem('cognara_downloaded_lessons')
+      const downloads = stored ? JSON.parse(stored) : {}
+
+      if (downloads[lessonId]) {
+        toast('Lesson is already downloaded and cached offline!')
+        return
+      }
+
+      downloads[lessonId] = {
+        id: lessonId,
+        title: lesson.title,
+        subject: subject,
+        depthLevel: depthLevel,
+        lesson: lesson,
+        downloadedAt: new Date().toISOString(),
+      }
+
+      localStorage.setItem('cognara_downloaded_lessons', JSON.stringify(downloads))
+      setIsDownloaded(true)
+      toast('Lesson downloaded successfully for in-app offline reading! 🎓')
+    } catch (err) {
+      console.error(err)
+      toast('Failed to cache lesson offline', 'error')
+    }
   }
 
   React.useEffect(() => {
@@ -121,7 +149,13 @@ export default function LessonContent({
               className="text-[10px] text-primary hover:underline font-bold uppercase tracking-wide focus:outline-none flex items-center space-x-1 cursor-pointer"
             >
               <Download className="h-3.5 w-3.5" />
-              <span>{!isPro && phaseNumber > 1 ? 'Download 🔒' : 'Download'}</span>
+              <span>
+                {!isPro && phaseNumber > 1 
+                  ? 'Download 🔒' 
+                  : isDownloaded 
+                  ? 'Downloaded ✓' 
+                  : 'Download'}
+              </span>
             </button>
 
             <div className="relative">

@@ -4,14 +4,17 @@ import React, { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Home, Map, BarChart2, Flame, Settings, Search, Bell, Bookmark } from 'lucide-react'
+import { Home, Map, BarChart2, Flame, Settings, Search, Bell, Bookmark, Download, Sparkles } from 'lucide-react'
 import { ProfileDropdown } from '@/components/dashboard/ProfileDropdown'
 import { Logo } from '@/components/ui/Logo'
+import { LessonPreviewModal } from '@/components/dashboard/LessonPreviewModal'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
   
   const [streak, setStreak] = useState<number>(0)
   const [profile, setProfile] = useState<any>(null)
@@ -269,6 +272,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { label: 'Home', href: '/dashboard', icon: Home },
     { label: 'My Path', href: '/dashboard/path', icon: Map },
     { label: 'Progress', href: '/dashboard/progress', icon: BarChart2 },
+    { label: 'Downloads', href: '/dashboard/downloads', icon: Download },
     { label: 'Notes', href: '/dashboard/notes', icon: Bookmark },
     { label: 'Settings', href: '/dashboard/settings', icon: Settings },
   ]
@@ -333,6 +337,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         )}
 
+        {profile && profile.subscription_tier === 'free' && (
+          <div className="px-4 mb-4">
+            <div className="p-4 rounded-[12px] bg-gradient-to-br from-primary/10 via-accent/5 to-transparent border border-primary/20 shadow-lg space-y-3 relative overflow-hidden group">
+              {/* Decorative top border line */}
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary to-accent" />
+              
+              <div className="flex items-center gap-1.5 text-primary">
+                <Sparkles className="h-4 w-4 fill-current text-primary animate-pulse" />
+                <span className="text-[10px] font-mono uppercase tracking-widest font-extrabold">Upgrade to Pro</span>
+              </div>
+              
+              <p className="text-[11px] text-text-2 leading-relaxed">
+                Get unlimited roadmaps, all 5 depth levels, and coding workspaces.
+              </p>
+
+              <button
+                onClick={() => setIsUpgradeModalOpen(true)}
+                className="w-full py-2 bg-primary hover:bg-primary/95 text-white font-bold rounded-lg text-xs transition duration-150 cursor-pointer shadow-[0_0_12px_rgba(91,142,255,0.25)] hover:scale-[1.02] active:scale-[0.98]"
+              >
+                Get Pro Access
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Simplified Sidebar Footer */}
         <div className="p-4 border-t border-border flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary shrink-0">
@@ -369,6 +398,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </button>
 
           <div className="flex items-center space-x-4">
+            {profile && profile.subscription_tier === 'free' && (
+              <button
+                onClick={() => setIsUpgradeModalOpen(true)}
+                className="flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-primary to-accent hover:from-primary/95 hover:to-accent/95 text-white font-bold rounded-full text-[10px] sm:text-xs transition duration-150 cursor-pointer shadow-[0_0_10px_rgba(91,142,255,0.2)] hover:scale-[1.03] active:scale-[0.97]"
+              >
+                <Sparkles className="h-3 w-3 fill-current text-white animate-pulse" />
+                <span>Go Pro</span>
+              </button>
+            )}
+
             {/* Streak Emblem */}
             <div className="flex items-center space-x-1.5 px-3 py-1 bg-accent-warm/10 text-accent-warm border border-accent-warm/20 rounded-full text-xs font-mono">
               <Flame className="h-4 w-4 fill-current text-accent-warm" />
@@ -525,6 +564,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           );
         })}
       </nav>
+
+      <LessonPreviewModal 
+        isOpen={isUpgradeModalOpen} 
+        onClose={() => setIsUpgradeModalOpen(false)} 
+      />
     </div>
   )
 }

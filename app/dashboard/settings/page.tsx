@@ -157,10 +157,10 @@ export default function SettingsPage() {
   }
 
   // Toggle Subscription Handler
-  const handleToggleSubscription = async (tier: 'free' | 'pro_monthly') => {
+  const handleToggleSubscription = async (tier: 'free' | 'pro_monthly' | 'pro_yearly') => {
     if (!user) return
     try {
-      const status = tier === 'pro_monthly' ? 'active' : 'inactive'
+      const status = tier !== 'free' ? 'active' : 'inactive'
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -179,11 +179,12 @@ export default function SettingsPage() {
         subscription_end_date: null
       }))
 
-      if (tier === 'pro_monthly') {
+      if (tier === 'pro_monthly' || tier === 'pro_yearly') {
         await supabase.rpc('grant_monthly_shields')
       }
 
-      toast(`Subscription changed to ${tier === 'pro_monthly' ? 'Pro Monthly' : 'Free Plan'}!`)
+      const tierLabel = tier === 'free' ? 'Free Plan' : tier === 'pro_monthly' ? 'Pro Monthly' : 'Pro Yearly'
+      toast(`Subscription changed to ${tierLabel}!`)
       
       // Force reload page to apply new tier to context/cache if any
       router.refresh()
@@ -425,9 +426,16 @@ export default function SettingsPage() {
               <Button 
                 onClick={() => handleToggleSubscription('pro_monthly')}
                 disabled={profile?.subscription_tier === 'pro_monthly'}
-                className="flex-1 bg-primary hover:bg-primary/95 text-white cursor-pointer"
+                className="flex-1 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/20 cursor-pointer"
               >
-                Switch to Pro Monthly
+                Pro Monthly (₦4,500)
+              </Button>
+              <Button 
+                onClick={() => handleToggleSubscription('pro_yearly')}
+                disabled={profile?.subscription_tier === 'pro_yearly'}
+                className="flex-1 bg-primary hover:bg-primary/95 text-white cursor-pointer shadow-[0_0_12px_rgba(91,142,255,0.2)]"
+              >
+                Pro Yearly (₦45,000)
               </Button>
             </div>
           </div>
