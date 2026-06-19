@@ -124,12 +124,15 @@ export default function LessonPage() {
       const isExpired = endDate ? new Date(endDate) < new Date() : false
       const activeAndNotExpired = isProTier && isStatusActive && !isExpired
       
-      setIsPro(activeAndNotExpired)
+      const isAdmin = user.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID || user.id === '4c1fbae5-c423-42e7-8394-1112fe00d42e'
+      const hasProAccess = activeAndNotExpired || isAdmin
+      
+      setIsPro(hasProAccess)
 
       // If !isPro and phase is > 1, lock the lesson!
       const phaseNum = (phaseRes.data as any)?.phase_number || 1
       setPhaseNumber(phaseNum)
-      if (!activeAndNotExpired && phaseNum > 1) {
+      if (!hasProAccess && phaseNum > 1) {
         setIsLockedLesson(true)
         setIsGenerating(false)
         setIsAIGenerating(false)

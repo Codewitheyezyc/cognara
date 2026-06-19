@@ -390,7 +390,7 @@ export default function DownloadsPage() {
               {/* Highlight left border glow */}
               <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary/20 group-hover:bg-primary transition-all" />
 
-              <div className="space-y-3">
+              <div className="space-y-3 pr-10">
                 <div className="flex items-center justify-between">
                   <span className="inline-flex items-center px-2 py-0.5 border border-primary/20 bg-primary/5 text-primary text-[9px] font-mono font-bold uppercase tracking-wider rounded">
                     {item.subject || 'Development'}

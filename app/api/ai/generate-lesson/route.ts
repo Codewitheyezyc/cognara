@@ -42,9 +42,11 @@ export async function POST(request: Request) {
         (statusVal === 'active' || statusVal === 'trialing' || statusVal === 'trailing') && 
         (!endDate || new Date(endDate) > new Date())
 
+      const isAdmin = user.id === process.env.ADMIN_USER_ID || user.id === '4c1fbae5-c423-42e7-8394-1112fe00d42e'
+
       const limitResult = await checkNewRateLimit({
         featureKey: `lesson_regen_${lessonId}`,
-        dailyLimit: isPro ? 2 : 0,
+        dailyLimit: isAdmin ? 9999 : (isPro ? 2 : 0),
         userId: user.id
       })
 

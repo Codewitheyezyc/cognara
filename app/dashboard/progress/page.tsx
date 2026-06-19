@@ -65,7 +65,10 @@ export default function ProgressPage() {
         const isExpired = endDate ? new Date(endDate) < new Date() : false
         const activeAndNotExpired = isProTier && isStatusActive && !isExpired
 
-        if (!activeAndNotExpired) {
+        const isAdmin = user.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID || user.id === '4c1fbae5-c423-42e7-8394-1112fe00d42e'
+        const hasProAccess = activeAndNotExpired || isAdmin
+
+        if (!hasProAccess) {
           setIsPro(false)
           setIsLoading(false)
           return

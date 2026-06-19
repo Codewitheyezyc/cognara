@@ -38,10 +38,17 @@ export async function getUserSubscription(): Promise<SubscriptionStatus> {
   const isExpired = endDate ? new Date(endDate) < new Date() : false
   const activeAndNotExpired = isProTier && isStatusActive && !isExpired
 
+  // Hardcoded Admin Bypass
+  const isAdmin = user.id === process.env.ADMIN_USER_ID || 
+                  user.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID || 
+                  user.id === '4c1fbae5-c423-42e7-8394-1112fe00d42e'
+
+  const finalIsPro = activeAndNotExpired || isAdmin
+
   return { 
-    tier, 
-    isPro: activeAndNotExpired, 
-    isActive: activeAndNotExpired, 
+    tier: isAdmin ? 'pro_yearly' : tier, 
+    isPro: finalIsPro, 
+    isActive: finalIsPro, 
     endDate 
   }
 }

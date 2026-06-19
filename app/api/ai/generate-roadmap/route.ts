@@ -40,7 +40,9 @@ export async function POST(request: Request) {
       (statusVal === 'active' || statusVal === 'trialing' || statusVal === 'trailing') && 
       (!endDate || new Date(endDate) > new Date())
 
-    if (!isPro) {
+    const isAdmin = user.id === process.env.ADMIN_USER_ID || user.id === '4c1fbae5-c423-42e7-8394-1112fe00d42e'
+
+    if (!isPro && !isAdmin) {
       // Free users: 1 ever
       const { count: roadmapCount } = await supabase
         .from('roadmaps')

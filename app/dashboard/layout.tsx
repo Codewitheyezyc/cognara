@@ -277,6 +277,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   ]
 
   const initialName = profile?.name || 'Learner'
+  const isAdmin = profile?.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID || profile?.id === '4c1fbae5-c423-42e7-8394-1112fe00d42e'
+  const isFree = profile && profile.subscription_tier === 'free' && !isAdmin
 
   return (
     <div className="flex min-h-screen bg-bg text-text-1">
@@ -336,7 +338,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         )}
 
-        {profile && profile.subscription_tier === 'free' && (
+        {isFree && (
           <div className="px-4 mb-4">
             <div className="p-4 rounded-[12px] bg-gradient-to-br from-primary/10 via-accent/5 to-transparent border border-primary/20 shadow-lg space-y-3 relative overflow-hidden group">
               {/* Decorative top border line */}
@@ -397,7 +399,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </button>
 
           <div className="flex items-center space-x-4">
-            {profile && profile.subscription_tier === 'free' && (
+            {isFree && (
               <button
                 onClick={() => setIsUpgradeModalOpen(true)}
                 className="flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-primary to-accent hover:from-primary/95 hover:to-accent/95 text-white font-bold rounded-full text-[10px] sm:text-xs transition duration-150 cursor-pointer shadow-[0_0_10px_rgba(91,142,255,0.2)] hover:scale-[1.03] active:scale-[0.97]"

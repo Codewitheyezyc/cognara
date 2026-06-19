@@ -113,10 +113,12 @@ export async function POST(request: Request) {
       (statusVal === 'active' || statusVal === 'trialing' || statusVal === 'trailing') && 
       (!endDate || new Date(endDate) > new Date())
 
+    const isAdmin = user.id === process.env.ADMIN_USER_ID || user.id === '4c1fbae5-c423-42e7-8394-1112fe00d42e'
+
     // Enforce Rate Limit (3 per day for Pro, 0 for Free)
     const rateLimit = await checkRateLimit({
       featureKey: 'ai_insight',
-      dailyLimit: isPro ? 3 : 0,
+      dailyLimit: isAdmin ? 9999 : (isPro ? 3 : 0),
       userId: user.id
     })
 

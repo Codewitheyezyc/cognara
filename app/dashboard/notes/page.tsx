@@ -150,16 +150,16 @@ export default function NotesPage() {
               className="rounded-[10px] border border-border bg-surface shadow-sm overflow-hidden"
             >
               {/* Lesson Header */}
-              <div className="px-6 py-4 bg-surface-alt/40 border-b border-border/60 flex items-center justify-between">
-                <div className="flex items-center space-x-2.5">
+              <div className="px-6 py-4 bg-surface-alt/40 border-b border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center space-x-2.5 min-w-0">
                   <BookOpen className="h-4 w-4 text-primary shrink-0" strokeWidth={1.5} />
-                  <h2 className="font-heading text-sm font-bold text-text-1 truncate max-w-lg">
+                  <h2 className="font-heading text-sm font-bold text-text-1 truncate" title={group.lessonTitle}>
                     {group.lessonTitle}
                   </h2>
                 </div>
                 <Link
                   href={`/dashboard/lesson/${group.lessonId}`}
-                  className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline font-bold uppercase tracking-wider cursor-pointer"
+                  className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline font-bold uppercase tracking-wider cursor-pointer self-start sm:self-auto shrink-0"
                 >
                   <Eye className="h-3.5 w-3.5" />
                   View Lesson
