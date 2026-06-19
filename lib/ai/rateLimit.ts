@@ -27,9 +27,7 @@ export async function checkRateLimit(
       .eq('id', userId)
       .maybeSingle()
 
-    isAdmin = 
-      userId === process.env.ADMIN_USER_ID || 
-      profile?.email === 'chydexxzy2002@gmail.com'
+    isAdmin = userId === process.env.ADMIN_USER_ID
 
     isPro = 
       profile?.subscription_tier === 'pro_monthly' || 
