@@ -51,8 +51,8 @@ export async function POST(req: Request) {
         const customerId: string = data.customer?.customer_code || ''
 
         const MONTHLY_PLAN_CODE = process.env.PAYSTACK_MONTHLY_PLAN_CODE || ''
-        const YEARLY_PLAN_CODE = process.env.PAYSTACK_YEARLY_PLAN_CODE || ''
-        const tier = planCode === YEARLY_PLAN_CODE ? 'pro_yearly' : 'pro_monthly'
+        const ANNUAL_PLAN_CODE = process.env.PAYSTACK_ANNUAL_PLAN_CODE || process.env.PAYSTACK_YEARLY_PLAN_CODE || ''
+        const tier = planCode === ANNUAL_PLAN_CODE ? 'pro_yearly' : 'pro_monthly'
 
         const { error: chargeError } = await supabase
           .from('profiles')

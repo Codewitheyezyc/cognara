@@ -2,8 +2,9 @@
 
 import React from 'react'
 import { createPortal } from 'react-dom'
-import { X, Lock, Sparkles, Check, Zap } from 'lucide-react'
+import { X, Lock, Sparkles, Check, Zap, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useToast } from '@/components/ui/toast'
 
 interface LessonPreviewModalProps {
   isOpen: boolean
@@ -21,7 +22,9 @@ export function LessonPreviewModal({
   phaseNumber
 }: LessonPreviewModalProps) {
   const router = useRouter()
+  const { toast } = useToast()
   const [mounted, setMounted] = React.useState(false)
+  const [loadingPlan, setLoadingPlan] = React.useState<'monthly' | 'annual' | null>(null)
 
   React.useEffect(() => {
     setMounted(true)
@@ -30,9 +33,29 @@ export function LessonPreviewModal({
 
   if (!isOpen || !mounted) return null
 
-  const handleUpgradeClick = () => {
-    onClose()
-    router.push('/dashboard/settings')
+  const handleUpgrade = async (plan: 'monthly' | 'annual') => {
+    try {
+      setLoadingPlan(plan)
+      const res = await fetch('/api/paystack/initialize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ plan }),
+      })
+
+      const data = await res.json()
+      if (!res.ok || !data.authorization_url) {
+        throw new Error(data.error || 'Failed to initialize payment')
+      }
+
+      // Redirect to Paystack checkout page
+      window.location.href = data.authorization_url
+    } catch (err: any) {
+      console.error('Checkout error:', err)
+      toast(err.message || 'Unable to start checkout. Please try again.', 'error')
+      setLoadingPlan(null)
+    }
   }
 
   return createPortal(
@@ -126,31 +149,41 @@ export function LessonPreviewModal({
                 <p className="text-[10px] text-text-3 mt-1">Billed monthly, cancel anytime.</p>
               </div>
               <button
-                onClick={handleUpgradeClick}
-                className="mt-3.5 w-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 font-bold py-2 rounded-lg text-[10px] flex items-center justify-center gap-1 transition-all cursor-pointer"
+                onClick={() => handleUpgrade('monthly')}
+                disabled={loadingPlan !== null}
+                className="mt-3.5 w-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 font-bold py-2 rounded-lg text-[10px] flex items-center justify-center gap-1 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Zap className="h-3 w-3 fill-current animate-pulse" />
-                <span>Choose Monthly</span>
+                {loadingPlan === 'monthly' ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Zap className="h-3 w-3 fill-current animate-pulse" />
+                )}
+                <span>{loadingPlan === 'monthly' ? 'Redirecting...' : 'Choose Monthly'}</span>
               </button>
             </div>
 
-            {/* Yearly Card */}
+            {/* Annual Card */}
             <div className="border border-primary/35 rounded-xl p-4 flex flex-col justify-between bg-primary/5 hover:bg-primary/10 transition duration-150 relative overflow-hidden">
               {/* Save Badge */}
               <div className="absolute top-0 right-0 bg-accent text-white font-bold text-[8px] px-2 py-0.5 rounded-bl uppercase font-mono">
                 Save 16%
               </div>
               <div>
-                <span className="text-[9px] uppercase font-mono tracking-wider text-accent font-bold block mb-1">Yearly Plan</span>
+                <span className="text-[9px] uppercase font-mono tracking-wider text-accent font-bold block mb-1">Annual Plan</span>
                 <p className="text-lg font-bold text-text-1 font-mono">₦45,000<span className="text-xs text-text-3 font-normal font-sans">/yr</span></p>
                 <p className="text-[10px] text-text-3 mt-1">Billed annually, best value.</p>
               </div>
               <button
-                onClick={handleUpgradeClick}
-                className="mt-3.5 w-full bg-primary hover:bg-primary/95 text-white font-bold py-2 rounded-lg text-[10px] flex items-center justify-center gap-1 transition-all cursor-pointer shadow-[0_0_10px_rgba(91,142,255,0.2)]"
+                onClick={() => handleUpgrade('annual')}
+                disabled={loadingPlan !== null}
+                className="mt-3.5 w-full bg-primary hover:bg-primary/95 text-white font-bold py-2 rounded-lg text-[10px] flex items-center justify-center gap-1 transition-all cursor-pointer shadow-[0_0_10px_rgba(91,142,255,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Zap className="h-3 w-3 fill-current" />
-                <span>Choose Yearly</span>
+                {loadingPlan === 'annual' ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Zap className="h-3 w-3 fill-current" />
+                )}
+                <span>{loadingPlan === 'annual' ? 'Redirecting...' : 'Choose Annual'}</span>
               </button>
             </div>
           </div>

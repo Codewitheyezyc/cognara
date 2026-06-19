@@ -183,7 +183,7 @@ export default function SettingsPage() {
         await supabase.rpc('grant_monthly_shields')
       }
 
-      const tierLabel = tier === 'free' ? 'Free Plan' : tier === 'pro_monthly' ? 'Pro Monthly' : 'Pro Yearly'
+      const tierLabel = tier === 'free' ? 'Free Plan' : tier === 'pro_monthly' ? 'Pro Monthly' : 'Pro Annual'
       toast(`Subscription changed to ${tierLabel}!`)
       
       // Force reload page to apply new tier to context/cache if any
@@ -401,7 +401,9 @@ export default function SettingsPage() {
             <div>
               <span className="text-text-2 block mb-0.5">Current Plan</span>
               <span className="font-bold text-text-1 capitalize">
-                {profile?.subscription_tier?.replace('_', ' ') || 'Free'}
+                {profile?.subscription_tier === 'pro_yearly'
+                  ? 'Pro Annual'
+                  : (profile?.subscription_tier?.replace('_', ' ') || 'Free')}
               </span>
             </div>
             <div>
@@ -435,7 +437,7 @@ export default function SettingsPage() {
                 disabled={profile?.subscription_tier === 'pro_yearly'}
                 className="flex-1 bg-primary hover:bg-primary/95 text-white cursor-pointer shadow-[0_0_12px_rgba(91,142,255,0.2)]"
               >
-                Pro Yearly (₦45,000)
+                Pro Annual (₦45,000)
               </Button>
             </div>
           </div>
