@@ -23,7 +23,9 @@ import {
   WifiOff,
   Sparkles,
   Lock,
-  Globe
+  Globe,
+  Menu,
+  X
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { Logo } from '@/components/ui/Logo'
@@ -31,6 +33,9 @@ import { Spark } from '@/components/mascot/Spark'
 import { WhyCognara } from '@/components/marketing/WhyCognara'
 
 export default function MarketingPage() {
+  // Mobile Hamburger Menu State
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
   // Mascot & Simulator State
   const [sparkEmotion, setSparkEmotion] = useState<'wave' | 'happy' | 'celebrate' | 'thinking' | 'idle'>('wave')
   const [activeSubject, setActiveSubject] = useState<'tech' | 'business' | 'creative'>('tech')
@@ -106,7 +111,7 @@ export default function MarketingPage() {
       <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-accent/10 to-primary/15 blur-[100px] pointer-events-none opacity-50" />
 
       {/* 1. Header Navigation */}
-      <header className="relative z-10 max-w-7xl w-full mx-auto px-6 h-20 flex items-center justify-between border-b border-border/40 bg-bg/50 backdrop-blur-md sticky top-0">
+      <header className="relative z-20 max-w-7xl w-full mx-auto px-6 h-20 flex items-center justify-between border-b border-border/40 bg-bg/50 backdrop-blur-md sticky top-0">
         <div className="flex items-center space-x-1.5 sm:space-x-2 text-primary text-text-1">
           <Logo className="h-5 w-5 sm:h-6 sm:w-6" />
           <span className="font-heading text-lg sm:text-xl font-bold tracking-tight text-text-1">Cognara</span>
@@ -131,19 +136,92 @@ export default function MarketingPage() {
           </a>
         </nav>
 
-        <nav className="flex items-center space-x-3 sm:space-x-6">
-          <Link href="/login" className="hidden sm:inline-block text-xs text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
-            Sign In
-          </Link>
-          <Link
-            href="/signup"
-            className="h-8 sm:h-9 px-3 sm:px-4 inline-flex items-center justify-center rounded-md font-semibold text-[11px] sm:text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-colors shadow-[0_0_12px_rgba(91,142,255,0.2)]"
-          >
-            Sign Up
-          </Link>
+        <div className="flex items-center space-x-3">
+          <nav className="hidden sm:flex items-center space-x-3 sm:space-x-6">
+            <Link href="/login" className="text-xs text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
+              Sign In
+            </Link>
+            <Link
+              href="/signup"
+              className="h-8 sm:h-9 px-3 sm:px-4 inline-flex items-center justify-center rounded-md font-semibold text-[11px] sm:text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-colors shadow-[0_0_12px_rgba(91,142,255,0.2)]"
+            >
+              Sign Up
+            </Link>
+          </nav>
+          
           <ThemeToggle />
-        </nav>
+
+          {/* Hamburger Menu Trigger for Mobile */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            type="button"
+            className="md:hidden p-2 rounded-md hover:bg-surface-alt transition-colors text-text-1 cursor-pointer"
+            aria-label="Toggle Menu"
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </header>
+
+      {/* Mobile Drawer Navigation Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 top-20 z-50 bg-bg/95 backdrop-blur-lg border-b border-border/40 flex flex-col p-6 space-y-6 animate-page-enter">
+          <nav className="flex flex-col space-y-4">
+            <a 
+              href="#how-it-works" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
+            >
+              How It Works
+            </a>
+            <a 
+              href="#features" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
+            >
+              Features
+            </a>
+            <a 
+              href="#offline-pwa" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
+            >
+              Offline App
+            </a>
+            <a 
+              href="#pricing" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
+            >
+              Pricing
+            </a>
+            <a 
+              href="#faq" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
+            >
+              FAQ
+            </a>
+          </nav>
+          
+          <div className="flex flex-col gap-3 pt-4 border-t border-border/40">
+            <Link 
+              href="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full h-11 border border-border bg-surface hover:bg-surface-alt text-text-1 flex items-center justify-center rounded-lg font-bold text-xs uppercase tracking-wider"
+            >
+              Sign In
+            </Link>
+            <Link 
+              href="/signup"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full h-11 bg-primary hover:bg-primary-hover text-white flex items-center justify-center rounded-lg font-bold text-xs uppercase tracking-wider"
+            >
+              Sign Up
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* 2. Main content container */}
       <main className="relative z-10 max-w-6xl w-full mx-auto px-6 mt-12 md:mt-20">
@@ -248,7 +326,7 @@ export default function MarketingPage() {
         </section>
 
         {/* 3-STEP WALKTHROUGH SECTION */}
-        <section id="how-it-works" className="space-y-12 py-20 md:py-28">
+        <section id="how-it-works" className="space-y-12 py-20 md:py-28 scroll-mt-24">
           <div className="text-center space-y-3">
             <span className="text-xs font-mono uppercase text-primary font-bold tracking-wider">How it works</span>
             <h2 className="font-heading text-3xl font-extrabold text-text-1">A Blueprint Designed For Your Mind</h2>
@@ -294,7 +372,7 @@ export default function MarketingPage() {
         </section>
 
         {/* INTERACTIVE DEMONSTRATOR: ADAPTIVE DEPTH SIMULATOR */}
-        <div id="features" className="py-20 md:py-28">
+        <div id="features" className="py-20 md:py-28 scroll-mt-24">
           <section className="bg-surface border border-border rounded-[12px] p-6 md:p-8 space-y-8 shadow-md relative overflow-hidden">
           <div className="absolute right-0 top-0 w-36 h-36 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
 
@@ -547,7 +625,7 @@ export default function MarketingPage() {
         </div>
 
         {/* PWA INSTALLATION SECTION */}
-        <section id="offline-pwa" className="py-20 md:py-28 animate-page-enter">
+        <section id="offline-pwa" className="py-20 md:py-28 animate-page-enter scroll-mt-24">
           <div className="bg-surface border border-border rounded-[12px] p-6 md:p-8 space-y-8 shadow-md relative overflow-hidden">
             <div className="absolute right-0 top-0 w-36 h-36 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
             
@@ -735,7 +813,7 @@ export default function MarketingPage() {
         <WhyCognara />
 
         {/* PRICING SECTION */}
-        <section id="pricing" className="py-20 md:py-28 animate-page-enter">
+        <section id="pricing" className="py-20 md:py-28 animate-page-enter scroll-mt-24">
           <div className="text-center max-w-2xl mx-auto space-y-3 mb-10">
             <span className="inline-flex items-center px-3 py-1 border border-accent/20 bg-accent/5 text-accent text-xs font-mono font-bold uppercase tracking-widest rounded-full">
               Flexible Plans
@@ -889,7 +967,7 @@ export default function MarketingPage() {
         </section>
 
         {/* FAQ SECTION */}
-        <section id="faq" className="space-y-12 py-20 md:py-28">
+        <section id="faq" className="space-y-12 py-20 md:py-28 scroll-mt-24">
           <div className="text-center space-y-3">
             <span className="text-xs font-mono uppercase text-primary font-bold tracking-wider">Got Questions?</span>
             <h2 className="font-heading text-3xl font-extrabold text-text-1">Frequently Asked Questions</h2>
