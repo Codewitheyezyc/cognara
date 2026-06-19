@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none">
+  <style>
+    @keyframes logo-float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-3px); }
+    }
+    @keyframes logo-pulse {
+      0%, 100% { opacity: 0.65; transform: scale(1); }
+      50%       { opacity: 1;    transform: scale(1.15); }
+    }
+    .logo-animated .logo-diamond {
+      animation: logo-float 4s ease-in-out infinite;
+      transform-origin: 40px 40px;
+    }
+    .logo-animated .p1 { animation: logo-pulse 3s ease-in-out 0s infinite; transform-origin: 40px 6px; }
+    .logo-animated .p2 { animation: logo-pulse 3s ease-in-out 0.5s infinite; transform-origin: 69px 21px; }
+    .logo-animated .p3 { animation: logo-pulse 3s ease-in-out 1s infinite; transform-origin: 74px 40px; }
+    .logo-animated .p4 { animation: logo-pulse 3s ease-in-out 1.5s infinite; transform-origin: 69px 59px; }
+    .logo-animated .p5 { animation: logo-pulse 3s ease-in-out 2s infinite; transform-origin: 40px 74px; }
+    .logo-animated .p6 { animation: logo-pulse 3s ease-in-out 2.5s infinite; transform-origin: 6px 40px; }
+  </style>
+
+  <defs>
+    <linearGradient id="mg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7BA7FF"/>
+      <stop offset="50%" style="stop-color:#5B8EFF"/>
+      <stop offset="100%" style="stop-color:#A78BFA"/>
+    </linearGradient>
+    <filter id="glow3">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="pg3">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <g class="logo-animated">
+    <circle cx="40" cy="40" r="36" fill="rgba(91,142,255,0.07)"/>
+    <circle cx="40" cy="40" r="28" fill="rgba(91,142,255,0.05)"/>
+    
+    <circle class="p1" cx="40" cy="6" r="3.5" fill="#A78BFA" opacity="0.85" filter="url(#pg3)"/>
+    <circle class="p2" cx="69" cy="21" r="2.5" fill="#5B8EFF" opacity="0.7" filter="url(#pg3)"/>
+    <circle class="p3" cx="74" cy="40" r="3" fill="#7BA7FF" opacity="0.75" filter="url(#pg3)"/>
+    <circle class="p4" cx="69" cy="59" r="2.2" fill="#A78BFA" opacity="0.65" filter="url(#pg3)"/>
+    <circle class="p5" cx="40" cy="74" r="3.5" fill="#5B8EFF" opacity="0.8" filter="url(#pg3)"/>
+    <circle class="p6" cx="6" cy="40" r="2.5" fill="#A78BFA" opacity="0.65" filter="url(#pg3)"/>
+
+    <g class="logo-diamond">
+      <polygon points="40,10 62,40 40,70 18,40" fill="url(#mg3)" filter="url(#glow3)"/>
+      <polygon points="40,18 56,40 40,58 30,40" fill="rgba(255,255,255,0.13)"/>
+      <circle cx="35" cy="37" r="3.5" fill="rgba(10,12,20,0.85)"/>
+      <circle cx="45" cy="37" r="3.5" fill="rgba(10,12,20,0.85)"/>
+      <circle cx="36.2" cy="35.8" r="1.4" fill="rgba(255,255,255,0.95)"/>
+      <circle cx="46.2" cy="35.8" r="1.4" fill="rgba(255,255,255,0.95)"/>
+    </g>
+  </g>
+</svg>
