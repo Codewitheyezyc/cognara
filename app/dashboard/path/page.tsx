@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Map as MapIcon } from 'lucide-react'
 import { RoadmapPhaseCard } from '@/components/dashboard/RoadmapPhaseCard'
 import { getUserSubscription, isLessonAccessible } from '@/lib/subscription'
+import { checkPhaseCertificateEligibility } from '@/lib/certificates/checkEligibility'
 
 export const dynamic = 'force-dynamic'
 
@@ -81,6 +82,13 @@ export default async function PathPage() {
     lessonsByPhase[lesson.phase_id].push(lesson)
   })
 
+  // 6. Fetch certificate eligibility for each phase
+  const eligibilities = await Promise.all(
+    (phases || []).map((phase) =>
+      checkPhaseCertificateEligibility(user.id, phase.id)
+    )
+  )
+
   return (
     <div className="space-y-8 max-w-3xl mx-auto pb-12 animate-page-enter">
       {/* Roadmap Header */}
@@ -97,6 +105,7 @@ export default async function PathPage() {
       <div className="relative border-l border-border pl-6 ml-4 space-y-12">
         {phases?.map((phase, index) => {
           const phaseLessons = lessonsByPhase[phase.id] || []
+          const eligibility = eligibilities[index]
           
           const mappedLessons = phaseLessons.map(lesson => {
             const status = progressMap.get(lesson.id) || 'not_started'
@@ -139,6 +148,7 @@ export default async function PathPage() {
                 lessons={mappedLessons}
                 initiallyExpanded={initiallyExpanded}
                 isPro={isPro}
+                eligibility={eligibility}
               />
             </div>
           )

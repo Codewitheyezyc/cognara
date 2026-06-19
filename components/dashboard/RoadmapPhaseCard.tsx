@@ -20,6 +20,21 @@ interface RoadmapPhaseCardProps {
   lessons: Lesson[]
   initiallyExpanded?: boolean
   isPro?: boolean
+  eligibility?: {
+    eligible: boolean
+    completedLessons: number
+    totalLessons: number
+    passedQuizzes: number
+    totalQuizzes: number
+    averageScore: number
+    missingItems: string[]
+    details: Array<{
+      title: string
+      completed: boolean
+      quizPassed: boolean
+      score: number | null
+    }>
+  }
 }
 
 export function RoadmapPhaseCard({
@@ -29,7 +44,8 @@ export function RoadmapPhaseCard({
   description,
   lessons = [],
   initiallyExpanded = false,
-  isPro = false
+  isPro = false,
+  eligibility
 }: RoadmapPhaseCardProps) {
   const [expanded, setExpanded] = useState(initiallyExpanded)
   const [selectedLesson, setSelectedLesson] = useState<any>(null)
@@ -115,7 +131,7 @@ export function RoadmapPhaseCard({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {lessons.length > 0 && lessons.every(l => l.status === 'completed') && (
+          {lessons.length > 0 && eligibility?.eligible && (
             <button
               onClick={(e) => {
                 e.stopPropagation()
@@ -294,6 +310,81 @@ export function RoadmapPhaseCard({
                   >
                     Upgrade to Pro
                   </button>
+                </div>
+              )}
+              {/* Phase Certificate Eligibility Card Block */}
+              {lessons.length > 0 && (isPro || phaseNumber === 1) && (
+                <div 
+                  className="p-5 space-y-4"
+                  style={{
+                    background: 'rgba(91,142,255,0.02)',
+                    borderTop: '1px solid var(--color-border)'
+                  }}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="text-left">
+                      <h4 className="text-sm font-bold text-text-1 flex items-center gap-1.5">
+                        🎓 Phase {phaseNumber} Certificate
+                      </h4>
+                      <p className="text-text-3 text-[11px] mt-0.5">
+                        {eligibility?.eligible 
+                          ? 'Congratulations! You have completed all requirements for this phase certificate.'
+                          : `${eligibility?.completedLessons || 0} of ${eligibility?.totalLessons || 0} lessons completed · ${eligibility?.passedQuizzes || 0} of ${eligibility?.totalQuizzes || 0} quizzes passed`
+                        }
+                        {eligibility?.averageScore !== undefined && eligibility.averageScore > 0 && (
+                          <span> · Average Score: {eligibility.averageScore}% (60% required)</span>
+                        )}
+                      </p>
+                    </div>
+
+                    <div>
+                      {eligibility?.eligible ? (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            window.open(`/api/certificate/generate?phaseId=${phaseId}`, '_blank')
+                          }}
+                          className="px-4 py-2 bg-success/10 border border-success/30 hover:bg-success/20 text-success text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shadow-[0_0_12px_rgba(52,211,153,0.15)] w-full sm:w-auto justify-center"
+                        >
+                          🎓 Download Phase Certificate
+                        </button>
+                      ) : (
+                        <button
+                          disabled
+                          className="px-4 py-2 bg-surface border border-border text-text-3 text-xs font-bold rounded-lg opacity-60 cursor-not-allowed flex items-center gap-1.5 w-full sm:w-auto justify-center"
+                        >
+                          🔒 Complete requirements to unlock
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Requirements Checklist */}
+                  {eligibility && !eligibility.eligible && (
+                    <div className="bg-surface border border-border/80 rounded-xl p-4 space-y-2.5 text-left">
+                      <span className="text-[11px] font-semibold text-text-2 uppercase tracking-wider block">
+                        To earn this certificate complete the following:
+                      </span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        {eligibility.details.map((detail, dIdx) => (
+                          <div key={dIdx} className="flex items-start gap-2 text-text-1">
+                            <span>{detail.completed && detail.quizPassed ? '✅' : '❌'}</span>
+                            <div className="flex-1 min-w-0">
+                              <span className="font-semibold block truncate leading-tight">{detail.title}</span>
+                              <span className="text-text-3 text-[10px]">
+                                {detail.completed ? 'Completed' : 'Not completed'} • {detail.quizPassed ? `Quiz passed (${detail.score}%)` : detail.score !== null ? `Quiz failed (${detail.score}%)` : 'Quiz not passed yet'}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {eligibility.averageScore < 60 && eligibility.averageScore > 0 && (
+                        <div className="text-[10px] text-accent font-semibold pt-1 border-t border-border/40">
+                          ⚠️ Note: Average score is currently {eligibility.averageScore}%. You need at least 60% average score to earn the certificate. Retake quizzes to raise your average.
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

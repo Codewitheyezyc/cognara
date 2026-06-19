@@ -1,5 +1,5 @@
 import React from 'react'
-import { Document, Page, Text, View, StyleSheet, Svg, Path, Defs, LinearGradient, Stop, Font } from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet, Svg, Path, Defs, LinearGradient, Stop, Font, Image } from '@react-pdf/renderer'
 
 Font.register({
   family: 'Dancing Script',
@@ -8,7 +8,7 @@ Font.register({
 
 const styles = StyleSheet.create({
   page: {
-    backgroundColor: '#0A0B0E',
+    backgroundColor: '#0A0C14',
     color: '#F5F0E8',
     padding: 40,
     display: 'flex',
@@ -315,32 +315,15 @@ export function RoadmapCertificate({
           <View style={styles.cornerBR} />
 
           {/* Header */}
-          <View style={styles.headerRow}>
-            <View style={styles.logoContainer}>
-              <Svg width={18} height={18} viewBox="0 0 512 512">
-                <Defs>
-                  <LinearGradient id="logoBlue" x1="10%" y1="10%" x2="90%" y2="90%">
-                    <Stop offset="0%" stopColor="#5B8EFF" />
-                    <Stop offset="100%" stopColor="#3B82F6" />
-                  </LinearGradient>
-                  <LinearGradient id="logoViolet" x1="10%" y1="10%" x2="90%" y2="90%">
-                    <Stop offset="0%" stopColor="#A78BFA" />
-                    <Stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.8" />
-                  </LinearGradient>
-                </Defs>
-                <Path 
-                  d="M 290 40 L 150 260 L 240 260 L 170 480 L 370 220 L 280 220 Z" 
-                  fill="url(#logoBlue)" 
-                />
-                <Path 
-                  d="M 320 60 L 220 220 L 280 220 L 200 440 L 350 200 L 290 200 Z" 
-                  fill="url(#logoViolet)" 
-                />
-              </Svg>
-              <Text style={styles.logoText}>COGNARA</Text>
-            </View>
-            <Text style={styles.officialBadge}>Official Mastery Record</Text>
-          </View>
+          <Image
+            src="/cognara-icon-transparent-512x512.png"
+            style={{
+              width: 80,
+              height: 80,
+              marginBottom: 16,
+              alignSelf: 'center'
+            }}
+          />
 
           <View style={styles.divider} />
 
@@ -432,7 +415,10 @@ export function RoadmapCertificate({
             <View style={styles.signatureContainer}>
               <Text style={styles.signatureTextHandwritten}>Cognara Board</Text>
               <View style={styles.signatureLine}>
-                <Text style={styles.signatureText}>Cognara AI Learning Platform</Text>
+                <Image
+                  src="/cognara-logo-transparent-640x160.png"
+                  style={{ width: 120, height: 30 }}
+                />
                 <Text style={styles.signatureSubText}>Verified Master Credential Issuer</Text>
               </View>
             </View>

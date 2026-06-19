@@ -26,6 +26,8 @@ export default function RoadmapCompletePage() {
   const [roadmapTitle, setRoadmapTitle] = useState('')
   const [recommendations, setRecommendations] = useState<Recommendation[]>([])
   const [errorMsg, setErrorMsg] = useState('')
+  const [grandEligible, setGrandEligible] = useState(false)
+  const [grandEligData, setGrandEligData] = useState<any>(null)
 
   useEffect(() => {
     async function loadRoadmapDetails() {
@@ -82,6 +84,18 @@ export default function RoadmapCompletePage() {
           }
         } else {
           setLoadingRecs(false)
+        }
+
+        // 5. Fetch Grand Certificate eligibility
+        try {
+          const res = await fetch(`/api/certificate/check-grand-eligibility?roadmapId=${roadmapId}`)
+          if (res.ok) {
+            const data = await res.json()
+            setGrandEligible(data.eligible)
+            setGrandEligData(data)
+          }
+        } catch (eligErr) {
+          console.error('Failed to load grand certificate eligibility', eligErr)
         }
 
         setLoadingData(false)
@@ -165,33 +179,60 @@ export default function RoadmapCompletePage() {
           </Button>
         </div>
 
-        {/* Master Certificate Download — gold CTA */}
-        <div className="flex flex-col items-center space-y-2 pt-2">
-          <p className="text-[10px] text-text-3 font-mono uppercase tracking-widest">You&apos;ve earned it</p>
-          <button
-            onClick={() => window.open(`/api/certificate/generate-roadmap?roadmapId=${roadmapId}`, '_blank')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              background: 'linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.06))',
-              border: '1px solid rgba(245,158,11,0.4)',
-              color: '#F59E0B',
-              borderRadius: '12px',
-              padding: '12px 28px',
-              fontSize: '13px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 0 20px rgba(245,158,11,0.12)',
-              letterSpacing: '0.02em'
-            }}
-          >
-            <Download size={15} />
-            <span>Download Master Certificate</span>
-            <Award size={15} />
-          </button>
-          <p className="text-[10px] text-text-3">Full course · All phases · Verified by Cognara</p>
-        </div>
+        {/* Master Certificate Download — only if eligible */}
+        {grandEligible && (
+          <div className="flex flex-col items-center space-y-2 pt-2 animate-bounce-subtle">
+            <p className="text-[10px] text-text-3 font-mono uppercase tracking-widest text-amber-400">You&apos;ve earned it</p>
+            <button
+              onClick={() => window.open(`/api/certificate/generate-roadmap?roadmapId=${roadmapId}`, '_blank')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.06))',
+                border: '1px solid rgba(245,158,11,0.4)',
+                color: '#F59E0B',
+                borderRadius: '12px',
+                padding: '12px 28px',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 0 20px rgba(245,158,11,0.12)',
+                letterSpacing: '0.02em'
+              }}
+            >
+              <Download size={15} />
+              <span>Download Master Certificate</span>
+              <Award size={15} />
+            </button>
+            <p className="text-[10px] text-text-3">Full course · All phases · Verified by Cognara</p>
+          </div>
+        )}
+
+        {!grandEligible && grandEligData && (
+          <div className="bg-surface border border-border rounded-2xl p-6 max-w-md mx-auto space-y-3 text-center">
+            <div className="text-xl">🔒</div>
+            <h3 className="font-bold text-sm text-text-1">Master Certificate Locked</h3>
+            <p className="text-text-2 text-xs leading-relaxed">
+              To earn the Cognara Grand Certificate, you must complete all phases, finish all lessons and quizzes, and maintain a minimum of 65% overall average score.
+            </p>
+            {grandEligData.missingPhases && grandEligData.missingPhases.length > 0 && (
+              <div className="text-left text-[11px] bg-surface-alt/50 p-3 rounded-lg border border-border space-y-1">
+                <span className="font-semibold text-text-2 block uppercase tracking-wider text-[9px]">Missing Phases:</span>
+                {grandEligData.missingPhases.map((phaseTitle: string, pIdx: number) => (
+                  <div key={pIdx} className="text-text-3 flex items-center gap-1">
+                    <span>❌</span> {phaseTitle}
+                  </div>
+                ))}
+              </div>
+            )}
+            {grandEligData.totalAverageScore !== undefined && (
+              <span className="text-[10px] block font-mono text-text-3 pt-1">
+                Current Average Score: {grandEligData.totalAverageScore}% (65% required)
+              </span>
+            )}
+          </div>
+        )}
 
         <div className="h-px bg-border/50 max-w-md mx-auto" />
 
