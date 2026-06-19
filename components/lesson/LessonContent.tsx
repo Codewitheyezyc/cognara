@@ -285,6 +285,7 @@ export default function LessonContent({
                     instructions={section.exercise_instructions || section.heading}
                     expectedOutput={section.exercise_expected_output}
                     isLocked={!isPro}
+                    onUpgradePrompt={() => setIsModalOpen(true)}
                   />
                 </div>
               )
@@ -298,6 +299,7 @@ export default function LessonContent({
                     lessonTitle={lessonTitle}
                     subject={subject}
                     isLocked={!isPro}
+                    onUpgradePrompt={() => setIsModalOpen(true)}
                   />
                 </div>
               )
@@ -326,6 +328,7 @@ export default function LessonContent({
                     lessonId={lessonId}
                     userId={userId}
                     isLocked={!isPro}
+                    onUpgradePrompt={() => setIsModalOpen(true)}
                   />
                 </div>
               )

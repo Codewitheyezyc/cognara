@@ -9,6 +9,7 @@ interface ExerciseCodeProps {
   instructions: string
   expectedOutput?: string
   isLocked?: boolean
+  onUpgradePrompt?: () => void
 }
 
 export function ExerciseCode({
@@ -16,7 +17,8 @@ export function ExerciseCode({
   starterCode,
   instructions,
   expectedOutput,
-  isLocked = false
+  isLocked = false,
+  onUpgradePrompt
 }: ExerciseCodeProps) {
   const [code, setCode] = useState(starterCode)
   const [output, setOutput] = useState('')
@@ -132,7 +134,7 @@ export function ExerciseCode({
             </p>
           </div>
           <button
-            onClick={() => window.location.href = '/dashboard/settings'}
+            onClick={() => onUpgradePrompt ? onUpgradePrompt() : window.location.href = '/dashboard/settings'}
             style={{
               background: 'var(--color-primary)',
               color: '#FFFFFF',

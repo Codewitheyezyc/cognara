@@ -1,5 +1,5 @@
 import React from 'react'
-import { Document, Page, Text, View, StyleSheet, Svg, Path, Defs, LinearGradient, Stop, Font, Image } from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet, Svg, Path, Defs, LinearGradient, Stop, Font, Circle, Polygon, Line } from '@react-pdf/renderer'
 
 Font.register({
   family: 'Dancing Script',
@@ -10,221 +10,191 @@ const styles = StyleSheet.create({
   page: {
     backgroundColor: '#0A0C14',
     color: '#F5F0E8',
-    padding: 40,
+    padding: 0,
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'space-between',
-    height: '100%',
-    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
     fontFamily: 'Helvetica'
   },
-
-  // Outer gold border frame
-  borderOuter: {
+  card: {
+    backgroundColor: '#100D08',
     border: '2px solid #92400E',
     borderRadius: 14,
-    flex: 1,
-    padding: 32,
+    width: 580,
+    padding: 30,
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'space-between',
-    position: 'relative'
+    position: 'relative',
+    overflow: 'hidden'
   },
-
-  // Inner subtle gold glow border
   borderInner: {
     border: '1px solid #F59E0B',
     borderRadius: 10,
-    opacity: 0.25,
+    opacity: 0.15,
     position: 'absolute',
     top: 6,
     left: 6,
     right: 6,
     bottom: 6
   },
-
-  // Corner accent lines (decorative)
   cornerTL: {
     position: 'absolute',
-    top: 18,
-    left: 18,
-    width: 30,
-    height: 30,
+    top: 14,
+    left: 14,
+    width: 22,
+    height: 22,
     borderTop: '2px solid #F59E0B',
     borderLeft: '2px solid #F59E0B',
     borderRadius: 2
   },
   cornerTR: {
     position: 'absolute',
-    top: 18,
-    right: 18,
-    width: 30,
-    height: 30,
+    top: 14,
+    right: 14,
+    width: 22,
+    height: 22,
     borderTop: '2px solid #F59E0B',
     borderRight: '2px solid #F59E0B',
     borderRadius: 2
   },
   cornerBL: {
     position: 'absolute',
-    bottom: 18,
-    left: 18,
-    width: 30,
-    height: 30,
+    bottom: 14,
+    left: 14,
+    width: 22,
+    height: 22,
     borderBottom: '2px solid #F59E0B',
     borderLeft: '2px solid #F59E0B',
     borderRadius: 2
   },
   cornerBR: {
     position: 'absolute',
-    bottom: 18,
-    right: 18,
-    width: 30,
-    height: 30,
+    bottom: 14,
+    right: 14,
+    width: 22,
+    height: 22,
     borderBottom: '2px solid #F59E0B',
     borderRight: '2px solid #F59E0B',
     borderRadius: 2
   },
-
-  // Header row
-  headerRow: {
+  // Top branding
+  brandContainer: {
     display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
     alignItems: 'center',
-    marginBottom: 4
+    marginBottom: 10
   },
-  logoContainer: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6
+  brandTagline: {
+    fontSize: 7,
+    color: '#A8956A',
+    letterSpacing: 3,
+    textAlign: 'center',
+    marginTop: 2
   },
-  logoText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#F59E0B',
-    letterSpacing: 2
-  },
-  officialBadge: {
-    fontSize: 8,
-    letterSpacing: 2,
-    color: '#92400E',
-    textTransform: 'uppercase'
-  },
-
-  // Gold divider line
   divider: {
     height: 1,
     backgroundColor: '#92400E',
-    opacity: 0.5,
-    marginVertical: 10
+    opacity: 0.4,
+    marginVertical: 8
   },
-
-  // Master label badge
   masterBadgeContainer: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 4,
-    marginBottom: 2
+    marginBottom: 4
   },
   masterBadgeRow: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 5,
+    paddingHorizontal: 14,
+    paddingVertical: 3,
     border: '1px solid #92400E',
     borderRadius: 3,
     backgroundColor: '#161310'
   },
   masterBadgeText: {
-    fontSize: 10,
-    letterSpacing: 5,
+    fontSize: 8,
+    letterSpacing: 4,
     color: '#F59E0B',
     textTransform: 'uppercase'
   },
-
-  // Certificate title
   certTitle: {
-    fontSize: 11,
+    fontSize: 9,
     letterSpacing: 3,
     color: '#A8956A',
     textAlign: 'center',
-    marginTop: 12,
+    marginTop: 4,
+    marginBottom: 10,
     textTransform: 'uppercase'
   },
-
-  // Body section
   body: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 16
+    justifyContent: 'center'
   },
   presentedTo: {
-    fontSize: 11,
+    fontSize: 9,
     color: '#8B7D5A',
-    marginBottom: 6,
+    marginBottom: 4,
     textAlign: 'center'
   },
   studentName: {
-    fontSize: 36,
+    fontSize: 26,
     fontWeight: 'bold',
     color: '#F5F0E8',
-    marginBottom: 10,
+    marginBottom: 6,
     textAlign: 'center',
     letterSpacing: -0.5
   },
   completedText: {
-    fontSize: 11,
+    fontSize: 9,
     color: '#8B7D5A',
-    marginBottom: 6,
+    marginBottom: 4,
     textAlign: 'center'
   },
   roadmapTitle: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#F59E0B',
     marginBottom: 4,
     textAlign: 'center'
   },
   subjectText: {
-    fontSize: 13,
+    fontSize: 11,
     color: '#34D399',
-    marginBottom: 18,
+    marginBottom: 10,
     textAlign: 'center'
   },
-
-  // Stats row — gold styled
   statsContainer: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 0,
-    paddingVertical: 10,
+    paddingVertical: 7,
     borderTop: '1px solid #92400E',
     borderBottom: '1px solid #92400E',
     width: '75%',
     alignSelf: 'center',
-    marginTop: 4
+    marginTop: 2,
+    marginBottom: 10
   },
   statItem: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    paddingHorizontal: 16
+    paddingHorizontal: 12
   },
   statValue: {
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: 'bold',
     color: '#F59E0B'
   },
   statLabel: {
-    fontSize: 8,
+    fontSize: 6,
     color: '#6B5B3A',
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -232,48 +202,55 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    height: 28,
+    height: 20,
     backgroundColor: '#92400E',
-    opacity: 0.5
+    opacity: 0.4
   },
-
-  // Footer
   footer: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-    marginTop: 24
+    marginTop: 8,
+    flexWrap: 'wrap'
   },
   signatureContainer: {
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'flex-start'
+    alignItems: 'flex-start',
+    flex: 1
   },
   signatureTextHandwritten: {
     fontFamily: 'Dancing Script',
-    fontSize: 18,
+    fontSize: 14,
     color: '#F59E0B',
-    marginBottom: 4,
-    marginLeft: 10
+    marginBottom: 3,
+    marginLeft: 8
   },
   signatureLine: {
     borderTop: '1px solid #92400E',
-    width: 200,
-    paddingTop: 6
+    width: 160,
+    paddingTop: 4
   },
   signatureText: {
-    fontSize: 9,
+    fontSize: 8,
     color: '#A8956A',
     letterSpacing: 0.5
   },
   signatureSubText: {
-    fontSize: 7,
+    fontSize: 6,
     color: '#6B5B3A',
-    marginTop: 3
+    marginTop: 2
+  },
+  certIdContainer: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end'
   },
   certId: {
-    fontSize: 7,
+    fontSize: 6,
     color: '#4A3F2A',
     fontFamily: 'Courier',
     textAlign: 'right'
@@ -303,8 +280,8 @@ export function RoadmapCertificate({
 }: RoadmapCertificateProps) {
   return (
     <Document>
-      <Page size="A4" orientation="landscape" style={styles.page}>
-        <View style={styles.borderOuter}>
+      <Page size={[680, 460]} style={styles.page}>
+        <View style={styles.card}>
           {/* Decorative inner glow border */}
           <View style={styles.borderInner} />
 
@@ -314,64 +291,49 @@ export function RoadmapCertificate({
           <View style={styles.cornerBL} />
           <View style={styles.cornerBR} />
 
-          {/* Header */}
-          <Image
-            src="/cognara-icon-transparent-512x512.png"
-            style={{
-              width: 80,
-              height: 80,
-              marginBottom: 16,
-              alignSelf: 'center'
-            }}
-          />
+          {/* ── Top Branding ── */}
+          <View style={styles.brandContainer}>
+            {/* Icon + Wordmark in a row */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 2 }}>
+              {/* Diamond icon SVG only */}
+              <Svg width={44} height={44} viewBox="0 0 60 60">
+                <Defs>
+                  <LinearGradient id="mg1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <Stop offset="0%" stopColor="#F59E0B"/>
+                    <Stop offset="50%" stopColor="#D97706"/>
+                    <Stop offset="100%" stopColor="#B45309"/>
+                  </LinearGradient>
+                </Defs>
+                {/* Ambient rings */}
+                <Circle cx={30} cy={30} r={19} fill="rgba(245,158,11,0.08)"/>
+                <Circle cx={30} cy={30} r={14} fill="rgba(245,158,11,0.05)"/>
+                {/* Particles */}
+                <Circle cx={30} cy={10} r={2} fill="#F59E0B" opacity={0.85}/>
+                <Circle cx={46} cy={17} r={1.5} fill="#D97706" opacity={0.7}/>
+                <Circle cx={50} cy={30} r={2} fill="#F59E0B" opacity={0.75}/>
+                <Circle cx={46} cy={43} r={1.4} fill="#B45309" opacity={0.65}/>
+                <Circle cx={30} cy={50} r={2} fill="#D97706" opacity={0.8}/>
+                <Circle cx={10} cy={30} r={1.5} fill="#F59E0B" opacity={0.65}/>
+                {/* Diamond core */}
+                <Polygon points="30,12 42,30 30,48 18,30" fill="url(#mg1)"/>
+                <Polygon points="30,17 37,30 30,40 25,30" fill="rgba(255,255,255,0.12)"/>
+                {/* Eyes */}
+                <Circle cx={27} cy={28} r={2} fill="#0A0C14"/>
+                <Circle cx={33} cy={28} r={2} fill="#0A0C14"/>
+                <Circle cx={27.6} cy={27.4} r={0.75} fill="#FFFFFF"/>
+                <Circle cx={33.6} cy={27.4} r={0.75} fill="#FFFFFF"/>
+              </Svg>
+              {/* Wordmark as PDF Text — avoids SVGTextProps conflicts */}
+              <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#F5F0E8', letterSpacing: 1, marginLeft: 8 }}>COGNARA</Text>
+            </View>
+            <Text style={styles.brandTagline}>LEARN · GROW · MASTER</Text>
+          </View>
 
           <View style={styles.divider} />
 
           {/* Master Badge label */}
           <View style={styles.masterBadgeContainer}>
             <View style={styles.masterBadgeRow}>
-              <Svg width={11} height={11} viewBox="0 0 24 24" style={{ marginRight: 6 }}>
-                <Path
-                  d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"
-                  fill="none"
-                  stroke="#F59E0B"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <Path
-                  d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"
-                  fill="none"
-                  stroke="#F59E0B"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <Path
-                  d="M4 22h16"
-                  fill="none"
-                  stroke="#F59E0B"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <Path
-                  d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"
-                  fill="none"
-                  stroke="#F59E0B"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <Path
-                  d="M12 2a6 6 0 0 1 6 6v2c0 2.2-1.8 4-4 4h-4c-2.2 0-4-1.8-4-4V8a6 6 0 0 1 6-6z"
-                  fill="none"
-                  stroke="#F59E0B"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </Svg>
               <Text style={styles.masterBadgeText}>Master Certificate</Text>
             </View>
           </View>
@@ -415,14 +377,13 @@ export function RoadmapCertificate({
             <View style={styles.signatureContainer}>
               <Text style={styles.signatureTextHandwritten}>Cognara Board</Text>
               <View style={styles.signatureLine}>
-                <Image
-                  src="/cognara-logo-transparent-640x160.png"
-                  style={{ width: 120, height: 30 }}
-                />
+                <Text style={styles.signatureText}>COGNARA BOARD</Text>
                 <Text style={styles.signatureSubText}>Verified Master Credential Issuer</Text>
               </View>
             </View>
-            <Text style={styles.certId}>MASTER CERT ID: {certId}</Text>
+            <View style={styles.certIdContainer}>
+              <Text style={styles.certId}>MASTER CERT ID: {certId}</Text>
+            </View>
           </View>
         </View>
       </Page>

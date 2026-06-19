@@ -18,11 +18,13 @@ import {
   Bar,
 } from 'recharts'
 import AICoachInsight from '@/components/dashboard/AICoachInsight'
+import { LessonPreviewModal } from '@/components/dashboard/LessonPreviewModal'
 
 
 export default function ProgressPage() {
   const router = useRouter()
   const supabase = createClient()
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
 
   // Data states
   const [streak, setStreak] = useState({ current: 0, longest: 0 })
@@ -307,11 +309,12 @@ export default function ProgressPage() {
           </div>
 
           <div className="pt-4 flex flex-col sm:flex-row gap-3 w-full max-w-sm relative">
-            <Link href="/dashboard/settings" className="flex-1">
-              <Button className="w-full h-11 bg-primary hover:bg-primary/95 text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,142,255,0.3)] transition-all cursor-pointer">
-                Upgrade to Pro
-              </Button>
-            </Link>
+            <Button 
+              onClick={() => setIsUpgradeModalOpen(true)}
+              className="flex-1 h-11 bg-primary hover:bg-primary/95 text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,142,255,0.3)] transition-all cursor-pointer"
+            >
+              Upgrade to Pro
+            </Button>
             <Link href="/dashboard/path" className="flex-1">
               <Button variant="outline" className="w-full h-11 border-border text-text-2 rounded-xl transition-all cursor-pointer">
                 Back to Path
@@ -319,6 +322,11 @@ export default function ProgressPage() {
             </Link>
           </div>
         </div>
+
+        <LessonPreviewModal
+          isOpen={isUpgradeModalOpen}
+          onClose={() => setIsUpgradeModalOpen(false)}
+        />
       </div>
     )
   }

@@ -8,6 +8,7 @@ interface ExerciseWritingProps {
   lessonTitle: string
   subject: string
   isLocked?: boolean
+  onUpgradePrompt?: () => void
 }
 
 interface AIFeedback {
@@ -23,7 +24,8 @@ export function ExerciseWriting({
   criteria,
   lessonTitle,
   subject,
-  isLocked = false
+  isLocked = false,
+  onUpgradePrompt
 }: ExerciseWritingProps) {
   const [text, setText] = useState('')
   const [feedback, setFeedback] = useState<AIFeedback | null>(null)
@@ -143,7 +145,7 @@ export function ExerciseWriting({
             </p>
           </div>
           <button
-            onClick={() => window.location.href = '/dashboard/settings'}
+            onClick={() => onUpgradePrompt ? onUpgradePrompt() : window.location.href = '/dashboard/settings'}
             style={{
               background: 'var(--color-primary)',
               color: '#FFFFFF',

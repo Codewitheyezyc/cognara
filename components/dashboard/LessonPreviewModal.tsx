@@ -89,6 +89,10 @@ export function LessonPreviewModal({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-text-2">
               <div className="flex items-center space-x-2">
                 <Check className="h-4 w-4 text-success flex-shrink-0" />
+                <span>Unlock all lessons &amp; certificates</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Check className="h-4 w-4 text-success flex-shrink-0" />
                 <span>All 5 depth levels (Expert)</span>
               </div>
               <div className="flex items-center space-x-2">
@@ -97,11 +101,15 @@ export function LessonPreviewModal({
               </div>
               <div className="flex items-center space-x-2">
                 <Check className="h-4 w-4 text-success flex-shrink-0" />
-                <span>Monaco & StackBlitz workspaces</span>
+                <span>Monaco &amp; StackBlitz workspaces</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Check className="h-4 w-4 text-success flex-shrink-0" />
-                <span>Progress & analytics graphs</span>
+                <span>Progress &amp; analytics graphs</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Check className="h-4 w-4 text-success flex-shrink-0" />
+                <span>In-app lesson downloads</span>
               </div>
             </div>
           </div>

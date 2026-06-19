@@ -16,6 +16,7 @@ interface ExerciseProjectProps {
   lessonId: string
   userId: string
   isLocked?: boolean
+  onUpgradePrompt?: () => void
 }
 
 export function ExerciseProject({
@@ -26,7 +27,8 @@ export function ExerciseProject({
   steps,
   lessonId,
   userId,
-  isLocked = false
+  isLocked = false,
+  onUpgradePrompt
 }: ExerciseProjectProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const vmRef = useRef<any>(null)
@@ -283,7 +285,7 @@ export function ExerciseProject({
             </p>
           </div>
           <button
-            onClick={() => window.location.href = '/dashboard/settings'}
+            onClick={() => onUpgradePrompt ? onUpgradePrompt() : window.location.href = '/dashboard/settings'}
             style={{
               background: 'var(--color-primary)',
               color: '#FFFFFF',
