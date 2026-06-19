@@ -120,26 +120,7 @@ export async function POST(request: Request) {
       const sections = content.sections || []
       if (sections.length === 0) return true
       
-      const sectionTexts = sections.map((s: any) => 
-        JSON.stringify(s).toLowerCase()
-      ).join(' ')
-      
-      const mockMarkers = [
-        'baking a cake',
-        'toy box',
-        'sorting warehouse',
-        'lego instructions',
-        'cookie cutter',
-        'light switch',
-        'smart thermostat',
-        'legacy approach (messy / coupled)',
-        'legacy var (hoisted & function scoped)',
-        'incorrect (mutating props)',
-        'direct mutation (no re-render)',
-        'leaky listener (memory leak risk)'
-      ]
-      
-      return mockMarkers.some(marker => sectionTexts.includes(marker))
+      return false
     }
 
     const cachedIsMock = isMockLesson(cachedLesson)

@@ -246,15 +246,7 @@ export function RoadmapPhaseCard({
 
                   {/* Right side indicator */}
                   <div style={{ flexShrink: 0 }}>
-                    {!lesson.isAccessible ? (
-                      <span style={{
-                        color: 'var(--color-text-3)',
-                        fontSize: '12px',
-                        fontWeight: 500
-                      }}>
-                        Pro 🔒
-                      </span>
-                    ) : lesson.status === 'completed' ? (
+                    {!lesson.isAccessible ? null : lesson.status === 'completed' ? (
                       <span style={{
                         color: 'var(--color-success)',
                         fontSize: '12px',

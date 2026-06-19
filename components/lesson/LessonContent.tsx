@@ -102,13 +102,13 @@ export default function LessonContent({
     <div className="max-w-[720px] mx-auto space-y-8 pb-12 animate-page-enter">
       {/* Lesson Heading Block */}
       <div className="space-y-3 pb-6 border-b border-border">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center space-x-2 text-accent">
             <BookOpen className="h-4 w-4" strokeWidth={1.5} />
             <span className="text-[10px] font-mono uppercase tracking-wider font-semibold">AI Generated Lesson</span>
           </div>
           
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <AIBadge />
             <span className="inline-flex items-center px-2 py-0.5 border border-primary/20 bg-primary/10 text-primary text-[10px] font-mono font-bold uppercase tracking-widest rounded-sm">
               {depthLabels[depthLevel] || 'Beginner'}
