@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Map as MapIcon } from 'lucide-react'
 import { RoadmapPhaseCard } from '@/components/dashboard/RoadmapPhaseCard'
+import { getUserSubscription, isLessonAccessible } from '@/lib/subscription'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,6 +18,9 @@ export default async function PathPage() {
   if (!user) {
     redirect('/login')
   }
+
+  // Fetch subscription status
+  const { isPro } = await getUserSubscription()
 
   // 2. Fetch the user's active learning goal & roadmap
   const { data: goal } = await supabase
@@ -101,7 +105,7 @@ export default async function PathPage() {
               title: lesson.title,
               description: `Lesson ${lesson.order_index} • Ready to learn`,
               order_index: lesson.order_index,
-              isAccessible: true,
+              isAccessible: isLessonAccessible(phase.phase_number, lesson.order_index, isPro),
               status: status as 'not_started' | 'in_progress' | 'completed'
             }
           })
@@ -134,6 +138,7 @@ export default async function PathPage() {
                 description={phase.description || ''}
                 lessons={mappedLessons}
                 initiallyExpanded={initiallyExpanded}
+                isPro={isPro}
               />
             </div>
           )

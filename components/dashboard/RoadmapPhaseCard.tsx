@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, CheckCircle2, PlayCircle, Circle, Award } from 'lucide-react'
+import { ChevronDown, ChevronUp, CheckCircle2, PlayCircle, Circle, Award, Lock } from 'lucide-react'
+import { LessonPreviewModal } from './LessonPreviewModal'
 
 interface Lesson {
   id: string
@@ -18,6 +19,7 @@ interface RoadmapPhaseCardProps {
   description: string
   lessons: Lesson[]
   initiallyExpanded?: boolean
+  isPro?: boolean
 }
 
 export function RoadmapPhaseCard({
@@ -26,13 +28,24 @@ export function RoadmapPhaseCard({
   title,
   description,
   lessons = [],
-  initiallyExpanded = false
+  initiallyExpanded = false,
+  isPro = false
 }: RoadmapPhaseCardProps) {
   const [expanded, setExpanded] = useState(initiallyExpanded)
+  const [selectedLesson, setSelectedLesson] = useState<any>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   const completedCount = lessons.filter(l => l.status === 'completed').length
 
   const handleLessonClick = (lesson: Lesson) => {
+    if (!lesson.isAccessible) {
+      setSelectedLesson({
+        title: lesson.title,
+        description: lesson.description
+      })
+      setIsModalOpen(true)
+      return
+    }
     window.location.href = `/dashboard/lesson/${lesson.id}`
   }
 
@@ -166,7 +179,9 @@ export function RoadmapPhaseCard({
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     {/* Status icon */}
                     <div style={{ flexShrink: 0 }}>
-                      {lesson.status === 'completed' ? (
+                      {!lesson.isAccessible ? (
+                        <Lock size={15} style={{ color: 'var(--color-primary)' }} />
+                      ) : lesson.status === 'completed' ? (
                         <CheckCircle2 size={16} style={{ color: 'var(--color-success)' }} />
                       ) : lesson.status === 'in_progress' ? (
                         <PlayCircle size={16} style={{ color: 'var(--color-primary)' }} />
@@ -180,9 +195,27 @@ export function RoadmapPhaseCard({
                         color: 'var(--color-text-1)',
                         fontSize: '14px',
                         fontWeight: 500,
-                        marginBottom: '2px'
+                        marginBottom: '2px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
                       }}>
                         {lesson.title}
+                        {!lesson.isAccessible && (
+                          <span style={{
+                            fontSize: '9px',
+                            background: 'rgba(91,142,255,0.1)',
+                            border: '1px solid rgba(91,142,255,0.2)',
+                            color: 'var(--color-primary)',
+                            padding: '1px 5px',
+                            borderRadius: '4px',
+                            fontWeight: 700,
+                            letterSpacing: '0.05em',
+                            textTransform: 'uppercase'
+                          }}>
+                            Pro
+                          </span>
+                        )}
                       </div>
                       {lesson.description && (
                         <div style={{
@@ -197,7 +230,15 @@ export function RoadmapPhaseCard({
 
                   {/* Right side indicator */}
                   <div style={{ flexShrink: 0 }}>
-                    {lesson.status === 'completed' ? (
+                    {!lesson.isAccessible ? (
+                      <span style={{
+                        color: 'var(--color-text-3)',
+                        fontSize: '12px',
+                        fontWeight: 500
+                      }}>
+                        Pro 🔒
+                      </span>
+                    ) : lesson.status === 'completed' ? (
                       <span style={{
                         color: 'var(--color-success)',
                         fontSize: '12px',
@@ -217,6 +258,44 @@ export function RoadmapPhaseCard({
                   </div>
                 </div>
               ))}
+
+              {/* Upgrade Banner for Locked Phases */}
+              {!isPro && phaseNumber > 1 && (
+                <div 
+                  className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5"
+                  style={{
+                    background: 'rgba(91,142,255,0.03)',
+                    borderTop: '1px solid var(--color-border)'
+                  }}
+                >
+                  <span style={{ color: 'var(--color-text-2)', fontSize: '13px' }}>
+                    Unlock all {lessons.length} lessons in Phase {phaseNumber} · From ₦5,000/month
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setSelectedLesson({
+                        title: `Phase ${phaseNumber}: ${title}`,
+                        description: description || `Access all ${lessons.length} interactive lessons in this phase.`
+                      })
+                      setIsModalOpen(true)
+                    }}
+                    style={{
+                      background: 'var(--color-primary)',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '8px 16px',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      boxShadow: '0 0 12px rgba(91,142,255,0.2)'
+                    }}
+                  >
+                    Upgrade to Pro
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div style={{ padding: '20px', color: 'var(--color-text-3)', textAlign: 'center', fontSize: '14px' }}>
@@ -225,6 +304,14 @@ export function RoadmapPhaseCard({
           )}
         </div>
       )}
+
+      <LessonPreviewModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        lessonTitle={selectedLesson?.title}
+        lessonDescription={selectedLesson?.description}
+        phaseNumber={phaseNumber}
+      />
     </div>
   )
 }

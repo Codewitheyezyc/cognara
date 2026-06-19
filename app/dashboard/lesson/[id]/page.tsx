@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import LessonSkeleton from '@/components/lesson/LessonSkeleton'
 import LessonContent from '@/components/lesson/LessonContent'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, CheckCircle2, ChevronRight, HelpCircle } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, ChevronRight, HelpCircle, Lock } from 'lucide-react'
 import Link from 'next/link'
 import { GeneratedLesson } from '@/types/ai'
 import { LessonCompleteModal } from '@/components/mascot/LessonCompleteModal'
@@ -49,6 +49,7 @@ export default function LessonPage() {
   const [userId, setUserId] = useState('')
   const [subject, setSubject] = useState('')
   const [isPro, setIsPro] = useState(true)
+  const [isLockedLesson, setIsLockedLesson] = useState(false)
 
   // Celebration Mascot Modal States
   const [showCelebration, setShowCelebration] = useState(false)
@@ -60,6 +61,7 @@ export default function LessonPage() {
   const [currentBadgeIndex, setCurrentBadgeIndex] = useState(0)
   const [phaseId, setPhaseId] = useState('')
   const [phaseTitle, setPhaseTitle] = useState('')
+  const [phaseNumber, setPhaseNumber] = useState<number>(1)
 
   useEffect(() => {
     async function loadLesson() {
@@ -87,7 +89,7 @@ export default function LessonPage() {
         roadmapRes,
       ] = await Promise.all([
         lesson.phase_id
-          ? supabase.from('roadmap_phases').select('title').eq('id', lesson.phase_id).maybeSingle()
+          ? supabase.from('roadmap_phases').select('title, phase_number').eq('id', lesson.phase_id).maybeSingle()
           : Promise.resolve({ data: null, error: null }),
         supabase.from('streaks').select('current_streak').eq('user_id', user.id).maybeSingle(),
         lesson.roadmap_id
@@ -99,7 +101,7 @@ export default function LessonPage() {
               .maybeSingle()
           : Promise.resolve({ data: null, error: null }),
         supabase.from('lesson_progress').select('status').eq('user_id', user.id).eq('lesson_id', lessonId).maybeSingle(),
-        supabase.from('profiles').select('learning_depth').eq('id', user.id).maybeSingle(),
+        supabase.from('profiles').select('learning_depth, subscription_tier, subscription_status, subscription_end_date').eq('id', user.id).maybeSingle(),
         lesson.roadmap_id
           ? supabase.from('roadmaps').select('goal_id').eq('id', lesson.roadmap_id).maybeSingle()
           : Promise.resolve({ data: null, error: null }),
@@ -110,7 +112,29 @@ export default function LessonPage() {
       setStreakDays((streakRes.data as any)?.current_streak || 0)
       if ((nextLessonRes.data as any)?.id) setNextLessonId((nextLessonRes.data as any).id)
       if ((progressRes.data as any)?.status) setStatus((progressRes.data as any).status)
-      setIsPro(true)
+
+      // Calculate isPro status
+      const prof = profileRes.data as any
+      const tier = prof?.subscription_tier || 'free'
+      const statusVal = prof?.subscription_status || 'inactive'
+      const endDate = prof?.subscription_end_date || null
+      
+      const isProTier = tier === 'pro_monthly' || tier === 'pro_yearly'
+      const isStatusActive = statusVal === 'active' || statusVal === 'trialing' || statusVal === 'trailing'
+      const isExpired = endDate ? new Date(endDate) < new Date() : false
+      const activeAndNotExpired = isProTier && isStatusActive && !isExpired
+      
+      setIsPro(activeAndNotExpired)
+
+      // If !isPro and phase is > 1, lock the lesson!
+      const phaseNum = (phaseRes.data as any)?.phase_number || 1
+      setPhaseNumber(phaseNum)
+      if (!activeAndNotExpired && phaseNum > 1) {
+        setIsLockedLesson(true)
+        setIsGenerating(false)
+        setIsAIGenerating(false)
+        return
+      }
 
       // ── Step 4: fetch goal (depends on roadmap.goal_id from step 3) ───────
       let activeGoalDepth = null
@@ -342,6 +366,34 @@ export default function LessonPage() {
     router.push(`/dashboard/quiz/${lessonId}`)
   }
 
+  if (isLockedLesson) {
+    return (
+      <div className="py-20 px-4 max-w-lg mx-auto text-center space-y-6 animate-page-enter">
+        <div className="inline-flex p-4 bg-primary/10 border border-primary/20 rounded-2xl text-primary">
+          <Lock className="h-8 w-8" />
+        </div>
+        <div className="space-y-2">
+          <h1 className="font-heading text-2xl font-bold text-text-1">Lesson Locked 🔒</h1>
+          <p className="text-text-2 text-sm leading-relaxed">
+            &quot;{lessonTitle}&quot; is part of a Phase that is locked under your current plan. Upgrade to Pro to unlock this lesson and the rest of the roadmap.
+          </p>
+        </div>
+        <div className="pt-4 border-t border-border flex flex-col gap-3">
+          <Link href="/dashboard/settings">
+            <Button className="w-full bg-primary hover:bg-primary/95 text-white font-bold h-11 rounded-xl shadow-[0_0_12px_rgba(91,142,255,0.2)]">
+              Upgrade to Pro
+            </Button>
+          </Link>
+          <Link href="/dashboard/path">
+            <Button variant="ghost" className="w-full text-text-2 text-xs font-semibold">
+              Back to Roadmap Path
+            </Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   if (isGenerating || isChangingDepth || !content) {
     // Show a friendly error screen with retry when generation fails
     if (generationError) {
@@ -517,6 +569,7 @@ export default function LessonPage() {
         lessonId={lessonId}
         userId={userId}
         isPro={isPro}
+        phaseNumber={phaseNumber}
       />
 
       {/* Bottom controls panel */}

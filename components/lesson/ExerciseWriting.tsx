@@ -1,12 +1,13 @@
 'use client'
 import { useState } from 'react'
-import { Send, Loader2 } from 'lucide-react'
+import { Send, Loader2, Lock } from 'lucide-react'
 
 interface ExerciseWritingProps {
   instructions: string
   criteria: string[]
   lessonTitle: string
   subject: string
+  isLocked?: boolean
 }
 
 interface AIFeedback {
@@ -21,7 +22,8 @@ export function ExerciseWriting({
   instructions,
   criteria,
   lessonTitle,
-  subject
+  subject,
+  isLocked = false
 }: ExerciseWritingProps) {
   const [text, setText] = useState('')
   const [feedback, setFeedback] = useState<AIFeedback | null>(null)
@@ -109,137 +111,189 @@ export function ExerciseWriting({
         )}
       </div>
 
-      {/* Text area */}
-      <div style={{ padding: '16px 20px', background: 'var(--color-surface)' }}>
-        <textarea
-          value={text}
-          onChange={(e) => handleTextChange(e.target.value)}
-          placeholder="Write your response here..."
-          rows={8}
-          style={{
-            width: '100%',
-            background: 'var(--color-surface-alt)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '8px',
-            padding: '14px',
-            color: 'var(--color-text-1)',
-            fontSize: '15px',
-            lineHeight: '1.7',
-            resize: 'vertical',
-            outline: 'none',
-            fontFamily: 'Inter, sans-serif',
-            boxSizing: 'border-box'
-          }}
-        />
+      {/* Text area / workspace or paywall */}
+      {isLocked ? (
         <div style={{
+          padding: '48px 24px',
+          background: 'rgba(91,142,255,0.02)',
+          textAlign: 'center',
           display: 'flex',
-          justifyContent: 'space-between',
+          flexDirection: 'column',
           alignItems: 'center',
-          marginTop: '12px'
-        }}>
-          <span style={{ color: 'var(--color-text-3)', fontSize: '12px' }}>
-            {wordCount} words {wordCount < 10 && '(write at least 10 words)'}
-          </span>
-          <button
-            onClick={submitForReview}
-            disabled={loading || wordCount < 10}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              background: wordCount >= 10 ? 'var(--color-primary)' : 'var(--color-border)',
-              color: wordCount >= 10 ? '#FFFFFF' : 'var(--color-text-3)',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '10px 20px',
-              fontSize: '14px',
-              fontWeight: 600,
-              cursor: wordCount >= 10 ? 'pointer' : 'not-allowed'
-            }}
-          >
-            {loading
-              ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Reviewing...</>
-              : <><Send size={14} /> Submit for AI Review</>
-            }
-          </button>
-        </div>
-      </div>
-
-      {/* AI Feedback */}
-      {feedback && (
-        <div style={{
-          padding: '20px',
-          background: 'var(--color-surface-alt)',
+          gap: '16px',
           borderTop: '1px solid var(--color-border)'
         }}>
-          {/* Score */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
-            <div style={{
-              fontSize: '36px',
-              fontWeight: 700,
-              color: scoreColor,
-              fontFamily: 'Sora, sans-serif'
-            }}>
-              {feedback.score}
-              <span style={{ fontSize: '16px', color: 'var(--color-text-2)' }}>/100</span>
-            </div>
-            <p style={{
-              color: 'var(--color-text-1)',
-              fontSize: '14px',
-              margin: 0,
-              fontStyle: 'italic'
-            }}>
-              {feedback.encouragement}
+          <div style={{
+            width: '46px',
+            height: '46px',
+            borderRadius: '50%',
+            background: 'rgba(91,142,255,0.1)',
+            border: '1px solid rgba(91,142,255,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--color-primary)'
+          }}>
+            <Lock size={18} />
+          </div>
+          <div style={{ maxWidth: '380px' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono), monospace', textTransform: 'uppercase', color: 'var(--color-accent)', fontWeight: 600, letterSpacing: '0.05em' }}>Practice Environment Locked</span>
+            <p style={{ color: 'var(--color-text-2)', fontSize: '13px', margin: '6px 0 0', lineHeight: '1.5' }}>
+              Writing exercise AI review workspace is locked. Upgrade to Pro to submit your text and receive personal feedback.
             </p>
           </div>
-
-          {/* Strengths */}
-          <div style={{ marginBottom: '16px' }}>
-            <div style={{ color: 'var(--color-success)', fontWeight: 600, fontSize: '13px', marginBottom: '8px' }}>
-              ✅ What you did well
-            </div>
-            {feedback.strengths.map((s, i) => (
-              <div key={i} style={{
-                color: 'var(--color-text-1)',
-                fontSize: '14px',
-                padding: '6px 0',
-                borderBottom: i < feedback.strengths.length - 1 ? '1px solid var(--color-border)' : 'none'
-              }}>
-                {s}
-              </div>
-            ))}
-          </div>
-
-          {/* Improvements */}
-          <div style={{ marginBottom: '16px' }}>
-            <div style={{ color: 'var(--color-accent-warm)', fontWeight: 600, fontSize: '13px', marginBottom: '8px' }}>
-              ⚠️ Areas to improve
-            </div>
-            {feedback.improvements.map((imp, i) => (
-              <div key={i} style={{
-                color: 'var(--color-text-1)',
-                fontSize: '14px',
-                padding: '6px 0',
-                borderBottom: i < feedback.improvements.length - 1 ? '1px solid var(--color-border)' : 'none'
-              }}>
-                {imp}
-              </div>
-            ))}
-          </div>
-
-          {/* Suggestion */}
-          <div style={{
-            background: 'rgba(91,142,255,0.08)',
-            border: '1px solid var(--color-primary)',
-            borderRadius: '8px',
-            padding: '14px 16px',
-            color: 'var(--color-text-1)',
-            fontSize: '14px',
-            lineHeight: '1.6'
-          }}>
-            💡 <strong>Suggestion:</strong> {feedback.suggestion}
-          </div>
+          <button
+            onClick={() => window.location.href = '/dashboard/settings'}
+            style={{
+              background: 'var(--color-primary)',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '8px 18px',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 0 12px rgba(91,142,255,0.2)'
+            }}
+          >
+            Upgrade to Pro
+          </button>
         </div>
+      ) : (
+        <>
+          {/* Text area */}
+          <div style={{ padding: '16px 20px', background: 'var(--color-surface)' }}>
+            <textarea
+              value={text}
+              onChange={(e) => handleTextChange(e.target.value)}
+              placeholder="Write your response here..."
+              rows={8}
+              style={{
+                width: '100%',
+                background: 'var(--color-surface-alt)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '8px',
+                padding: '14px',
+                color: 'var(--color-text-1)',
+                fontSize: '15px',
+                lineHeight: '1.7',
+                resize: 'vertical',
+                outline: 'none',
+                fontFamily: 'Inter, sans-serif',
+                boxSizing: 'border-box'
+              }}
+            />
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginTop: '12px'
+            }}>
+              <span style={{ color: 'var(--color-text-3)', fontSize: '12px' }}>
+                {wordCount} words {wordCount < 10 && '(write at least 10 words)'}
+              </span>
+              <button
+                onClick={submitForReview}
+                disabled={loading || wordCount < 10}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: wordCount >= 10 ? 'var(--color-primary)' : 'var(--color-border)',
+                  color: wordCount >= 10 ? '#FFFFFF' : 'var(--color-text-3)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '10px 20px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  cursor: wordCount >= 10 ? 'pointer' : 'not-allowed'
+                }}
+              >
+                {loading
+                  ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Reviewing...</>
+                  : <><Send size={14} /> Submit for AI Review</>
+                }
+              </button>
+            </div>
+          </div>
+
+          {/* AI Feedback */}
+          {feedback && (
+            <div style={{
+              padding: '20px',
+              background: 'var(--color-surface-alt)',
+              borderTop: '1px solid var(--color-border)'
+            }}>
+              {/* Score */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
+                <div style={{
+                  fontSize: '36px',
+                  fontWeight: 700,
+                  color: scoreColor,
+                  fontFamily: 'Sora, sans-serif'
+                }}>
+                  {feedback.score}
+                  <span style={{ fontSize: '16px', color: 'var(--color-text-2)' }}>/100</span>
+                </div>
+                <p style={{
+                  color: 'var(--color-text-1)',
+                  fontSize: '14px',
+                  margin: 0,
+                  fontStyle: 'italic'
+                }}>
+                  {feedback.encouragement}
+                </p>
+              </div>
+
+              {/* Strengths */}
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ color: 'var(--color-success)', fontWeight: 600, fontSize: '13px', marginBottom: '8px' }}>
+                  ✅ What you did well
+                </div>
+                {feedback.strengths.map((s, i) => (
+                  <div key={i} style={{
+                    color: 'var(--color-text-1)',
+                    fontSize: '14px',
+                    padding: '6px 0',
+                    borderBottom: i < feedback.strengths.length - 1 ? '1px solid var(--color-border)' : 'none'
+                  }}>
+                    {s}
+                  </div>
+                ))}
+              </div>
+
+              {/* Improvements */}
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ color: 'var(--color-accent-warm)', fontWeight: 600, fontSize: '13px', marginBottom: '8px' }}>
+                  ⚠️ Areas to improve
+                </div>
+                {feedback.improvements.map((imp, i) => (
+                  <div key={i} style={{
+                    color: 'var(--color-text-1)',
+                    fontSize: '14px',
+                    padding: '6px 0',
+                    borderBottom: i < feedback.improvements.length - 1 ? '1px solid var(--color-border)' : 'none'
+                  }}>
+                    {imp}
+                  </div>
+                ))}
+              </div>
+
+              {/* Suggestion */}
+              <div style={{
+                background: 'rgba(91,142,255,0.08)',
+                border: '1px solid var(--color-primary)',
+                borderRadius: '8px',
+                padding: '14px 16px',
+                color: 'var(--color-text-1)',
+                fontSize: '14px',
+                lineHeight: '1.6'
+              }}>
+                💡 <strong>Suggestion:</strong> {feedback.suggestion}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

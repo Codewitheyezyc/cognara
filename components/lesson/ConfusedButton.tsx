@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { Lock } from 'lucide-react'
 
 interface ConfusedButtonProps {
   sectionHeading: string
@@ -10,6 +11,8 @@ interface ConfusedButtonProps {
   children: React.ReactNode
   /** Optional element (e.g. BookmarkButton) rendered to the left of the Confused pill in the header row */
   bookmarkSlot?: React.ReactNode
+  isPro?: boolean
+  onUpgradePrompt?: () => void
 }
 
 export function ConfusedButton({
@@ -19,11 +22,18 @@ export function ConfusedButton({
   depthLevel,
   children,
   bookmarkSlot,
+  isPro = false,
+  onUpgradePrompt,
 }: ConfusedButtonProps) {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'resolved'>('idle')
   const [explanation, setExplanation] = useState('')
 
   const handleConfusedClick = async () => {
+    if (!isPro) {
+      onUpgradePrompt?.()
+      return
+    }
+
     if (status === 'loading' || status === 'resolved' || status === 'success') return
 
     setStatus('loading')
@@ -61,9 +71,11 @@ export function ConfusedButton({
           <button
             type="button"
             onClick={handleConfusedClick}
-            disabled={status === 'loading' || status === 'resolved'}
-            className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-all duration-200 cursor-pointer flex-shrink-0 ${
-              status === 'idle'
+            disabled={isPro && (status === 'loading' || status === 'resolved')}
+            className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-all duration-200 cursor-pointer flex-shrink-0 flex items-center gap-1 ${
+              !isPro
+                ? 'text-text-3 border-border hover:bg-surface-alt hover:text-text-2'
+                : status === 'idle'
                 ? 'text-text-3 border-border hover:bg-surface-alt hover:text-text-2'
                 : status === 'loading'
                 ? 'text-primary border-primary/30 bg-primary/10 animate-pulse-subtle'
@@ -72,14 +84,20 @@ export function ConfusedButton({
                 : 'text-success border-success/30 bg-success/10 font-semibold cursor-default'
             }`}
             style={{
-              borderColor: status === 'resolved' ? 'rgba(52,211,153,0.3)' : undefined,
-              color: status === 'resolved' ? 'var(--color-success)' : undefined,
+              borderColor: isPro && status === 'resolved' ? 'rgba(52,211,153,0.3)' : undefined,
+              color: isPro && status === 'resolved' ? 'var(--color-success)' : undefined,
             }}
           >
-            {status === 'idle' && 'Confused? 💡'}
-            {status === 'loading' && 'Thinking...'}
-            {status === 'success' && 'Thinking...'}
-            {status === 'resolved' && '✓ Clearer now'}
+            {!isPro && (
+              <>
+                <Lock className="h-3 w-3" />
+                <span>Confused?</span>
+              </>
+            )}
+            {isPro && status === 'idle' && 'Confused? 💡'}
+            {isPro && status === 'loading' && 'Thinking...'}
+            {isPro && status === 'success' && 'Thinking...'}
+            {isPro && status === 'resolved' && '✓ Clearer now'}
           </button>
         </div>
       </div>

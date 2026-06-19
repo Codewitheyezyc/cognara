@@ -3,7 +3,9 @@
 import React, { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { BarChart2, Flame, Award, BookOpen, CheckCircle, Clock } from 'lucide-react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Lock, BarChart2, Flame, Award, BookOpen, CheckCircle, Clock } from 'lucide-react'
 import {
   ResponsiveContainer,
   LineChart,
@@ -33,7 +35,7 @@ export default function ProgressPage() {
   
   // Loading state
   const [isLoading, setIsLoading] = useState(true)
-  const [isPro, setIsPro] = useState(true)
+  const [isPro, setIsPro] = useState(false)
 
   useEffect(() => {
     async function loadData() {
@@ -44,6 +46,30 @@ export default function ProgressPage() {
           router.push('/login')
           return
         }
+
+        // Fetch user subscription tier & status
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('subscription_tier, subscription_status, subscription_end_date')
+          .eq('id', user.id)
+          .maybeSingle()
+
+        const tier = profile?.subscription_tier || 'free'
+        const statusVal = profile?.subscription_status || 'inactive'
+        const endDate = profile?.subscription_end_date || null
+        
+        const isProTier = tier === 'pro_monthly' || tier === 'pro_yearly'
+        const isStatusActive = statusVal === 'active' || statusVal === 'trialing' || statusVal === 'trailing'
+        const isExpired = endDate ? new Date(endDate) < new Date() : false
+        const activeAndNotExpired = isProTier && isStatusActive && !isExpired
+
+        if (!activeAndNotExpired) {
+          setIsPro(false)
+          setIsLoading(false)
+          return
+        }
+
+        setIsPro(true)
 
 
 
@@ -250,8 +276,55 @@ export default function ProgressPage() {
 
 
 
+  if (!isPro) {
+    return (
+      <div className="space-y-8 animate-page-enter">
+        {/* Page Title & Heading */}
+        <div>
+          <h1 className="font-heading text-3xl font-bold tracking-tight text-text-1">
+            Progress & Analytics
+          </h1>
+          <p className="text-text-2 text-sm mt-1">
+            Detailed metrics of your learning streak, quiz history, and skill breakdown.
+          </p>
+        </div>
+
+        {/* Lock Overlay with Blur */}
+        <div className="relative rounded-[16px] border border-border bg-surface p-8 md:p-12 overflow-hidden shadow-2xl flex flex-col items-center text-center space-y-6">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-50 pointer-events-none" />
+          
+          {/* Lock Icon */}
+          <div className="relative p-4 bg-primary/10 border border-primary/20 rounded-2xl text-primary animate-bounce-subtle">
+            <Lock className="h-8 w-8" />
+          </div>
+
+          <div className="space-y-3 max-w-md relative">
+            <span className="text-xs font-mono uppercase tracking-wider font-extrabold text-accent">Pro Feature</span>
+            <h2 className="font-heading text-2xl font-bold text-text-1">Unlock Your Analytics</h2>
+            <p className="text-text-2 text-sm leading-relaxed">
+              Track your active learning streak, quiz history trajectory, topic strengths/weaknesses breakdown, and receive customized AI coach insights to guide your roadmap.
+            </p>
+          </div>
+
+          <div className="pt-4 flex flex-col sm:flex-row gap-3 w-full max-w-sm relative">
+            <Link href="/dashboard/settings" className="flex-1">
+              <Button className="w-full h-11 bg-primary hover:bg-primary/95 text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,142,255,0.3)] transition-all cursor-pointer">
+                Upgrade to Pro
+              </Button>
+            </Link>
+            <Link href="/dashboard/path" className="flex-1">
+              <Button variant="outline" className="w-full h-11 border-border text-text-2 rounded-xl transition-all cursor-pointer">
+                Back to Path
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-8 animate-page-enter">
+    <div className="space-y-8 animate-page-enter text-text-1">
       {/* Page Title & Heading */}
       <div>
         <h1 className="font-heading text-3xl font-bold tracking-tight text-text-1">

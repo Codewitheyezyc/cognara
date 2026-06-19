@@ -1,9 +1,9 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { GeneratedLesson } from '@/types/ai'
-import { BookOpen, ArrowRight, ChevronDown } from 'lucide-react'
+import { BookOpen, ArrowRight, ChevronDown, Lock, Download } from 'lucide-react'
 import AIBadge from './AIBadge'
 import { CodeBlock } from './CodeBlock'
 import { Callout } from './Callout'
@@ -15,6 +15,7 @@ import { ExerciseProject } from './ExerciseProject'
 import { createClient } from '@/lib/supabase/client'
 import { BookmarkButton } from './BookmarkButton'
 import { ConfusedButton } from './ConfusedButton'
+import { LessonPreviewModal } from '../dashboard/LessonPreviewModal'
 
 
 interface LessonContentProps {
@@ -27,6 +28,7 @@ interface LessonContentProps {
   lessonId: string
   userId: string
   isPro: boolean
+  phaseNumber: number
 }
 
 const depthLevels = [
@@ -48,13 +50,38 @@ export default function LessonContent({
   subject,
   lessonId,
   userId,
-  isPro
+  isPro,
+  phaseNumber
 }: LessonContentProps) {
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false)
+  const [isModalOpen, setIsModalOpen] = React.useState(false)
   const router = useRouter()
 
   const supabase = createClient()
   const [bookmarks, setBookmarks] = React.useState<any[]>([])
+
+  const handleDownload = () => {
+    if (!isPro && phaseNumber > 1) {
+      setIsModalOpen(true)
+      return
+    }
+    // Generate markdown content
+    let md = `# ${lesson.title}\n\n`
+    lesson.sections?.forEach(s => {
+      md += `## ${s.heading}\n\n`
+      if (s.body) md += `${s.body}\n\n`
+      if (s.code_snippet) md += `\`\`\`${s.code_language || 'js'}\n${s.code_snippet}\n\`\`\`\n\n`
+    })
+    const blob = new Blob([md], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${lesson.title.toLowerCase().replace(/\s+/g, '_')}_lesson.md`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
 
   React.useEffect(() => {
     async function fetchBookmarks() {
@@ -81,11 +108,22 @@ export default function LessonContent({
             <span className="text-[10px] font-mono uppercase tracking-wider font-semibold">AI Generated Lesson</span>
           </div>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <AIBadge />
             <span className="inline-flex items-center px-2 py-0.5 border border-primary/20 bg-primary/10 text-primary text-[10px] font-mono font-bold uppercase tracking-widest rounded-sm">
               {depthLabels[depthLevel] || 'Beginner'}
             </span>
+            
+            {/* Download Lesson Button */}
+            <button
+              type="button"
+              onClick={handleDownload}
+              className="text-[10px] text-primary hover:underline font-bold uppercase tracking-wide focus:outline-none flex items-center space-x-1 cursor-pointer"
+            >
+              <Download className="h-3.5 w-3.5" />
+              <span>{!isPro && phaseNumber > 1 ? 'Download 🔒' : 'Download'}</span>
+            </button>
+
             <div className="relative">
               <button
                 type="button"
@@ -105,12 +143,18 @@ export default function LessonContent({
                   />
                   <div className="absolute right-0 mt-1.5 w-44 rounded-md shadow-lg bg-surface border border-border z-50 py-1 animate-page-enter">
                     {depthLevels.map((lvl) => {
+                      const isLvlLocked = !isPro && lvl.value !== 2 // Only Beginner (Level 2) is unlocked
                       return (
                         <button
                           key={lvl.value}
                           type="button"
                           disabled={depthLevel === lvl.value}
                           onClick={() => {
+                            if (isLvlLocked) {
+                              setIsModalOpen(true)
+                              setIsDropdownOpen(false)
+                              return
+                            }
                             onDepthChange(lvl.value)
                             setIsDropdownOpen(false)
                           }}
@@ -118,7 +162,10 @@ export default function LessonContent({
                             depthLevel === lvl.value ? 'text-primary font-semibold' : 'text-text-2'
                           }`}
                         >
-                          <span>{lvl.title}</span>
+                          <span className="flex items-center gap-1.5">
+                            {isLvlLocked && <Lock className="h-3 w-3 text-text-3" />}
+                            {lvl.title}
+                          </span>
                           <span className="text-[9px] font-mono text-text-3">Lvl {lvl.value}</span>
                         </button>
                       )
@@ -153,6 +200,8 @@ export default function LessonContent({
                     sectionBody={section.body || ''}
                     subject={subject}
                     depthLevel={depthLevel}
+                    isPro={isPro}
+                    onUpgradePrompt={() => setIsModalOpen(true)}
                     bookmarkSlot={
                       <BookmarkButton
                         lessonId={lessonId}
@@ -201,6 +250,7 @@ export default function LessonContent({
                     starterCode={section.exercise_starter_code || '// Write your code here\n'}
                     instructions={section.exercise_instructions || section.heading}
                     expectedOutput={section.exercise_expected_output}
+                    isLocked={!isPro}
                   />
                 </div>
               )
@@ -213,6 +263,7 @@ export default function LessonContent({
                     criteria={section.exercise_criteria || []}
                     lessonTitle={lessonTitle}
                     subject={subject}
+                    isLocked={!isPro}
                   />
                 </div>
               )
@@ -240,6 +291,7 @@ export default function LessonContent({
                     steps={section.exercise_project_steps || []}
                     lessonId={lessonId}
                     userId={userId}
+                    isLocked={!isPro}
                   />
                 </div>
               )
@@ -411,6 +463,13 @@ export default function LessonContent({
           <ArrowRight className="h-4 w-4 text-text-3 flex-shrink-0" strokeWidth={2} />
         </div>
       )}
+      <LessonPreviewModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        lessonTitle={lessonTitle}
+        lessonDescription={lesson.title ? `Review and test your skills inside: ${lessonTitle}` : undefined}
+        phaseNumber={phaseNumber}
+      />
     </div>
   )
 }

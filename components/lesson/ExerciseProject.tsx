@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
-import { Save, CheckSquare, Square, RefreshCw } from 'lucide-react'
+import { Save, CheckSquare, Square, RefreshCw, Lock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface ProjectFiles {
@@ -15,6 +15,7 @@ interface ExerciseProjectProps {
   steps: string[]
   lessonId: string
   userId: string
+  isLocked?: boolean
 }
 
 export function ExerciseProject({
@@ -24,7 +25,8 @@ export function ExerciseProject({
   starterFiles,
   steps,
   lessonId,
-  userId
+  userId,
+  isLocked = false
 }: ExerciseProjectProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const vmRef = useRef<any>(null)
@@ -38,6 +40,10 @@ export function ExerciseProject({
 
   // 1. Fetch saved project from Supabase on mount
   useEffect(() => {
+    if (isLocked) {
+      setLoading(false)
+      return
+    }
     const loadProject = async () => {
       try {
         const supabase = createClient()
@@ -69,7 +75,7 @@ export function ExerciseProject({
 
   // 2. Initialize StackBlitz once loading is complete
   useEffect(() => {
-    if (loading) return
+    if (loading || isLocked) return
 
     const initStackBlitz = async () => {
       if (!containerRef.current) return
@@ -211,114 +217,168 @@ export function ExerciseProject({
           </p>
         </div>
 
-        <button
-          onClick={() => saveProgress()}
-          disabled={saving}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            background: 'var(--color-primary)',
-            color: '#FFFFFF',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '8px 16px',
-            fontSize: '13px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            flexShrink: 0
-          }}
-        >
-          {saving ? (
-            <>
-              <RefreshCw size={13} style={{ animation: 'spin 1s linear infinite' }} />
-              Saving...
-            </>
-          ) : (
-            <>
-              <Save size={13} />
-              Save Progress
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* Steps checklist */}
-      <div style={{
-        padding: '16px 20px',
-        background: 'var(--color-surface)',
-        borderBottom: '1px solid var(--color-border)'
-      }}>
-        <div style={{
-          fontSize: '12px',
-          color: 'var(--color-text-2)',
-          fontWeight: 600,
-          marginBottom: '10px',
-          textTransform: 'uppercase',
-          letterSpacing: '0.06em'
-        }}>
-          Project Steps — {completedCount}/{steps.length} complete
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-          {steps.map((step, i) => (
-            <div
-              key={i}
-              onClick={() => toggleStep(i)}
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '8px',
-                padding: '8px 10px',
-                background: checkedSteps[i] ? 'rgba(52,211,153,0.06)' : 'var(--color-surface-alt)',
-                border: `1px solid ${checkedSteps[i] ? 'var(--color-success)' : 'var(--color-border)'}`,
-                borderRadius: '8px',
-                cursor: 'pointer'
-              }}
-            >
-              <div style={{
-                color: checkedSteps[i] ? 'var(--color-success)' : 'var(--color-text-3)',
-                flexShrink: 0,
-                marginTop: '1px'
-              }}>
-                {checkedSteps[i] ? <CheckSquare size={15} /> : <Square size={15} />}
-              </div>
-              <span style={{
-                color: checkedSteps[i] ? 'var(--color-text-3)' : 'var(--color-text-1)',
-                fontSize: '13px',
-                lineHeight: '1.5',
-                textDecoration: checkedSteps[i] ? 'line-through' : 'none'
-              }}>
-                {step}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* StackBlitz iframe container */}
-      <div
-        ref={containerRef}
-        style={{ width: '100%', minHeight: '520px' }}
-      />
-
-      {/* Footer */}
-      <div style={{
-        padding: '12px 20px',
-        background: 'var(--color-surface-alt)',
-        borderTop: '1px solid var(--color-border)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between'
-      }}>
-        <span style={{ color: 'var(--color-text-3)', fontSize: '12px' }}>
-          Your work is saved in the cloud and synced to your profile
-        </span>
-        {saved && (
-          <span style={{ color: 'var(--color-success)', fontSize: '12px', fontWeight: 600 }}>
-            ✓ Progress saved successfully
-          </span>
+        {!isLocked && (
+          <button
+            onClick={() => saveProgress()}
+            disabled={saving}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'var(--color-primary)',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '8px 16px',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              flexShrink: 0
+            }}
+          >
+            {saving ? (
+              <>
+                <RefreshCw size={13} style={{ animation: 'spin 1s linear infinite' }} />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save size={13} />
+                Save Progress
+              </>
+            )}
+          </button>
         )}
       </div>
+
+      {/* Paywall overlay or Steps checklist + StackBlitz editor + footer */}
+      {isLocked ? (
+        <div style={{
+          padding: '48px 24px',
+          background: 'rgba(91,142,255,0.02)',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '16px',
+          borderTop: '1px solid var(--color-border)'
+        }}>
+          <div style={{
+            width: '46px',
+            height: '46px',
+            borderRadius: '50%',
+            background: 'rgba(91,142,255,0.1)',
+            border: '1px solid rgba(91,142,255,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--color-primary)'
+          }}>
+            <Lock size={18} />
+          </div>
+          <div style={{ maxWidth: '380px' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono), monospace', textTransform: 'uppercase', color: 'var(--color-accent)', fontWeight: 600, letterSpacing: '0.05em' }}>Practice Environment Locked</span>
+            <p style={{ color: 'var(--color-text-2)', fontSize: '13px', margin: '6px 0 0', lineHeight: '1.5' }}>
+              StackBlitz sandbox project workspace is locked. Upgrade to Pro to complete interactive coding projects directly in your browser.
+            </p>
+          </div>
+          <button
+            onClick={() => window.location.href = '/dashboard/settings'}
+            style={{
+              background: 'var(--color-primary)',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '8px 18px',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 0 12px rgba(91,142,255,0.2)'
+            }}
+          >
+            Upgrade to Pro
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* Steps checklist */}
+          <div style={{
+            padding: '16px 20px',
+            background: 'var(--color-surface)',
+            borderBottom: '1px solid var(--color-border)'
+          }}>
+            <div style={{
+              fontSize: '12px',
+              color: 'var(--color-text-2)',
+              fontWeight: 600,
+              marginBottom: '10px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em'
+            }}>
+              Project Steps — {completedCount}/{steps.length} complete
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              {steps.map((step, i) => (
+                <div
+                  key={i}
+                  onClick={() => toggleStep(i)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '8px',
+                    padding: '8px 10px',
+                    background: checkedSteps[i] ? 'rgba(52,211,153,0.06)' : 'var(--color-surface-alt)',
+                    border: `1px solid ${checkedSteps[i] ? 'var(--color-success)' : 'var(--color-border)'}`,
+                    borderRadius: '8px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <div style={{
+                    color: checkedSteps[i] ? 'var(--color-success)' : 'var(--color-text-3)',
+                    flexShrink: 0,
+                    marginTop: '1px'
+                  }}>
+                    {checkedSteps[i] ? <CheckSquare size={15} /> : <Square size={15} />}
+                  </div>
+                  <span style={{
+                    color: checkedSteps[i] ? 'var(--color-text-3)' : 'var(--color-text-1)',
+                    fontSize: '13px',
+                    lineHeight: '1.5',
+                    textDecoration: checkedSteps[i] ? 'line-through' : 'none'
+                  }}>
+                    {step}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* StackBlitz iframe container */}
+          <div
+            ref={containerRef}
+            style={{ width: '100%', minHeight: '520px' }}
+          />
+
+          {/* Footer */}
+          <div style={{
+            padding: '12px 20px',
+            background: 'var(--color-surface-alt)',
+            borderTop: '1px solid var(--color-border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <span style={{ color: 'var(--color-text-3)', fontSize: '12px' }}>
+              Your work is saved in the cloud and synced to your profile
+            </span>
+            {saved && (
+              <span style={{ color: 'var(--color-success)', fontSize: '12px', fontWeight: 600 }}>
+                ✓ Progress saved successfully
+              </span>
+            )}
+          </div>
+        </>
+      )}
     </div>
   )
 }

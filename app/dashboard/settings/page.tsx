@@ -156,6 +156,39 @@ export default function SettingsPage() {
     toast(`Font size set to ${sz}`)
   }
 
+  // Toggle Subscription Handler
+  const handleToggleSubscription = async (tier: 'free' | 'pro_monthly') => {
+    if (!user) return
+    try {
+      const status = tier === 'pro_monthly' ? 'active' : 'inactive'
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          subscription_tier: tier,
+          subscription_status: status,
+          subscription_end_date: null
+        })
+        .eq('id', user.id)
+
+      if (error) throw error
+
+      setProfile((prev: any) => ({
+        ...prev,
+        subscription_tier: tier,
+        subscription_status: status,
+        subscription_end_date: null
+      }))
+
+      toast(`Subscription changed to ${tier === 'pro_monthly' ? 'Pro Monthly' : 'Free Plan'}!`)
+      
+      // Force reload page to apply new tier to context/cache if any
+      router.refresh()
+    } catch (err: any) {
+      console.error(err)
+      toast(err.message || 'Failed to update subscription', 'error')
+    }
+  }
+
 
 
   // Export User Data JSON Handler
@@ -340,7 +373,62 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {/* 2. SUBSCRIPTION & BILLING */}
+      <div className="rounded-[10px] border border-border bg-surface p-6 shadow-md space-y-6">
+        <div className="flex items-center justify-between border-b border-border pb-3">
+          <div className="flex items-center space-x-2 text-primary">
+            <CreditCard className="h-5 w-5" strokeWidth={1.5} />
+            <h2 className="font-heading text-xl font-bold text-text-1">Subscription & Billing</h2>
+          </div>
+          {profile?.subscription_tier === 'pro_monthly' || profile?.subscription_tier === 'pro_yearly' ? (
+            <span className="text-[10px] bg-primary/10 text-primary border border-primary/20 px-2.5 py-0.5 rounded-full font-mono uppercase tracking-wider font-extrabold flex items-center gap-1">
+              <Sparkles className="h-3 w-3" /> Pro Active
+            </span>
+          ) : (
+            <span className="text-[10px] bg-text-3/10 text-text-3 border border-text-3/20 px-2.5 py-0.5 rounded-full font-mono uppercase tracking-wider font-extrabold">
+              Free Plan
+            </span>
+          )}
+        </div>
 
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4 bg-surface-alt/40 p-4 rounded-lg border border-border/50 text-xs">
+            <div>
+              <span className="text-text-2 block mb-0.5">Current Plan</span>
+              <span className="font-bold text-text-1 capitalize">
+                {profile?.subscription_tier?.replace('_', ' ') || 'Free'}
+              </span>
+            </div>
+            <div>
+              <span className="text-text-2 block mb-0.5">Status</span>
+              <span className="font-bold text-text-1 capitalize">
+                {profile?.subscription_status || 'Inactive'}
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <span className="text-xs font-semibold text-text-2">Developer Controls (Simulate billing changes):</span>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button 
+                variant="outline"
+                onClick={() => handleToggleSubscription('free')}
+                disabled={profile?.subscription_tier === 'free'}
+                className="flex-1 cursor-pointer"
+              >
+                Switch to Free Plan
+              </Button>
+              <Button 
+                onClick={() => handleToggleSubscription('pro_monthly')}
+                disabled={profile?.subscription_tier === 'pro_monthly'}
+                className="flex-1 bg-primary hover:bg-primary/95 text-white cursor-pointer"
+              >
+                Switch to Pro Monthly
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* 3. APPEARANCE SECTION */}
       <div className="rounded-[10px] border border-border bg-surface p-6 shadow-md space-y-6">

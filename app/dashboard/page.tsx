@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button'
 import { Flame, Award, BookOpen, CheckCircle, Zap, BrainCircuit, ArrowRight, Map, Lock } from 'lucide-react'
 import AICoachInsight from '@/components/dashboard/AICoachInsight'
 import { MascotWelcomeManager } from '@/components/mascot/MascotWelcomeManager'
+import { getUserSubscription } from '@/lib/subscription'
 
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
+  const { isPro } = await getUserSubscription()
 
   // 1. Authenticate user
   const {
@@ -268,7 +270,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* 4. AI Coach Insight Banner */}
-      <AICoachInsight />
+      <AICoachInsight isPro={isPro} />
     </div>
   )
 }
