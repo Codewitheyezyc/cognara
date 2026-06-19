@@ -112,10 +112,10 @@ export default function MarketingPage() {
       </header>
 
       {/* 2. Main content container */}
-      <main className="relative z-10 max-w-6xl w-full mx-auto px-6 space-y-24 mt-12 md:mt-20">
+      <main className="relative z-10 max-w-6xl w-full mx-auto px-6 mt-12 md:mt-20">
 
         {/* HERO SECTION */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center py-20 md:py-28">
           <div className="lg:col-span-7 space-y-6 text-left">
             <span className="inline-flex items-center px-3 py-1 border border-accent/20 bg-accent/5 text-accent text-xs font-mono font-bold uppercase tracking-widest rounded-full">
               Your mind. Your path. Your era.
@@ -185,7 +185,7 @@ export default function MarketingPage() {
         </section>
 
         {/* DASHBOARD PREVIEW SHOWCASE */}
-        <section className="space-y-6 animate-page-enter">
+        <section className="space-y-6 animate-page-enter py-20 md:py-28">
           <div className="text-center max-w-2xl mx-auto space-y-2">
             <span className="text-xs font-mono uppercase text-accent font-bold tracking-wider">Product Tour</span>
             <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-text-1">A Clean, Focused Learning OS</h2>
@@ -214,7 +214,7 @@ export default function MarketingPage() {
         </section>
 
         {/* 3-STEP WALKTHROUGH SECTION */}
-        <section className="space-y-12">
+        <section className="space-y-12 py-20 md:py-28">
           <div className="text-center space-y-3">
             <span className="text-xs font-mono uppercase text-primary font-bold tracking-wider">How it works</span>
             <h2 className="font-heading text-3xl font-extrabold text-text-1">A Blueprint Designed For Your Mind</h2>
@@ -260,7 +260,8 @@ export default function MarketingPage() {
         </section>
 
         {/* INTERACTIVE DEMONSTRATOR: ADAPTIVE DEPTH SIMULATOR */}
-        <section className="bg-surface border border-border rounded-[12px] p-6 md:p-8 space-y-8 shadow-md relative overflow-hidden">
+        <div className="py-20 md:py-28">
+          <section className="bg-surface border border-border rounded-[12px] p-6 md:p-8 space-y-8 shadow-md relative overflow-hidden">
           <div className="absolute right-0 top-0 w-36 h-36 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
@@ -320,27 +321,29 @@ export default function MarketingPage() {
               </div>
 
               {/* Display Box */}
-              <div className="p-5 bg-surface-alt border border-border/80 rounded-[8px] space-y-3 min-h-[160px] flex flex-col justify-between relative border-l-2 border-l-accent">
-                {/* AI generated badge inside simulator */}
-                <div className="absolute right-4 top-4 opacity-75">
-                  <span className="inline-flex items-center px-1.5 py-0.5 border border-accent/20 bg-accent/5 text-accent text-[8px] font-mono font-bold uppercase rounded-sm">
-                    GENERATED — Lvl {activeDepth} ({depthLabels[activeDepth]})
-                  </span>
+              <div className="p-5 bg-surface-alt border border-border/80 rounded-[8px] space-y-3 min-h-[160px] flex flex-col justify-between border-l-2 border-l-accent">
+                {/* Header Row with Heading and Badge */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/30 pb-2">
+                  <h4 className="font-heading text-sm font-bold text-text-1">
+                    Concept: {subjects.find(s => s.id === activeSubject)?.concept}
+                  </h4>
+                  <div className="opacity-75">
+                    <span className="inline-flex items-center px-1.5 py-0.5 border border-accent/20 bg-accent/5 text-accent text-[8px] font-mono font-bold uppercase rounded-sm">
+                      GENERATED — Lvl {activeDepth} ({depthLabels[activeDepth]})
+                    </span>
+                  </div>
                 </div>
-
-                <h4 className="font-heading text-sm font-bold text-text-1 mt-2">
-                  Concept: {subjects.find(s => s.id === activeSubject)?.concept}
-                </h4>
                 <p className="text-text-2 text-xs leading-relaxed whitespace-pre-line pr-2 flex-1">
                   {explanations[activeSubject][activeDepth]}
                 </p>
               </div>
             </div>
           </div>
-        </section>
+          </section>
+        </div>
 
         {/* RICH CONTENT SYSTEM PREVIEW */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center py-20 md:py-28">
           <div className="space-y-6">
             <span className="text-xs font-mono uppercase text-primary font-bold tracking-wider">Rich Layout Engine</span>
             <h3 className="font-heading text-3xl font-extrabold text-text-1 leading-tight">
@@ -396,7 +399,8 @@ export default function MarketingPage() {
         </section>
 
         {/* PROGRESS & COACH WIDGET SHOWCASE */}
-        <section className="bg-surface border border-border rounded-[12px] p-6 md:p-8 space-y-8 shadow-md">
+        <div className="py-20 md:py-28">
+          <section className="bg-surface border border-border rounded-[12px] p-6 md:p-8 space-y-8 shadow-md">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
 
             {/* Visual Dashboard Card Mockup */}
@@ -442,10 +446,12 @@ export default function MarketingPage() {
               </p>
             </div>
           </div>
-        </section>
+          </section>
+        </div>
 
         {/* INTERACTIVE MASCOT SHOWCASE */}
-        <section className="bg-surface border border-border rounded-[12px] p-6 md:p-8 space-y-8 shadow-md relative overflow-hidden">
+        <div className="py-20 md:py-28">
+          <section className="bg-surface border border-border rounded-[12px] p-6 md:p-8 space-y-8 shadow-md relative overflow-hidden">
           <div className="absolute left-0 top-0 w-36 h-36 rounded-full bg-accent/5 blur-2xl pointer-events-none" />
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
@@ -503,12 +509,13 @@ export default function MarketingPage() {
               </ul>
             </div>
           </div>
-        </section>
+          </section>
+        </div>
 
         <WhyCognara />
 
         {/* FAQ SECTION */}
-        <section className="space-y-12">
+        <section className="space-y-12 py-20 md:py-28">
           <div className="text-center space-y-3">
             <span className="text-xs font-mono uppercase text-primary font-bold tracking-wider">Got Questions?</span>
             <h2 className="font-heading text-3xl font-extrabold text-text-1">Frequently Asked Questions</h2>
@@ -542,7 +549,8 @@ export default function MarketingPage() {
         </section>
 
         {/* BOTTOM CALL TO ACTION (CTA) PANEL */}
-        <section className="relative overflow-hidden rounded-[16px] border border-border bg-surface p-8 md:p-12 text-center space-y-6 shadow-lg">
+        <div className="py-20 md:py-28">
+          <section className="relative overflow-hidden rounded-[16px] border border-border bg-surface p-8 md:p-12 text-center space-y-6 shadow-lg">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10 pointer-events-none blur-3xl" />
 
           <div className="max-w-2xl mx-auto space-y-4 relative">
@@ -562,7 +570,8 @@ export default function MarketingPage() {
               </Link>
             </div>
           </div>
-        </section>
+          </section>
+        </div>
 
       </main>
 

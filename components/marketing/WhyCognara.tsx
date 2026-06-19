@@ -245,41 +245,6 @@ export function WhyCognara() {
             />
           ))}
         </div>
-
-        {/* Bottom CTA */}
-        <div style={{
-          textAlign: 'center',
-          marginTop: '56px'
-        }}>
-          <p style={{
-            color: 'var(--color-text-2)',
-            fontSize: '16px',
-            marginBottom: '20px'
-          }}>
-            Ready to learn the way you always wished you could?
-          </p>
-          <a
-            href="/signup"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              background: 'var(--color-primary)',
-              color: '#FFFFFF',
-              borderRadius: '12px',
-              padding: '14px 32px',
-              fontSize: '15px',
-              fontWeight: 600,
-              textDecoration: 'none',
-              fontFamily: 'Sora, sans-serif',
-              boxShadow: '0 4px 24px rgba(91,142,255,0.35)',
-              transition: 'transform 0.2s ease, box-shadow 0.2s ease'
-            }}
-          >
-            Start learning for free
-          </a>
-        </div>
-
       </div>
     </section>
   )
