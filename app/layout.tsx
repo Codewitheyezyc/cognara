@@ -94,11 +94,9 @@ export default function RootLayout({
                 } else {
                   document.documentElement.classList.remove('dark');
                 }
-                
-                var savedFont = localStorage.getItem('cognara-font-size');
-                var fontSize = savedFont || 'normal';
-                document.documentElement.setAttribute('data-font-size', fontSize);
-                document.documentElement.style.setProperty('--text-base', fontSize === 'large' ? '17px' : '15px');
+                // Font size is always normal — large mode was removed
+                localStorage.removeItem('cognara-font-size');
+                document.documentElement.style.setProperty('--text-base', '15px');
               } catch (e) {}
             `,
           }}

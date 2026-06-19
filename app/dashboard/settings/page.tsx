@@ -446,64 +446,35 @@ export default function SettingsPage() {
       <div className="rounded-[10px] border border-border bg-surface p-6 shadow-md space-y-6">
         <div className="flex items-center space-x-2 text-primary border-b border-border pb-3">
           <Settings className="h-5 w-5" strokeWidth={1.5} />
-          <h2 className="font-heading text-xl font-bold text-text-1">Appearance & Typography</h2>
+          <h2 className="font-heading text-xl font-bold text-text-1">Appearance</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Theme selection */}
-          <div className="space-y-3">
-            <Label className="text-sm font-semibold text-text-1">App Theme</Label>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { value: 'dark', label: 'Dark', icon: Moon },
-                { value: 'light', label: 'Light', icon: Sun },
-                { value: 'system', label: 'System', icon: Laptop },
-              ].map(tOpts => {
-                const isSelected = theme === tOpts.value
-                const Icon = tOpts.icon
-                return (
-                  <button
-                    key={tOpts.value}
-                    onClick={() => handleThemeChange(tOpts.value as any)}
-                    className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-md border text-xs font-semibold cursor-pointer transition-all ${
-                      isSelected 
-                        ? 'border-primary bg-primary/10 text-primary' 
-                        : 'border-border bg-transparent hover:bg-surface-alt/50 text-text-2'
-                    }`}
-                  >
-                    <Icon className="h-3.5 w-3.5" />
-                    {tOpts.label}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Font Size Selection */}
-          <div className="space-y-3">
-            <Label className="text-sm font-semibold text-text-1">Application Font Size</Label>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { value: 'normal', label: 'Normal', desc: '15px base size' },
-                { value: 'large', label: 'Large', desc: '17px base size' },
-              ].map(fOpts => {
-                const isSelected = fontSize === fOpts.value
-                return (
-                  <button
-                    key={fOpts.value}
-                    onClick={() => handleFontSizeChange(fOpts.value as any)}
-                    className={`flex flex-col items-center justify-center gap-0.5 py-2 px-2 rounded-md border cursor-pointer transition-all ${
-                      isSelected 
-                        ? 'border-primary bg-primary/10 text-primary' 
-                        : 'border-border bg-transparent hover:bg-surface-alt/50 text-text-2'
-                    }`}
-                  >
-                    <span className="font-semibold text-xs">{fOpts.label}</span>
-                    <span className="text-[9px] opacity-75">{fOpts.desc}</span>
-                  </button>
-                )
-              })}
-            </div>
+        {/* Theme selection */}
+        <div className="space-y-3">
+          <Label className="text-sm font-semibold text-text-1">App Theme</Label>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { value: 'dark', label: 'Dark', icon: Moon },
+              { value: 'light', label: 'Light', icon: Sun },
+              { value: 'system', label: 'System', icon: Laptop },
+            ].map(tOpts => {
+              const isSelected = theme === tOpts.value
+              const Icon = tOpts.icon
+              return (
+                <button
+                  key={tOpts.value}
+                  onClick={() => handleThemeChange(tOpts.value as any)}
+                  className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-md border text-xs font-semibold cursor-pointer transition-all ${
+                    isSelected 
+                      ? 'border-primary bg-primary/10 text-primary' 
+                      : 'border-border bg-transparent hover:bg-surface-alt/50 text-text-2'
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {tOpts.label}
+                </button>
+              )
+            })}
           </div>
         </div>
       </div>

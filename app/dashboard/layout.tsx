@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Home, Map, BarChart2, Flame, Settings, Search, Bell, Bookmark, Download, Sparkles } from 'lucide-react'
+import { Home, Map, BarChart2, Flame, Search, Bell, Bookmark, Download, Sparkles } from 'lucide-react'
 import { ProfileDropdown } from '@/components/dashboard/ProfileDropdown'
 import { Logo } from '@/components/ui/Logo'
 import { LessonPreviewModal } from '@/components/dashboard/LessonPreviewModal'
@@ -274,7 +274,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { label: 'Progress', href: '/dashboard/progress', icon: BarChart2 },
     { label: 'Downloads', href: '/dashboard/downloads', icon: Download },
     { label: 'Notes', href: '/dashboard/notes', icon: Bookmark },
-    { label: 'Settings', href: '/dashboard/settings', icon: Settings },
   ]
 
   const initialName = profile?.name || 'Learner'

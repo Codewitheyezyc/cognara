@@ -131,30 +131,6 @@ export function RoadmapPhaseCard({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {lessons.length > 0 && eligibility?.eligible && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                window.open(`/api/certificate/generate?phaseId=${phaseId}`, '_blank')
-              }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: 'rgba(52,211,153,0.1)',
-                color: 'var(--color-success)',
-                border: '1px solid var(--color-success)',
-                borderRadius: '8px',
-                padding: '7px 14px',
-                fontSize: '13px',
-                cursor: 'pointer',
-                fontWeight: 500
-              }}
-            >
-              <Award size={14} />
-              Download Certificate
-            </button>
-          )}
           <div style={{ color: 'var(--color-text-3)' }}>
             {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
           </div>
@@ -167,6 +143,33 @@ export function RoadmapPhaseCard({
           borderTop: '1px solid var(--color-border)',
           background: 'var(--color-surface-alt)'
         }}>
+          {/* Certificate button — shown at top of expanded section when eligible */}
+          {lessons.length > 0 && eligibility?.eligible && (
+            <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--color-border)' }}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  window.open(`/api/certificate/generate?phaseId=${phaseId}`, '_blank')
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'rgba(52,211,153,0.1)',
+                  color: 'var(--color-success)',
+                  border: '1px solid rgba(52,211,153,0.4)',
+                  borderRadius: '8px',
+                  padding: '7px 16px',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  fontWeight: 500
+                }}
+              >
+                <Award size={14} />
+                🎓 Download Phase Certificate
+              </button>
+            </div>
+          )}
           {lessons.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {lessons.map((lesson, index) => (
