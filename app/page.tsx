@@ -105,17 +105,17 @@ export default function MarketingPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-bg text-text-1 flex flex-col relative overflow-hidden transition-colors duration-200 pb-16">
+    <div id="home" className="min-h-screen bg-bg text-text-1 flex flex-col relative overflow-x-hidden transition-colors duration-200">
       {/* Background radial glows */}
       <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-primary/10 to-accent/15 blur-[120px] pointer-events-none opacity-60 animate-learning-pulse" />
       <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-accent/10 to-primary/15 blur-[100px] pointer-events-none opacity-50" />
 
       {/* 1. Header Navigation */}
       <header className="relative z-20 max-w-7xl w-full mx-auto px-6 h-20 flex items-center justify-between border-b border-border/40 bg-bg/50 backdrop-blur-md sticky top-0">
-        <div className="flex items-center space-x-1.5 sm:space-x-2 text-primary text-text-1">
+        <Link href="#home" className="flex items-center space-x-1.5 sm:space-x-2 text-primary text-text-1 hover:opacity-90 transition-opacity cursor-pointer">
           <Logo className="h-5 w-5 sm:h-6 sm:w-6" />
           <span className="font-heading text-lg sm:text-xl font-bold tracking-tight text-text-1">Cognara</span>
-        </div>
+        </Link>
 
         {/* Marketing Anchor Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
@@ -1001,7 +1001,7 @@ export default function MarketingPage() {
         </section>
 
         {/* BOTTOM CALL TO ACTION (CTA) PANEL */}
-        <div className="py-20 md:py-28">
+        <div className="pt-20 pb-10 md:pt-28 md:pb-14">
           <section className="relative overflow-hidden rounded-[16px] border border-border bg-surface p-8 md:p-12 text-center space-y-6 shadow-lg">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10 pointer-events-none blur-3xl" />
 
@@ -1028,7 +1028,7 @@ export default function MarketingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="max-w-6xl w-full mx-auto px-6 pt-16 mt-16 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-text-3 border-t border-border/40 relative z-10">
+      <footer className="max-w-6xl w-full mx-auto px-6 pt-10 pb-10 mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-text-3 border-t border-border/40 relative z-10">
         <div>
           &copy; {new Date().getFullYear()} Cognara. Built for modern learning operating systems. All rights reserved.
         </div>
