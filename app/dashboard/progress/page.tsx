@@ -394,7 +394,7 @@ export default function ProgressPage() {
       </div>
 
       {/* AI Coach Insights Panel */}
-      <AICoachInsight />
+      <AICoachInsight isPro={isPro} />
 
       {/* Activity Heatmap Grid */}
       <div className="bg-surface border border-border rounded-[10px] p-6 shadow-sm space-y-4">

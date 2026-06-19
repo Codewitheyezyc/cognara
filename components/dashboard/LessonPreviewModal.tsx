@@ -41,7 +41,10 @@ export function LessonPreviewModal({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({ 
+          plan,
+          cancelUrl: typeof window !== 'undefined' ? window.location.href : undefined
+        }),
       })
 
       const data = await res.json()

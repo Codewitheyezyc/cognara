@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function POST(req: Request) {
   try {
-    const { plan } = await req.json()
+    const { plan, cancelUrl } = await req.json()
 
     if (!plan || !['monthly', 'annual'].includes(plan)) {
       return NextResponse.json({ error: 'Invalid plan. Must be "monthly" or "annual".' }, { status: 400 })
@@ -32,6 +32,7 @@ export async function POST(req: Request) {
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.cognaralearn.com'
     const callbackUrl = `${appUrl}/dashboard/settings?payment=success&plan=${plan}`
+    const cancelAction = cancelUrl || `${appUrl}/dashboard/settings`
 
     // Initialize Paystack transaction
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
         metadata: {
           user_id: user.id,
           plan_type: plan,
-          cancel_action: `${appUrl}/dashboard/settings`,
+          cancel_action: cancelAction,
         },
       }),
     })
