@@ -3,6 +3,8 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { logApiUsage } from '@/lib/ai/logUsage'
 
+import { checkRateLimit } from '@/lib/rateLimit'
+
 const apiKey = process.env.ANTHROPIC_API_KEY
 
 // Guard for unconfigured keys in dev mode
@@ -20,6 +22,34 @@ export async function POST(req: Request) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    // Check user's subscription tier
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('subscription_tier, subscription_status, subscription_end_date')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    const tier = profile?.subscription_tier || 'free'
+    const statusVal = profile?.subscription_status || 'inactive'
+    const endDate = profile?.subscription_end_date || null
+    const isPro = (tier === 'pro_monthly' || tier === 'pro_yearly') && 
+      (statusVal === 'active' || statusVal === 'trialing' || statusVal === 'trailing') && 
+      (!endDate || new Date(endDate) > new Date())
+
+    // Rate Limit Check
+    const limit = await checkRateLimit({
+      featureKey: 'confused_button',
+      dailyLimit: isPro ? 15 : 0,
+      userId: user.id
+    })
+
+    if (!limit.allowed) {
+      return NextResponse.json({
+        error: 'Daily limit reached',
+        message: 'You have used all your explanations for today. Come back tomorrow.'
+      }, { status: 429 })
+    }
 
     const { sectionHeading, sectionBody, subject, depthLevel } = await req.json()
 
@@ -74,7 +104,11 @@ Give a simpler re-explanation from a fresh angle.`
       text = mockExpl
     }
 
-    return NextResponse.json({ explanation: text })
+    return NextResponse.json({ 
+      explanation: text,
+      remaining: limit.remaining,
+      count: limit.count
+    })
 
   } catch (err) {
     console.error('[API Simplify Section Error]', err)

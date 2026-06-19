@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { generateRoadmap } from '@/lib/ai/roadmap'
-import { checkRateLimit } from '@/lib/ai/rateLimit'
+import { checkRateLimit as checkNewRateLimit } from '@/lib/rateLimit'
 import { logApiUsage } from '@/lib/ai/logUsage'
 
 function slugify(text: string) {
@@ -26,13 +26,48 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // 1.5. Enforce Rate Limit (5 per day)
-    const rateLimit = await checkRateLimit(supabase, user.id, 'roadmap', 5)
-    if (!rateLimit.allowed) {
-      return NextResponse.json(
-        { error: 'Daily roadmap generation limit reached. Please try again tomorrow.' },
-        { status: 429 }
-      )
+    // Check user's subscription tier
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('subscription_tier, subscription_status, subscription_end_date')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    const tier = profile?.subscription_tier || 'free'
+    const statusVal = profile?.subscription_status || 'inactive'
+    const endDate = profile?.subscription_end_date || null
+    const isPro = (tier === 'pro_monthly' || tier === 'pro_yearly') && 
+      (statusVal === 'active' || statusVal === 'trialing' || statusVal === 'trailing') && 
+      (!endDate || new Date(endDate) > new Date())
+
+    if (!isPro) {
+      // Free users: 1 ever
+      const { count: roadmapCount } = await supabase
+        .from('roadmaps')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+
+      if (roadmapCount && roadmapCount >= 1) {
+        return NextResponse.json(
+          { error: 'Free users are limited to 1 learning roadmap. Please upgrade to Pro to generate a new roadmap.' },
+          { status: 403 }
+        )
+      }
+    } else {
+      // Pro users: 3 per month
+      const limit = await checkNewRateLimit({
+        featureKey: 'roadmap_generation',
+        limit: 3,
+        userId: user.id,
+        period: 'monthly'
+      })
+
+      if (!limit.allowed) {
+        return NextResponse.json(
+          { error: 'You have reached your limit of 3 roadmap generations for this month.' },
+          { status: 429 }
+        )
+      }
     }
 
     // 2. Parse request payload

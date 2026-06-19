@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { generateLesson } from '@/lib/ai/lesson'
 import { checkRateLimit } from '@/lib/ai/rateLimit'
 import { logApiUsage } from '@/lib/ai/logUsage'
+import { checkRateLimit as checkNewRateLimit } from '@/lib/rateLimit'
 
 export async function POST(request: Request) {
   try {
@@ -24,6 +25,35 @@ export async function POST(request: Request) {
 
     if (!lessonId) {
       return NextResponse.json({ error: 'Missing required lessonId parameter' }, { status: 400 })
+    }
+
+    if (forceRegenerate) {
+      // Check user subscription tier
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('subscription_tier, subscription_status, subscription_end_date')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      const tier = profile?.subscription_tier || 'free'
+      const statusVal = profile?.subscription_status || 'inactive'
+      const endDate = profile?.subscription_end_date || null
+      const isPro = (tier === 'pro_monthly' || tier === 'pro_yearly') && 
+        (statusVal === 'active' || statusVal === 'trialing' || statusVal === 'trailing') && 
+        (!endDate || new Date(endDate) > new Date())
+
+      const limitResult = await checkNewRateLimit({
+        featureKey: `lesson_regen_${lessonId}`,
+        dailyLimit: isPro ? 2 : 0,
+        userId: user.id
+      })
+
+      if (!limitResult.allowed) {
+        return NextResponse.json(
+          { error: 'You have reached the maximum of 2 regenerations for this lesson.' },
+          { status: 429 }
+        )
+      }
     }
 
     // 3. Fetch lesson & confirm ownership

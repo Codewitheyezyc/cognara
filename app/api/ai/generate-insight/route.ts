@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { generateInsight } from '@/lib/ai/insight'
-import { checkRateLimit } from '@/lib/ai/rateLimit'
+import { checkRateLimit } from '@/lib/rateLimit'
 import { logApiUsage } from '@/lib/ai/logUsage'
 
 export async function POST(request: Request) {
@@ -18,10 +18,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // 2. Fetch User Profile
+    // 2. Fetch User Profile with subscription status
     const { data: profile } = await supabase
       .from('profiles')
-      .select('name, learning_style, main_goal, occupation, preferred_study_time, daily_study_minutes')
+      .select('name, learning_style, main_goal, occupation, preferred_study_time, daily_study_minutes, subscription_tier, subscription_status, subscription_end_date')
       .eq('id', user.id)
       .maybeSingle()
 
@@ -105,8 +105,20 @@ export async function POST(request: Request) {
       } : undefined
     }
 
-    // Enforce Rate Limit (3 per day) - fall back to mock if exceeded
-    const rateLimit = await checkRateLimit(supabase, user.id, 'insight', 3)
+    // Check user subscription tier
+    const tier = profile?.subscription_tier || 'free'
+    const statusVal = profile?.subscription_status || 'inactive'
+    const endDate = profile?.subscription_end_date || null
+    const isPro = (tier === 'pro_monthly' || tier === 'pro_yearly') && 
+      (statusVal === 'active' || statusVal === 'trialing' || statusVal === 'trailing') && 
+      (!endDate || new Date(endDate) > new Date())
+
+    // Enforce Rate Limit (3 per day for Pro, 0 for Free)
+    const rateLimit = await checkRateLimit({
+      featureKey: 'ai_insight',
+      dailyLimit: isPro ? 3 : 0,
+      userId: user.id
+    })
 
     const coachInsight = await generateInsight(insightParams, !rateLimit.allowed)
 

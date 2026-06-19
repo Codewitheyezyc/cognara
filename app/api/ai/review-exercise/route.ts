@@ -3,6 +3,8 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { logApiUsage } from '@/lib/ai/logUsage'
 
+import { checkRateLimit } from '@/lib/rateLimit'
+
 const apiKey = process.env.ANTHROPIC_API_KEY
 const isConfigured = 
   apiKey && 
@@ -18,6 +20,34 @@ export async function POST(req: Request) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    // Check user's subscription tier
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('subscription_tier, subscription_status, subscription_end_date')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    const tier = profile?.subscription_tier || 'free'
+    const statusVal = profile?.subscription_status || 'inactive'
+    const endDate = profile?.subscription_end_date || null
+    const isPro = (tier === 'pro_monthly' || tier === 'pro_yearly') && 
+      (statusVal === 'active' || statusVal === 'trialing' || statusVal === 'trailing') && 
+      (!endDate || new Date(endDate) > new Date())
+
+    // Enforce Rate Limit (5 per day for Pro, 0 for Free)
+    const limit = await checkRateLimit({
+      featureKey: 'writing_review',
+      dailyLimit: isPro ? 5 : 0,
+      userId: user.id
+    })
+
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: 'Daily review limit reached. Please upgrade to Pro or try again tomorrow.' },
+        { status: 429 }
+      )
+    }
 
     const { submission, instructions, criteria, lessonTitle, subject } = await req.json()
 
