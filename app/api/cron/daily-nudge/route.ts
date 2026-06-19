@@ -14,6 +14,9 @@ export async function GET(req: Request) {
 
     const supabase = await createClient()
 
+    // Grant monthly streak shields for Pro users
+    await supabase.rpc('grant_monthly_shields')
+
     // 2. Fetch all profiles with reminders enabled
     const { data: users, error: usersError } = await supabase
       .from('profiles')

@@ -6,6 +6,7 @@ import { Flame, Award, BookOpen, CheckCircle, Zap, BrainCircuit, ArrowRight, Map
 import AICoachInsight from '@/components/dashboard/AICoachInsight'
 import { MascotWelcomeManager } from '@/components/mascot/MascotWelcomeManager'
 import { getUserSubscription } from '@/lib/subscription'
+import StreakVitals from '@/components/dashboard/StreakVitals'
 
 export const dynamic = 'force-dynamic'
 
@@ -104,11 +105,17 @@ export default async function DashboardPage() {
   // 11. Fetch Streak
   const { data: streakRow } = await supabase
     .from('streaks')
-    .select('current_streak')
+    .select('*')
     .eq('user_id', user.id)
     .maybeSingle()
 
-  const currentStreak = streakRow?.current_streak || 0
+  const streakData = streakRow || {
+    current_streak: 0,
+    longest_streak: 0,
+    last_activity_at: null,
+    shields_available: 0,
+    shields_used_this_month: 0,
+  }
 
   // Quick Greeting time builder
   const hours = new Date().getHours()
@@ -120,7 +127,7 @@ export default async function DashboardPage() {
       <MascotWelcomeManager
         userName={name}
         hasSeenWelcome={hasSeenWelcome}
-        currentStreak={currentStreak}
+        currentStreak={streakData.current_streak}
       />
 
       {/* 1. Welcoming Header */}
@@ -176,15 +183,7 @@ export default async function DashboardPage() {
           
           <div className="grid grid-cols-2 gap-4">
             {/* Streak stat card */}
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-md bg-accent-warm/10 text-accent-warm flex items-center justify-center border border-accent-warm/15">
-                <Flame className="h-5 w-5 fill-current" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-lg font-bold text-text-1 font-mono">{currentStreak}d</span>
-                <span className="text-[10px] text-text-2">Active Streak</span>
-              </div>
-            </div>
+            <StreakVitals initialStreak={streakData} isPro={isPro} />
 
             {/* Quiz avg stat card */}
             <div className="flex items-center space-x-3">

@@ -114,14 +114,40 @@ export async function POST(request: Request) {
           const diffTime = today.getTime() - lastDate.getTime()
           const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
 
+          let shieldUsed = false
           if (diffDays === 1) {
             // Consecutive day
             newCurrentStreak += 1
             newLongestStreak = Math.max(newLongestStreak, newCurrentStreak)
+          } else if (diffDays === 2 && (streak.shields_available || 0) > 0) {
+            // Missed 1 day, auto-consume shield
+            newCurrentStreak += 1
+            newLongestStreak = Math.max(newLongestStreak, newCurrentStreak)
+            shieldUsed = true
+
+            await supabase
+              .from('streaks')
+              .update({
+                shields_available: (streak.shields_available || 0) - 1,
+                shields_used_this_month: (streak.shields_used_this_month || 0) + 1
+              })
+              .eq('user_id', user.id)
           } else if (diffDays > 1) {
             // Streak broken
             newCurrentStreak = 1
             newLongestStreak = Math.max(newLongestStreak, newCurrentStreak)
+
+            // Record when the streak broke
+            const brokenDate = new Date(lastActivity)
+            brokenDate.setDate(brokenDate.getDate() + 1)
+            const brokenStr = brokenDate.toISOString()
+
+            await supabase
+              .from('streaks')
+              .update({
+                streak_broken_at: brokenStr
+              })
+              .eq('user_id', user.id)
           } else if (diffDays === 0 && newCurrentStreak === 0) {
             // Activity occurred today but streak starts today (first attempt)
             newCurrentStreak = 1

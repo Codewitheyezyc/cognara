@@ -179,6 +179,10 @@ export default function SettingsPage() {
         subscription_end_date: null
       }))
 
+      if (tier === 'pro_monthly') {
+        await supabase.rpc('grant_monthly_shields')
+      }
+
       toast(`Subscription changed to ${tier === 'pro_monthly' ? 'Pro Monthly' : 'Free Plan'}!`)
       
       // Force reload page to apply new tier to context/cache if any
