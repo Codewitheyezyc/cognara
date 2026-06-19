@@ -1,0 +1,24 @@
+{
+  "name": "Cognara",
+  "short_name": "Cognara",
+  "description": "Your personalized AI learning operating system.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A0C14",
+  "theme_color": "#5B8EFF",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

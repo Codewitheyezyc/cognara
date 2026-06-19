@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { Lock } from 'lucide-react'
+import { useToast } from '@/components/ui/toast'
 
 interface ConfusedButtonProps {
   sectionHeading: string
@@ -25,6 +26,7 @@ export function ConfusedButton({
   isPro = false,
   onUpgradePrompt,
 }: ConfusedButtonProps) {
+  const { toast } = useToast()
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'resolved'>('idle')
   const [explanation, setExplanation] = useState('')
 
@@ -66,6 +68,11 @@ export function ConfusedButton({
   }, [cooldown])
 
   const handleConfusedClick = async () => {
+    if (typeof window !== 'undefined' && !window.navigator.onLine) {
+      toast("You are offline. AI explanations require an active internet connection.", "error")
+      return
+    }
+
     if (!isPro) {
       onUpgradePrompt?.()
       return

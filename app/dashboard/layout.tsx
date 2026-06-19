@@ -15,6 +15,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const supabase = createClient()
   
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
+  const [isOffline, setIsOffline] = useState(false)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsOffline(!window.navigator.onLine)
+      
+      const handleOnline = () => setIsOffline(false)
+      const handleOffline = () => setIsOffline(true)
+      
+      window.addEventListener('online', handleOnline)
+      window.addEventListener('offline', handleOffline)
+      
+      return () => {
+        window.removeEventListener('online', handleOnline)
+        window.removeEventListener('offline', handleOffline)
+      }
+    }
+  }, [])
   
   const [streak, setStreak] = useState<number>(0)
   const [profile, setProfile] = useState<any>(null)
@@ -484,9 +502,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
+        {isOffline && (
+          <div className="bg-amber-500 text-black px-4 py-2.5 text-xs font-semibold text-center sticky top-16 z-30 flex items-center justify-center gap-1.5 animate-fadeIn shadow-md">
+            <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
+            <span>You are offline. Downloaded lessons are still available. <Link href="/dashboard/downloads" className="underline font-bold hover:opacity-80">Navigate to your Downloads page.</Link></span>
+          </div>
+        )}
+
         {/* Page Inner Content */}
         <main className="flex-grow p-4 md:p-8 max-w-7xl w-full mx-auto">
-          {children}
+          {isOffline && (pathname === '/dashboard' || pathname === '/dashboard/path' || pathname === '/dashboard/progress' || pathname === '/dashboard/notes' || pathname.startsWith('/dashboard/quiz')) ? (
+            <div className="flex flex-col items-center justify-center text-center p-12 bg-surface border border-border/80 rounded-2xl max-w-xl mx-auto space-y-6 mt-8 animate-page-enter shadow-sm">
+              <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-amber-500">
+                <Search className="h-10 w-10 animate-pulse" strokeWidth={1.5} />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="font-heading text-lg font-bold text-text-1">Connection Required</h3>
+                <p className="text-xs text-text-2 leading-relaxed max-w-md">
+                  This page requires an active internet connection. Please reconnect to continue tracking progress, generating lessons, or taking quizzes.
+                </p>
+                <p className="text-[11px] text-text-3">
+                  Your downloaded lessons are still fully available on your Downloads shelf.
+                </p>
+              </div>
+              <Link href="/dashboard/downloads">
+                <button className="px-5 py-2.5 bg-primary hover:bg-primary/95 text-white font-bold text-xs rounded-lg transition duration-150 cursor-pointer shadow-[0_0_12px_rgba(91,142,255,0.2)]">
+                  Go to Downloads Shelf
+                </button>
+              </Link>
+            </div>
+          ) : children}
         </main>
       </div>
 

@@ -50,6 +50,8 @@ export default function LessonPage() {
   const [subject, setSubject] = useState('')
   const [isPro, setIsPro] = useState(true)
   const [isLockedLesson, setIsLockedLesson] = useState(false)
+  const [isOffline, setIsOffline] = useState(false)
+  const [isCached, setIsCached] = useState(false)
 
   // Celebration Mascot Modal States
   const [showCelebration, setShowCelebration] = useState(false)
@@ -64,7 +66,49 @@ export default function LessonPage() {
   const [phaseNumber, setPhaseNumber] = useState<number>(1)
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsOffline(!window.navigator.onLine)
+      const handleOnline = () => setIsOffline(false)
+      const handleOffline = () => setIsOffline(true)
+      window.addEventListener('online', handleOnline)
+      window.addEventListener('offline', handleOffline)
+      return () => {
+        window.removeEventListener('online', handleOnline)
+        window.removeEventListener('offline', handleOffline)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
     async function loadLesson() {
+      // ── Step 0: Check offline status first ──────────────────────────────────
+      if (typeof window !== 'undefined' && !window.navigator.onLine) {
+        setIsOffline(true)
+        try {
+          const stored = localStorage.getItem('cognara_downloaded_lessons')
+          const downloads = stored ? JSON.parse(stored) : {}
+          if (downloads[lessonId]) {
+            const entry = downloads[lessonId]
+            setIsCached(true)
+            setLessonTitle(entry.title)
+            setSubject(entry.subject || 'Development')
+            setDepthLevel(entry.depthLevel || 2)
+            setIsPro(true)
+            
+            const dbContent = entry.lesson
+            if (dbContent && typeof dbContent === 'object') {
+              setContent(dbContent)
+              setContentMap({ [entry.depthLevel || 2]: dbContent })
+            }
+            return
+          }
+        } catch (err) {
+          console.error('Failed to parse offline downloads:', err)
+        }
+        setIsCached(false)
+        return
+      }
+
       // ── Step 1: authenticate ──────────────────────────────────────────────
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
@@ -369,6 +413,34 @@ export default function LessonPage() {
     router.push(`/dashboard/quiz/${lessonId}`)
   }
 
+  if (isOffline && !isCached) {
+    return (
+      <div className="py-20 px-4 max-w-lg mx-auto text-center space-y-6 animate-page-enter">
+        <div className="inline-flex p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-amber-500">
+          <HelpCircle className="h-8 w-8" />
+        </div>
+        <div className="space-y-2">
+          <h1 className="font-heading text-2xl font-bold text-text-1">Lesson Offline 🌐</h1>
+          <p className="text-text-2 text-sm leading-relaxed">
+            This lesson is not available offline. Download it first to read without internet.
+          </p>
+        </div>
+        <div className="pt-4 border-t border-border flex flex-col gap-3">
+          <Link href="/dashboard/downloads">
+            <Button className="w-full bg-primary hover:bg-primary/95 text-white font-bold h-11 rounded-xl shadow-[0_0_12px_rgba(91,142,255,0.2)]">
+              Go to Downloads Shelf
+            </Button>
+          </Link>
+          <Link href="/dashboard/path">
+            <Button variant="ghost" className="w-full text-text-2 text-xs font-semibold">
+              Back to Roadmap Path
+            </Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   if (isLockedLesson) {
     return (
       <div className="py-20 px-4 max-w-lg mx-auto text-center space-y-6 animate-page-enter">
@@ -596,10 +668,11 @@ export default function LessonPage() {
           {!isCompleted ? (
             <Button
               onClick={handleMarkComplete}
-              disabled={isCompleting}
-              className="h-10 px-5 bg-transparent border border-border hover:bg-surface-alt text-text-1 rounded-sm text-xs font-semibold"
+              disabled={isCompleting || isOffline}
+              title={isOffline ? "Cannot complete lessons offline" : undefined}
+              className="h-10 px-5 bg-transparent border border-border hover:bg-surface-alt text-text-1 rounded-sm text-xs font-semibold disabled:opacity-50"
             >
-              {isCompleting ? 'Saving...' : 'Mark as Complete'}
+              {isCompleting ? 'Saving...' : isOffline ? 'Offline' : 'Mark as Complete'}
             </Button>
           ) : (
             <Button
@@ -613,9 +686,11 @@ export default function LessonPage() {
           {/* Take Quiz button */}
           <Button
             onClick={handleTakeQuiz}
-            className="h-10 px-5 bg-primary hover:bg-primary/90 text-white rounded-sm text-xs font-semibold shadow-[0_0_12px_rgba(91,142,255,0.2)]"
+            disabled={isOffline}
+            title={isOffline ? "Quizzes require an internet connection" : undefined}
+            className="h-10 px-5 bg-primary hover:bg-primary/90 text-white rounded-sm text-xs font-semibold shadow-[0_0_12px_rgba(91,142,255,0.2)] disabled:opacity-50 disabled:pointer-events-none"
           >
-            <span>Take Quiz</span>
+            <span>{isOffline ? 'Quiz Offline' : 'Take Quiz'}</span>
             <HelpCircle className="ml-1.5 h-4 w-4" />
           </Button>
         </div>

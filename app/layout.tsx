@@ -28,6 +28,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://www.cognaralearn.com'),
   title: "Cognara — AI Learning Operating System",
   description: "Your mind. Your path. Your era. Dynamically generated personalized roadmaps, lessons, and quizzes.",
+  manifest: "/manifest.json",
   icons: {
     icon: "/icon.svg",
     apple: "/icon.svg",

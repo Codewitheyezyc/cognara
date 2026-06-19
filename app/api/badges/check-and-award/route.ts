@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-export const BADGES = {
+const BADGES = {
   phase_1: { emoji: '🌱', label: 'First Steps', description: 'Completed Phase 1' },
   phase_2: { emoji: '🔥', label: 'Building Momentum', description: 'Completed Phase 2' },
   phase_3: { emoji: '⚡', label: 'Halfway There', description: 'Completed Phase 3' },
