@@ -107,10 +107,29 @@ export default function MarketingPage() {
 
       {/* 1. Header Navigation */}
       <header className="relative z-10 max-w-7xl w-full mx-auto px-6 h-20 flex items-center justify-between border-b border-border/40 bg-bg/50 backdrop-blur-md sticky top-0">
-        <div className="flex items-center space-x-1.5 sm:space-x-2 text-primary">
+        <div className="flex items-center space-x-1.5 sm:space-x-2 text-primary text-text-1">
           <Logo className="h-5 w-5 sm:h-6 sm:w-6" />
           <span className="font-heading text-lg sm:text-xl font-bold tracking-tight text-text-1">Cognara</span>
         </div>
+
+        {/* Marketing Anchor Navigation */}
+        <nav className="hidden md:flex items-center space-x-6">
+          <a href="#how-it-works" className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
+            How It Works
+          </a>
+          <a href="#features" className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
+            Features
+          </a>
+          <a href="#offline-pwa" className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
+            Offline App
+          </a>
+          <a href="#pricing" className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
+            Pricing
+          </a>
+          <a href="#faq" className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
+            FAQ
+          </a>
+        </nav>
 
         <nav className="flex items-center space-x-3 sm:space-x-6">
           <Link href="/login" className="hidden sm:inline-block text-xs text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
@@ -229,7 +248,7 @@ export default function MarketingPage() {
         </section>
 
         {/* 3-STEP WALKTHROUGH SECTION */}
-        <section className="space-y-12 py-20 md:py-28">
+        <section id="how-it-works" className="space-y-12 py-20 md:py-28">
           <div className="text-center space-y-3">
             <span className="text-xs font-mono uppercase text-primary font-bold tracking-wider">How it works</span>
             <h2 className="font-heading text-3xl font-extrabold text-text-1">A Blueprint Designed For Your Mind</h2>
@@ -275,7 +294,7 @@ export default function MarketingPage() {
         </section>
 
         {/* INTERACTIVE DEMONSTRATOR: ADAPTIVE DEPTH SIMULATOR */}
-        <div className="py-20 md:py-28">
+        <div id="features" className="py-20 md:py-28">
           <section className="bg-surface border border-border rounded-[12px] p-6 md:p-8 space-y-8 shadow-md relative overflow-hidden">
           <div className="absolute right-0 top-0 w-36 h-36 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
 
@@ -528,7 +547,7 @@ export default function MarketingPage() {
         </div>
 
         {/* PWA INSTALLATION SECTION */}
-        <section className="py-20 md:py-28 animate-page-enter">
+        <section id="offline-pwa" className="py-20 md:py-28 animate-page-enter">
           <div className="bg-surface border border-border rounded-[12px] p-6 md:p-8 space-y-8 shadow-md relative overflow-hidden">
             <div className="absolute right-0 top-0 w-36 h-36 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
             
@@ -634,7 +653,7 @@ export default function MarketingPage() {
                         </li>
                         <li className="flex items-start">
                           <span className="w-4 h-4 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-[9px] mr-2 shrink-0 mt-0.5">2</span>
-                          <span className="flex flex-wrap items-center gap-1">Tap the **Share** button <Share2 className="h-3.5 w-3.5 inline mx-0.5 text-text-2" /> (the square icon with an arrow pointing up at the bottom of the screen).</span>
+                          <span>Tap the **Share** button <Share2 className="h-3.5 w-3.5 inline mx-0.5 text-text-2" /> (the square icon with an arrow pointing up at the bottom of the screen).</span>
                         </li>
                         <li className="flex items-start">
                           <span className="w-4 h-4 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-[9px] mr-2 shrink-0 mt-0.5">3</span>
@@ -661,7 +680,7 @@ export default function MarketingPage() {
                         </li>
                         <li className="flex items-start">
                           <span className="w-4 h-4 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-[9px] mr-2 shrink-0 mt-0.5">2</span>
-                          <span className="flex flex-wrap items-center gap-1">Tap the **Menu** icon <MoreVertical className="h-3.5 w-3.5 inline mx-0.5 text-text-2" /> (three vertical dots in the top-right corner of Chrome).</span>
+                          <span>Tap the **Menu** icon <MoreVertical className="h-3.5 w-3.5 inline mx-0.5 text-text-2" /> (three vertical dots in the top-right corner of Chrome).</span>
                         </li>
                         <li className="flex items-start">
                           <span className="w-4 h-4 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-[9px] mr-2 shrink-0 mt-0.5">3</span>
@@ -716,7 +735,7 @@ export default function MarketingPage() {
         <WhyCognara />
 
         {/* PRICING SECTION */}
-        <section className="py-20 md:py-28 animate-page-enter">
+        <section id="pricing" className="py-20 md:py-28 animate-page-enter">
           <div className="text-center max-w-2xl mx-auto space-y-3 mb-10">
             <span className="inline-flex items-center px-3 py-1 border border-accent/20 bg-accent/5 text-accent text-xs font-mono font-bold uppercase tracking-widest rounded-full">
               Flexible Plans
@@ -778,7 +797,7 @@ export default function MarketingPage() {
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-success shrink-0" strokeWidth={2.5} />
-                    <span>Beginner & Intermediate Depths (Lvl 1-3)</span>
+                    <span>Beginner Depth Level Only (Level 2)</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-success shrink-0" strokeWidth={2.5} />
@@ -820,15 +839,19 @@ export default function MarketingPage() {
                 <ul className="space-y-3.5 text-xs text-text-2">
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
+                    <span className="font-bold text-text-1">Everything in Free Tier</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
                     <span className="font-semibold text-text-1">Unlimited Active Learning Goals</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
-                    <span>All 5 Cognitive Depths (Advanced & Expert)</span>
+                    <span>All 5 Cognitive Depths (from Lvl 1 to Expert)</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
-                    <span>Claude AI Explanations ("Confused?" Helper)</span>
+                    <span>Claude AI Explanations ("Confused?" Helper powered by Claude 3.5 Sonnet)</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
@@ -836,11 +859,23 @@ export default function MarketingPage() {
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
-                    <span>Monaco Code & AI Writing Feedback Workspaces</span>
+                    <span>Monaco Code Playground & AI Writing Workspaces</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
-                    <span>Badge Milestone Certificates download</span>
+                    <span>Milestone Badge Certificates Download</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
+                    <span>AI Coach Insights Trajectory & Study Vitals</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
+                    <span>Streak Activity Calendar Heatmap</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
+                    <span>Animated Mascot Interactivity</span>
                   </li>
                 </ul>
               </div>
@@ -854,7 +889,7 @@ export default function MarketingPage() {
         </section>
 
         {/* FAQ SECTION */}
-        <section className="space-y-12 py-20 md:py-28">
+        <section id="faq" className="space-y-12 py-20 md:py-28">
           <div className="text-center space-y-3">
             <span className="text-xs font-mono uppercase text-primary font-bold tracking-wider">Got Questions?</span>
             <h2 className="font-heading text-3xl font-extrabold text-text-1">Frequently Asked Questions</h2>

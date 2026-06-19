@@ -184,6 +184,7 @@
 @layer base {
   html {
     font-size: var(--text-base, 15px);
+    scroll-behavior: smooth;
   }
   * {
     @apply border-border outline-ring/50;

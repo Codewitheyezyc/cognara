@@ -127,7 +127,8 @@ export default function LessonPage() {
       const [
         phaseRes,
         streakRes,
-        nextLessonRes,
+        lessonsRes,
+        phasesRes,
         progressRes,
         profileRes,
         roadmapRes,
@@ -137,12 +138,10 @@ export default function LessonPage() {
           : Promise.resolve({ data: null, error: null }),
         supabase.from('streaks').select('current_streak').eq('user_id', user.id).maybeSingle(),
         lesson.roadmap_id
-          ? supabase.from('lessons').select('id')
-              .eq('roadmap_id', lesson.roadmap_id)
-              .gt('order_index', lesson.order_index)
-              .order('order_index', { ascending: true })
-              .limit(1)
-              .maybeSingle()
+          ? supabase.from('lessons').select('id, phase_id, order_index').eq('roadmap_id', lesson.roadmap_id)
+          : Promise.resolve({ data: null, error: null }),
+        lesson.roadmap_id
+          ? supabase.from('roadmap_phases').select('id, phase_number').eq('roadmap_id', lesson.roadmap_id)
           : Promise.resolve({ data: null, error: null }),
         supabase.from('lesson_progress').select('status').eq('user_id', user.id).eq('lesson_id', lessonId).maybeSingle(),
         supabase.from('profiles').select('learning_depth, subscription_tier, subscription_status, subscription_end_date').eq('id', user.id).maybeSingle(),
@@ -154,7 +153,36 @@ export default function LessonPage() {
       if (lesson.phase_id) setPhaseId(lesson.phase_id)
       if ((phaseRes.data as any)?.title) setPhaseTitle((phaseRes.data as any).title)
       setStreakDays((streakRes.data as any)?.current_streak || 0)
-      if ((nextLessonRes.data as any)?.id) setNextLessonId((nextLessonRes.data as any).id)
+
+      // Calculate nextLessonId using JS-based sorting matching the roadmap progression
+      let resolvedNextLessonId: string | null = null
+      if (lessonsRes.data && phasesRes.data) {
+        const lessonsList = lessonsRes.data
+        const phasesList = phasesRes.data
+
+        const lessonsByPhase: Record<string, any[]> = {}
+        lessonsList.forEach((l: any) => {
+          if (!lessonsByPhase[l.phase_id]) {
+            lessonsByPhase[l.phase_id] = []
+          }
+          lessonsByPhase[l.phase_id].push(l)
+        })
+
+        const sortedPhases = [...phasesList].sort((a: any, b: any) => a.phase_number - b.phase_number)
+
+        const orderedLessons: any[] = []
+        sortedPhases.forEach((phase: any) => {
+          const phaseLessons = lessonsByPhase[phase.id] || []
+          phaseLessons.sort((a: any, b: any) => a.order_index - b.order_index)
+          orderedLessons.push(...phaseLessons)
+        })
+
+        const currIdx = orderedLessons.findIndex((l: any) => l.id === lessonId)
+        if (currIdx !== -1 && currIdx < orderedLessons.length - 1) {
+          resolvedNextLessonId = orderedLessons[currIdx + 1].id
+        }
+      }
+      setNextLessonId(resolvedNextLessonId)
       if ((progressRes.data as any)?.status) setStatus((progressRes.data as any).status)
 
       // Calculate isPro status
@@ -290,7 +318,7 @@ export default function LessonPage() {
     }, 3000)
 
     return () => clearTimeout(prefetchTimer)
-  }, [content, nextLessonId])
+  }, [content, nextLessonId, lessonId])
 
   const handleDepthChange = async (newDepth: number) => {
     setIsChangingDepth(true)
