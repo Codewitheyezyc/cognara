@@ -20,6 +20,137 @@ interface DownloadedLessonEntry {
 
 const depthLabels = ["", "Like I'm 10", "Beginner", "Intermediate", "Advanced", "Expert"]
 
+// Automatic Vital Concept Highlight Parser
+function highlightKeywords(text: string, keyIndex: { value: number }) {
+  if (!text) return [];
+
+  // Match words case-insensitively
+  const regex = /\b(javascript|closures?|react|node\.js|typescript|v8|compilers?|databases?|functions?|variables?|classes?|https?|css|html|memory|stack|heap|garbage collector|gc|threads?|json|sql|nosql|authentications?|auth|oauth|jwt|securities?|encryptions?|decryptions?|latency|bandwidth|throttling|caching|cache|cdns?|load balancers?|microservices?|monoliths?|docker|kubernetes|git|github|cac|ltv)\b/gi;
+
+  const parts = text.split(regex);
+  if (parts.length === 1) return [text];
+
+  return parts.map((part, idx) => {
+    // Odd indexes represent the captured matches (keywords)
+    if (idx % 2 === 1) {
+      return (
+        <span 
+          key={`kw-${keyIndex.value++}`} 
+          className="font-bold text-text-1 px-1 py-0.5 bg-primary/10 border-b-2 border-primary/45 rounded-sm hover:bg-primary/20 hover:text-primary transition-all duration-150 cursor-help"
+          title={`Cognara Vital Concept: "${part}"`}
+        >
+          {part}
+        </span>
+      );
+    }
+    return part;
+  });
+}
+
+// Beautiful inline text formatting parser to highlight bold text, code, and italics
+function formatInlineText(text: string) {
+  if (!text) return '';
+
+  const parts: React.ReactNode[] = [];
+  let currentText = text;
+  let index = 0;
+  
+  while (currentText.length > 0) {
+    const boldIdx = currentText.indexOf('**');
+    const codeIdx = currentText.indexOf('`');
+    const italicIdx = currentText.indexOf('*');
+    
+    // Sort active tokens chronologically to parse sequentially
+    const targets = [
+      { type: 'bold', index: boldIdx, len: 2 },
+      { type: 'code', index: codeIdx, len: 1 },
+      { type: 'italic', index: italicIdx, len: 1 }
+    ].filter(t => t.index !== -1).sort((a, b) => a.index - b.index);
+    
+    if (targets.length === 0) {
+      parts.push(...highlightKeywords(currentText, { value: index }));
+      break;
+    }
+    
+    const firstTarget = targets[0];
+    
+    // Append standard leading text
+    if (firstTarget.index > 0) {
+      parts.push(...highlightKeywords(currentText.substring(0, firstTarget.index), { value: index }));
+    }
+    
+    const contentStart = firstTarget.index + firstTarget.len;
+    const closingToken = firstTarget.type === 'bold' ? '**' : firstTarget.type === 'code' ? '`' : '*';
+    const closingIdx = currentText.indexOf(closingToken, contentStart);
+    
+    if (closingIdx === -1) {
+      // Treat unclosed tokens as plain text
+      parts.push(...highlightKeywords(currentText.substring(firstTarget.index, contentStart), { value: index }));
+      currentText = currentText.substring(contentStart);
+    } else {
+      const tokenContent = currentText.substring(contentStart, closingIdx);
+      if (firstTarget.type === 'bold') {
+        parts.push(
+          <strong key={index++} className="font-extrabold text-primary dark:text-primary-hover drop-shadow-[0_0_8px_rgba(91,142,255,0.1)]">
+            {tokenContent}
+          </strong>
+        );
+      } else if (firstTarget.type === 'code') {
+        parts.push(
+          <code key={index++} className="px-1.5 py-0.5 bg-surface-alt border border-border/80 rounded text-[11px] font-mono text-accent break-all select-all font-semibold">
+            {tokenContent}
+          </code>
+        );
+      } else {
+        parts.push(
+          <em key={index++} className="italic text-accent">
+            {tokenContent}
+          </em>
+        );
+      }
+      currentText = currentText.substring(closingIdx + firstTarget.len);
+    }
+  }
+  return parts;
+}
+
+// Block and line splitting parser for rich layouts (lists and paragraphs)
+function formatLessonText(text: string) {
+  if (!text) return null;
+
+  const lines = text.split('\n');
+
+  return lines.map((line, lineIdx) => {
+    let trimmed = line.trim();
+    
+    const isBullet = trimmed.startsWith('- ') || trimmed.startsWith('* ');
+    if (isBullet) {
+      trimmed = trimmed.substring(2);
+    }
+    
+    const parts = formatInlineText(trimmed);
+
+    if (isBullet) {
+      return (
+        <li key={lineIdx} className="flex items-start text-text-2 text-sm leading-relaxed pl-1 my-1.5">
+          <span className="text-primary mr-2 select-none shrink-0">•</span>
+          <span className="flex-1">{parts}</span>
+        </li>
+      );
+    }
+
+    if (trimmed.length === 0) {
+      return <div key={lineIdx} className="h-3" />;
+    }
+
+    return (
+      <p key={lineIdx} className="text-text-2 text-sm leading-relaxed mb-3">
+        {parts}
+      </p>
+    );
+  });
+}
+
 export default function DownloadsPage() {
   const router = useRouter()
   const [downloads, setDownloads] = useState<Record<string, DownloadedLessonEntry>>({})
@@ -134,15 +265,26 @@ export default function DownloadsPage() {
               case 'explanation':
               case 'analogy':
               case 'use_case':
-              case 'summary':
                 return (
                   <div key={idx} className="space-y-3">
                     <h3 className="font-heading text-lg font-semibold text-text-1">
                       {section.heading}
                     </h3>
-                    <p className="text-text-2 text-sm leading-relaxed whitespace-pre-line">
-                      {section.body}
-                    </p>
+                    <div className="space-y-3">
+                      {formatLessonText(section.body || '')}
+                    </div>
+                  </div>
+                )
+
+              case 'summary':
+                return (
+                  <div key={idx} className="space-y-3 border-l-2 border-primary/40 pl-4 bg-primary/2.5 py-2.5 rounded-r-md">
+                    <h3 className="font-heading text-lg font-bold text-text-1">
+                      {section.heading}
+                    </h3>
+                    <div className="space-y-2">
+                      {formatLessonText(section.body || '')}
+                    </div>
                   </div>
                 )
 

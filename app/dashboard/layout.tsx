@@ -450,10 +450,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
 
             {/* Streak Emblem */}
-            <div className="flex items-center space-x-1.5 px-3 py-1 bg-accent-warm/10 text-accent-warm border border-accent-warm/20 rounded-full text-xs font-mono">
-              <Flame className="h-4 w-4 fill-current text-accent-warm" />
-              <span className="font-bold">{streak}d</span>
-            </div>
+            {isLoading ? (
+              <div className="w-12 h-6 bg-border/40 rounded-full animate-pulse" />
+            ) : (
+              <div className="flex items-center space-x-1.5 px-3 py-1 bg-accent-warm/10 text-accent-warm border border-accent-warm/20 rounded-full text-xs font-mono">
+                <Flame className="h-4 w-4 fill-current text-accent-warm animate-pulse-subtle" />
+                <span className="font-bold">{streak}d</span>
+              </div>
+            )}
 
             {/* Notification Bell */}
             <div className="relative" ref={notificationsRef}>

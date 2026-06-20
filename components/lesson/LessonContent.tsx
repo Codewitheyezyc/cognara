@@ -42,6 +42,33 @@ const depthLevels = [
 
 const depthLabels = ["", "Like I'm 10", "Beginner", "Intermediate", "Advanced", "Expert"]
 
+// Automatic Vital Concept Highlight Parser
+function highlightKeywords(text: string, keyIndex: { value: number }) {
+  if (!text) return [];
+
+  // Match words case-insensitively
+  const regex = /\b(javascript|closures?|react|node\.js|typescript|v8|compilers?|databases?|functions?|variables?|classes?|https?|css|html|memory|stack|heap|garbage collector|gc|threads?|json|sql|nosql|authentications?|auth|oauth|jwt|securities?|encryptions?|decryptions?|latency|bandwidth|throttling|caching|cache|cdns?|load balancers?|microservices?|monoliths?|docker|kubernetes|git|github|cac|ltv)\b/gi;
+
+  const parts = text.split(regex);
+  if (parts.length === 1) return [text];
+
+  return parts.map((part, idx) => {
+    // Odd indexes represent the captured matches (keywords)
+    if (idx % 2 === 1) {
+      return (
+        <span 
+          key={`kw-${keyIndex.value++}`} 
+          className="font-bold text-text-1 px-1 py-0.5 bg-primary/10 border-b-2 border-primary/45 rounded-sm hover:bg-primary/20 hover:text-primary transition-all duration-150 cursor-help"
+          title={`Cognara Vital Concept: "${part}"`}
+        >
+          {part}
+        </span>
+      );
+    }
+    return part;
+  });
+}
+
 // Beautiful inline text formatting parser to highlight bold text, code, and italics
 function formatInlineText(text: string) {
   if (!text) return '';
@@ -63,7 +90,7 @@ function formatInlineText(text: string) {
     ].filter(t => t.index !== -1).sort((a, b) => a.index - b.index);
     
     if (targets.length === 0) {
-      parts.push(currentText);
+      parts.push(...highlightKeywords(currentText, { value: index }));
       break;
     }
     
@@ -71,7 +98,7 @@ function formatInlineText(text: string) {
     
     // Append standard leading text
     if (firstTarget.index > 0) {
-      parts.push(currentText.substring(0, firstTarget.index));
+      parts.push(...highlightKeywords(currentText.substring(0, firstTarget.index), { value: index }));
     }
     
     const contentStart = firstTarget.index + firstTarget.len;
@@ -80,7 +107,7 @@ function formatInlineText(text: string) {
     
     if (closingIdx === -1) {
       // Treat unclosed tokens as plain text
-      parts.push(currentText.substring(firstTarget.index, contentStart));
+      parts.push(...highlightKeywords(currentText.substring(firstTarget.index, contentStart), { value: index }));
       currentText = currentText.substring(contentStart);
     } else {
       const tokenContent = currentText.substring(contentStart, closingIdx);
