@@ -979,7 +979,7 @@ export default function MarketingPage() {
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
-                    <span>Claude AI Explanations ("Confused?" Helper powered by Claude 3.5 Sonnet)</span>
+                    <span>AI Explanations ("Confused?" Study Helper)</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
@@ -1000,10 +1000,6 @@ export default function MarketingPage() {
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
                     <span>Streak Activity Calendar Heatmap</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
-                    <span>Animated Mascot Interactivity</span>
                   </li>
                 </ul>
               </div>
