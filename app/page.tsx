@@ -36,6 +36,15 @@ export default function MarketingPage() {
   // Mobile Hamburger Menu State
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
+  // Custom JS smooth scroll handler to prevent default browser hash jump & Next.js scroll restoration
+  const handleScrollToSection = (e: React.MouseEvent, id: string) => {
+    e.preventDefault()
+    const element = document.getElementById(id)
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
+
   // Mascot & Simulator State
   const [sparkEmotion, setSparkEmotion] = useState<'wave' | 'happy' | 'celebrate' | 'thinking' | 'idle'>('wave')
   const [activeSubject, setActiveSubject] = useState<'tech' | 'business' | 'creative'>('tech')
@@ -105,33 +114,59 @@ export default function MarketingPage() {
   ]
 
   return (
-    <div id="home" className="min-h-screen bg-bg text-text-1 flex flex-col relative overflow-x-hidden transition-colors duration-200">
-      {/* Background radial glows */}
-      <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-primary/10 to-accent/15 blur-[120px] pointer-events-none opacity-60 animate-learning-pulse" />
-      <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-accent/10 to-primary/15 blur-[100px] pointer-events-none opacity-50" />
+    <div id="home" className="min-h-screen bg-bg text-text-1 flex flex-col relative transition-colors duration-200">
+      {/* Background container for glows to prevent overflow from creating vertical whitespace */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-primary/10 to-accent/15 blur-[120px] opacity-60 animate-learning-pulse" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-accent/10 to-primary/15 blur-[100px] opacity-50" />
+      </div>
 
       {/* 1. Header Navigation */}
       <header className="relative z-20 max-w-7xl w-full mx-auto px-6 h-20 flex items-center justify-between border-b border-border/40 bg-bg/50 backdrop-blur-md sticky top-0">
-        <Link href="#home" className="flex items-center space-x-1.5 sm:space-x-2 text-primary text-text-1 hover:opacity-90 transition-opacity cursor-pointer">
+        <a 
+          href="#home" 
+          onClick={(e) => handleScrollToSection(e, 'home')}
+          className="flex items-center space-x-1.5 sm:space-x-2 text-primary text-text-1 hover:opacity-90 transition-opacity cursor-pointer"
+        >
           <Logo className="h-5 w-5 sm:h-6 sm:w-6" />
           <span className="font-heading text-lg sm:text-xl font-bold tracking-tight text-text-1">Cognara</span>
-        </Link>
+        </a>
 
         {/* Marketing Anchor Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
-          <a href="#how-it-works" className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
+          <a 
+            href="#how-it-works" 
+            onClick={(e) => handleScrollToSection(e, 'how-it-works')}
+            className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150"
+          >
             How It Works
           </a>
-          <a href="#features" className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
+          <a 
+            href="#features" 
+            onClick={(e) => handleScrollToSection(e, 'features')}
+            className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150"
+          >
             Features
           </a>
-          <a href="#offline-pwa" className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
+          <a 
+            href="#offline-pwa" 
+            onClick={(e) => handleScrollToSection(e, 'offline-pwa')}
+            className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150"
+          >
             Offline App
           </a>
-          <a href="#pricing" className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
+          <a 
+            href="#pricing" 
+            onClick={(e) => handleScrollToSection(e, 'pricing')}
+            className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150"
+          >
             Pricing
           </a>
-          <a href="#faq" className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
+          <a 
+            href="#faq" 
+            onClick={(e) => handleScrollToSection(e, 'faq')}
+            className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150"
+          >
             FAQ
           </a>
         </nav>
@@ -169,35 +204,50 @@ export default function MarketingPage() {
           <nav className="flex flex-col space-y-4">
             <a 
               href="#how-it-works" 
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={(e) => {
+                setMobileMenuOpen(false)
+                handleScrollToSection(e, 'how-it-works')
+              }}
               className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
             >
               How It Works
             </a>
             <a 
               href="#features" 
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={(e) => {
+                setMobileMenuOpen(false)
+                handleScrollToSection(e, 'features')
+              }}
               className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
             >
               Features
             </a>
             <a 
               href="#offline-pwa" 
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={(e) => {
+                setMobileMenuOpen(false)
+                handleScrollToSection(e, 'offline-pwa')
+              }}
               className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
             >
               Offline App
             </a>
             <a 
               href="#pricing" 
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={(e) => {
+                setMobileMenuOpen(false)
+                handleScrollToSection(e, 'pricing')
+              }}
               className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
             >
               Pricing
             </a>
             <a 
               href="#faq" 
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={(e) => {
+                setMobileMenuOpen(false)
+                handleScrollToSection(e, 'faq')
+              }}
               className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
             >
               FAQ
@@ -724,10 +774,10 @@ export default function MarketingPage() {
                         <Smartphone className="h-4 w-4 text-primary" />
                         <span className="text-xs font-bold text-text-1">Install on iPhone & iPad (Safari)</span>
                       </div>
-                      <ol className="space-y-3 text-[11px] text-text-2 pl-1">
+                      <ol className="space-y-3 text-[11px] text-text-2 pl-1 break-words">
                         <li className="flex items-start">
                           <span className="w-4 h-4 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-[9px] mr-2 shrink-0 mt-0.5">1</span>
-                          <span>Open the **Safari** browser and navigate to `https://www.cognaralearn.com/dashboard` (or the app URL).</span>
+                          <span>Open the **Safari** browser and navigate to <code className="px-1 py-0.5 bg-surface-alt border border-border rounded text-[10px] font-mono break-all">cognaralearn.com/dashboard</code> (or the app URL).</span>
                         </li>
                         <li className="flex items-start">
                           <span className="w-4 h-4 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-[9px] mr-2 shrink-0 mt-0.5">2</span>
