@@ -67,11 +67,27 @@ export default async function DashboardPage() {
     .order('phase_number', { ascending: true })
 
   // 6. Fetch Lessons
-  const { data: lessons } = await supabase
+  const { data: rawLessons } = await supabase
     .from('lessons')
     .select('*')
     .eq('roadmap_id', roadmap.id)
-    .order('order_index', { ascending: true })
+
+  // Sort lessons sequentially: by phase_number first, then by order_index
+  const lessonsByPhase: Record<string, any[]> = {}
+  rawLessons?.forEach((l: any) => {
+    if (!lessonsByPhase[l.phase_id]) {
+      lessonsByPhase[l.phase_id] = []
+    }
+    lessonsByPhase[l.phase_id].push(l)
+  })
+
+  const sortedPhases = [...(phases || [])].sort((a, b) => a.phase_number - b.phase_number)
+  const lessons: any[] = []
+  sortedPhases.forEach((phase) => {
+    const phaseLessons = lessonsByPhase[phase.id] || []
+    phaseLessons.sort((a, b) => a.order_index - b.order_index)
+    lessons.push(...phaseLessons)
+  })
 
   // 7. Fetch Lesson Progress
   const { data: progress } = await supabase

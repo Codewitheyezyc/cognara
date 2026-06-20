@@ -36,6 +36,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   
   const [streak, setStreak] = useState<number>(0)
   const [profile, setProfile] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [recentBadgeEmoji, setRecentBadgeEmoji] = useState<string>('')
   const [email, setEmail] = useState<string>('')
   const [roadmapProgress, setRoadmapProgress] = useState<{
@@ -61,7 +62,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     let active = true
 
     const loadStats = async (user: any) => {
-      if (!user) return
+      if (!user) {
+        if (active) setIsLoading(false)
+        return
+      }
       
       if (active) {
         setEmail(user.email || '')
@@ -159,6 +163,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
       } catch (err) {
         console.error('Failed to load active path progress in layout:', err)
+      } finally {
+        if (active) {
+          setIsLoading(false)
+        }
       }
     }
 
@@ -173,6 +181,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event: any, session: any) => {
       if (active && session?.user) {
         loadStats(session.user)
+      } else if (active && !session?.user) {
+        setIsLoading(false)
       }
     })
 
@@ -383,13 +393,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Simplified Sidebar Footer */}
         <div className="p-4 border-t border-border flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary shrink-0">
-            {initialName.charAt(0).toUpperCase()}
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-xs font-semibold text-text-1 truncate">{initialName}</span>
-            <span className="text-[10px] text-text-2">Active Learner</span>
-          </div>
+          {isLoading ? (
+            <>
+              <div className="w-8 h-8 rounded-full bg-border/40 animate-pulse shrink-0" />
+              <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                <div className="h-3 bg-border/40 rounded-sm animate-pulse w-24" />
+                <div className="h-2.5 bg-border/40 rounded-sm animate-pulse w-16" />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary shrink-0">
+                {initialName.charAt(0).toUpperCase()}
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-semibold text-text-1 truncate">{initialName}</span>
+                <span className="text-[10px] text-text-2">Active Learner</span>
+              </div>
+            </>
+          )}
         </div>
       </aside>
 
@@ -493,12 +515,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
 
             {/* Profile Dropdown */}
-            <ProfileDropdown 
-              profile={profile}
-              email={email}
-              recentBadgeEmoji={recentBadgeEmoji}
-              onSignOut={handleSignOut}
-            />
+            {isLoading ? (
+              <div className="flex items-center space-x-2 select-none">
+                <div className="w-7 h-7 rounded-full bg-border/40 animate-pulse shrink-0" />
+                <div className="hidden md:block h-3 bg-border/40 rounded-sm animate-pulse w-16" />
+              </div>
+            ) : (
+              <ProfileDropdown 
+                profile={profile}
+                email={email}
+                recentBadgeEmoji={recentBadgeEmoji}
+                onSignOut={handleSignOut}
+              />
+            )}
           </div>
         </header>
 
