@@ -11,6 +11,12 @@ interface StepDepthProps {
 
 const depthLevels = [
   {
+    value: 0,
+    title: "Like I'm 6",
+    description: "For young children — very simple, fun, visual explanations, ages 6-9",
+    preview: "Think of a variable like a small labeled box. If you put a toy inside and write 'my_toy' on it, you can find it easily later!",
+  },
+  {
     value: 1,
     title: "Like I'm 10",
     description: "Simple words, fun analogies, no jargon",
@@ -106,7 +112,7 @@ export default function StepDepth({ depth, onChange, onNext, onBack }: StepDepth
         </Button>
         <Button
           type="button"
-          disabled={!depth}
+          disabled={depth === undefined || depth === null}
           onClick={onNext}
           variant="default"
           className="flex-1 h-11 transition duration-150"

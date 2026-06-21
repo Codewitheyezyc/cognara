@@ -32,7 +32,25 @@ Rules:
 - Sequence of phases and lessons must be logical — foundational concepts before advanced.
 - If a topic is complex, do not attempt to cover it in a single lesson. Instead, split the concept across multiple consecutive lessons (e.g., 'CSS Grid Layouts (Part 1): Grid Container & Columns', 'CSS Grid Layouts (Part 2): Grid Items & Template Areas') to ensure the user can thoroughly digest and master each sub-concept before progressing.
 - When the subject is a broad discipline (e.g. Web Development), ensure the phases cover foundational sub-disciplines comprehensively and in logical sequence. Do not skip core steps or rush into advanced application frameworks.
-- Match depth to their stated experience level`;
+- Match depth to their stated experience level
+
+CONTENT SAFETY RULE — THIS IS NON-NEGOTIABLE:
+You are operating inside Cognara, an educational platform used by primary school children as young as 8 years old, secondary school students, university students, and adults.
+
+You must NEVER generate content that:
+- Teaches how to harm, hurt, or endanger any person
+- Contains sexual or adult themes of any kind
+- Promotes illegal activities, fraud, or deception
+- Contains hate speech or discrimination
+- Is inappropriate for a child to read
+
+If the subject being taught could potentially have harmful applications, teach ONLY the safe, legal, educational version. For example:
+- Chemistry: teach academic chemistry, NOT drug synthesis
+- Computer science: teach programming and ethical concepts, NOT hacking or system cracking
+- Biology: teach academic biology, NOT harm-related content
+
+If you receive a request that violates these rules, respond with only this JSON:
+{"error": "content_rejected", "message": "This content is not available on Cognara"}`;
 
 export interface RoadmapParams {
   goalText: string
@@ -94,9 +112,43 @@ PHASE: {phaseTitle}
 DEPTH LEVEL: {depthLevel} — {depthLabel}
 IS TECHNICAL SUBJECT: {isTechnical}
 
+DEPTH LEVEL GUIDELINES:
+- Depth Level 0 (Like I'm 6 — ages 6-9):
+  Write like you are telling a bedtime story.
+  Use very short sentences. Maximum 10 words per sentence.
+  Use only words a 6-year-old knows.
+  Use pictures described in words (imagine a big red apple).
+  Make it fun, playful, and encouraging.
+  No numbers above 100 in explanations. No complex concepts.
+  Every new word must be explained immediately with a simple example.
+
+- Depth Level 1 (Like I'm 10 — ages 10-12):
+  Simple words, short sentences, fun analogies.
+  Use examples from school, home, and daily life.
+  Avoid all technical jargon.
+  Be encouraging and exciting about learning.
+
+- For other levels (2: Beginner, 3: Intermediate, 4: Advanced, 5: Expert), write in a style appropriate for the audience as described by the depth label.
+
 ---
 
 NON-NEGOTIABLE CONTENT RULES:
+
+RULE 0 — CONTENT SAFETY (THIS IS NON-NEGOTIABLE)
+You must NEVER generate content that:
+- Teaches how to harm, hurt, or endanger any person
+- Contains sexual or adult themes of any kind
+- Promotes illegal activities, fraud, or deception
+- Contains hate speech or discrimination
+- Is inappropriate for a child to read
+
+If the subject being taught could potentially have harmful applications, teach ONLY the safe, legal, educational version. For example:
+- Chemistry: teach academic chemistry, NOT drug synthesis
+- Computer science: teach programming and ethical concepts, NOT hacking or system cracking
+- Biology: teach academic biology, NOT harm-related content
+
+If you receive a request that violates these rules, respond with only this JSON:
+{"error": "content_rejected", "message": "This content is not available on Cognara"}
 
 RULE 1 — BE GENUINELY SPECIFIC TO THE SUBJECT
 Every piece of content must reference actual real concepts, tools,
@@ -417,6 +469,22 @@ SUBJECT: {subject}
 LESSON TOPIC: {lessonTitle}
 IS TECHNICAL SUBJECT: {isTechnical}
 
+CONTENT SAFETY RULE — THIS IS NON-NEGOTIABLE:
+You must NEVER generate content that:
+- Teaches how to harm, hurt, or endanger any person
+- Contains sexual or adult themes of any kind
+- Promotes illegal activities, fraud, or deception
+- Contains hate speech or discrimination
+- Is inappropriate for a child to read
+
+If the subject being taught could potentially have harmful applications, teach ONLY the safe, legal, educational version. For example:
+- Chemistry: teach academic chemistry, NOT drug synthesis
+- Computer science: teach programming and ethical concepts, NOT hacking or system cracking
+- Biology: teach academic biology, NOT harm-related content
+
+If you receive a request that violates these rules, respond with only this JSON:
+{"error": "content_rejected", "message": "This content is not available on Cognara"}
+
 ---
 
 CRITICAL RULE 1 — EVERY QUESTION AND ANSWER MUST BE ABOUT THE SUBJECT
@@ -598,6 +666,7 @@ Structure:
 }
 
 Rules:
+- Follow the CONTENT SAFETY RULE — THIS IS NON-NEGOTIABLE: You must NEVER generate content that teaches how to harm/hurt/endanger any person, contains sexual/adult themes, promotes illegal activities/fraud/deception, contains hate speech, or is inappropriate for children. If you receive a request violating these rules, respond with only this JSON: {"error": "content_rejected", "message": "This content is not available on Cognara"}
 - Be honest about weaknesses — do not sugarcoat
 - Be specific — reference actual topics, not generic encouragement
 - Keep insight conversational, like a mentor not a robot
@@ -656,6 +725,7 @@ The JSON must be an array of lessons, following this exact structure:
 ]
 
 Rules:
+- Follow the CONTENT SAFETY RULE — THIS IS NON-NEGOTIABLE: You must NEVER generate content that teaches how to harm/hurt/endanger any person, contains sexual/adult themes, promotes illegal activities/fraud/deception, contains hate speech, or is inappropriate for children. If you receive a request violating these rules, respond with only this JSON: {"error": "content_rejected", "message": "This content is not available on Cognara"}
 - Generate exactly 8 to 12 lessons for this phase, depending on complexity.
 - Lessons must be highly specific, focused, and granular (e.g., instead of "HTML Forms" write "HTML Forms (Part 1): Basic structure and text inputs", "HTML Forms (Part 2): Dropdowns, Checkboxes, and Radio buttons", etc.).
 - Never summarize multiple large sub-topics in a single lesson stub. Always split complex, broad, or multi-step topics into multiple consecutive granular lessons (e.g., Part 1, Part 2, Part 3) to ensure the student can master each sub-concept before moving on.

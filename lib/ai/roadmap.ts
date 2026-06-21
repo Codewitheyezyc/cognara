@@ -1,5 +1,6 @@
 import { callClaudeJSON } from './client'
 import { ROADMAP_SYSTEM_PROMPT, buildRoadmapUserMessage } from './prompts'
+import { detectSubject } from '@/lib/contentSafety/subjectDetector'
 
 export interface LessonStub {
   order_index: number
@@ -49,13 +50,38 @@ export async function generateRoadmap(
     return getDefaultRoadmap(goalText, subject, level, dailyMinutes, depthLevel)
   }
 
+  const detection = detectSubject(goalText)
+  let additionalContext = ''
+
+  if (detection.waecRelevant) {
+    additionalContext = `
+This is a WAEC examination subject. Structure the roadmap to cover:
+1. All WAEC syllabus topics for this subject
+2. Past question practice patterns
+3. Examination technique and time management
+4. Common examiner expectations
+
+Make the content appropriate for Nigerian secondary school students
+preparing for the West African Senior School Certificate Examination.
+`
+  } else if (detection.jambRelevant) {
+    additionalContext = `
+This student is preparing for JAMB (UTME).
+Structure the roadmap around:
+1. JAMB syllabus for this subject
+2. Multiple choice question patterns
+3. Speed and accuracy techniques
+4. Past JAMB questions approach
+`
+  }
+
   const userPrompt = buildRoadmapUserMessage({
     goalText,
     subject,
     level,
     dailyMinutes,
     depthLevel
-  })
+  }) + (additionalContext ? `\n${additionalContext}` : '')
 
   return callClaudeJSON<GeneratedRoadmap>(
     ROADMAP_SYSTEM_PROMPT,

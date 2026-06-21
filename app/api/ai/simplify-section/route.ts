@@ -79,7 +79,18 @@ about a specific part of their lesson. Give them a much simpler,
 clearer re-explanation using a fresh analogy or example.
 Keep it under 100 words. Be warm and encouraging.
 Do not repeat the same explanation — approach it from a
-completely different angle. No markdown. Plain text only.`,
+completely different angle. No markdown. Plain text only.
+
+CONTENT SAFETY RULE — THIS IS NON-NEGOTIABLE:
+You must NEVER generate content that:
+- Teaches how to harm, hurt, or endanger any person
+- Contains sexual or adult themes of any kind
+- Promotes illegal activities, fraud, or deception
+- Contains hate speech or discrimination
+- Is inappropriate for a child to read
+
+If you receive a request that violates these rules, respond with only this JSON:
+{"error": "content_rejected", "message": "This content is not available on Cognara"}`,
         messages: [{
           role: 'user',
           content: `Subject: ${subject}
@@ -101,6 +112,15 @@ Give a simpler re-explanation from a fresh angle.`
       )
 
       text = response.content[0].type === 'text' ? response.content[0].text : ''
+
+      if (text.includes('content_rejected')) {
+        try {
+          const parsed = JSON.parse(text.replace(/```json|```/g, '').trim())
+          if (parsed.error === 'content_rejected') {
+            return NextResponse.json({ error: 'content_rejected', message: parsed.message }, { status: 400 })
+          }
+        } catch (_) {}
+      }
     } catch (apiErr) {
       console.warn('❌ API request failed, falling back to mock explanation:', apiErr)
       text = mockExpl

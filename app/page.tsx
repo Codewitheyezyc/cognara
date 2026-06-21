@@ -59,7 +59,7 @@ export default function MarketingPage() {
   // FAQ states
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
-  const depthLabels = ["", "Like I'm 10", "Beginner", "Intermediate", "Advanced", "Expert"]
+  const depthLabels = ["Like I'm 6", "Like I'm 10", "Beginner", "Intermediate", "Advanced", "Expert"]
 
   const subjects = [
     { id: 'tech', label: 'Tech & Code', concept: 'JavaScript Closures' },
@@ -69,7 +69,7 @@ export default function MarketingPage() {
 
   const explanations = {
     tech: [
-      "",
+      "Think of a closure like a magic box inside your computer! When a code robot goes out to play, it takes its magic box with its favorite toys (variables) inside. Wherever it goes, even far away, it can open the box and play with those toys anytime!",
       "Think of a closure like a magic backpack that a function carries around. Whenever the function is born, it packs all the variables from the room it was created in. Even if the function travels to a completely new place, it can unzip its backpack and grab those variables anytime!",
       "In JavaScript, a closure is a feature where a nested inner function retains access to the variables of its parent function, even after the parent function has finished running. It's like a function remembering its home town.",
       "A closure is the combination of a function bundled together with references to its surrounding state (the lexical environment). Lexical scoping determines variable access based on the physical location of declarations in the source code.",
@@ -77,7 +77,7 @@ export default function MarketingPage() {
       "At the compiler layer (V8/SpiderMonkey), closures bypass stack allocation. The parser scans for context escaping; if a nested function references an outer binding, V8 allocates that binding in a Heap Context object rather than the Stack. The closure holds a [[Scope]] property reference, preventing GC sweep passes."
     ],
     business: [
-      "",
+      "Imagine you spend $10 to invite 5 friends to a fun birthday party. That means inviting each friend costs you $2! In business, this is how much money you spend to find one new customer.",
       "Think of CAC like buying tickets to invite friends to a birthday party. If you spend $10 on party invitations and 5 friends show up, inviting each friend cost you $2! That is what CAC is—how much money you spend to get one new customer.",
       "In business, Customer Acquisition Cost (CAC) is the total amount of money a company spends to win a new customer. This includes marketing fees, sales salaries, and ads, divided by the number of customers gained.",
       "Customer Acquisition Cost (CAC) measures the efficiency of sales and marketing operations. It is computed by dividing total acquisition expenses (marketing spend, sales overhead, salaries) by the total number of acquired customers over a specific period.",
@@ -85,7 +85,7 @@ export default function MarketingPage() {
       "Analytically, CAC optimization requires dissecting marginal acquisition cost curves across paid channels. CAC is modeled as: CAC = (Total Marketing Spend + Total Sales Overheads + Customer Success Onboarding Cost) / Total Gained Customers. Dynamic cohort analysis must adjust CAC based on organic virality loops (K-factor) and churn decay coefficients."
     ],
     creative: [
-      "",
+      "Colors are like happy friends! Some colors love playing together, and some don't. Color Theory is a set of fun rules artists use to pick colors that look beautiful next to each other, like matching your clothes!",
       "Colors are like friends—some look super happy together, and some fight! Color Theory is a set of secret rules that artists use to mix colors so they look beautiful on your eyes. It is like matching clothes for a party!",
       "Color Theory is a set of practical guidelines for mixing colors and creating visual combinations. It uses the Color Wheel to show how primary colors (red, blue, yellow) combine to create secondary and tertiary tones that feel good to look at.",
       "Color Theory comprises the principles governing color mixing and the visual effects of specific color combinations. Underpinned by the color wheel, designers utilize contrast schemes (analogous, complementary, triadic) to create visual harmony and manage visual weight in compositions.",
@@ -467,7 +467,7 @@ export default function MarketingPage() {
             <div className="lg:col-span-7 space-y-4">
               {/* Depth Toggles Header */}
               <div className="flex flex-wrap gap-2 border-b border-border pb-3 justify-start">
-                {[1, 2, 3, 4, 5].map((lvl) => (
+                {[0, 1, 2, 3, 4, 5].map((lvl) => (
                   <button
                     key={lvl}
                     onClick={() => setActiveDepth(lvl)}

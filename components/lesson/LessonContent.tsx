@@ -33,6 +33,7 @@ interface LessonContentProps {
 }
 
 const depthLevels = [
+  { value: 0, title: "Like I'm 6" },
   { value: 1, title: "Like I'm 10" },
   { value: 2, title: "Beginner" },
   { value: 3, title: "Intermediate" },
@@ -40,7 +41,7 @@ const depthLevels = [
   { value: 5, title: "Expert" },
 ]
 
-const depthLabels = ["", "Like I'm 10", "Beginner", "Intermediate", "Advanced", "Expert"]
+const depthLabels = ["Like I'm 6", "Like I'm 10", "Beginner", "Intermediate", "Advanced", "Expert"]
 
 // Automatic Vital Concept Highlight Parser
 function highlightKeywords(text: string, keyIndex: { value: number }) {

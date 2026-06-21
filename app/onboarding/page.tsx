@@ -13,6 +13,7 @@ import GeneratingPath from '@/components/onboarding/GeneratingPath'
 import { Button } from '@/components/ui/button'
 import { CheckCircle2 } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
+import { clientSideFilter } from '@/lib/contentSafety/keywordFilter'
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -30,6 +31,9 @@ export default function OnboardingPage() {
   
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [isInitializing, setIsInitializing] = useState(true)
+  
+  const [safetyError, setSafetyError] = useState<string | null>(null)
+  const [isValidating, setIsValidating] = useState(false)
 
   // Fetch initial profile name if logged in & check pre-filled subject
   useEffect(() => {
@@ -74,6 +78,51 @@ export default function OnboardingPage() {
     }
     loadProfileAndParams()
   }, [supabase])
+
+  // Goal step safety validation handler
+  const handleGoalContinue = async () => {
+    setSafetyError(null)
+    setErrorMsg(null)
+
+    // Layer 1: instant client-side check
+    const clientCheck = clientSideFilter(goalText)
+    if (!clientCheck.passed) {
+      setSafetyError(clientCheck.reason || 'This goal is not appropriate.')
+      return
+    }
+
+    setIsValidating(true)
+
+    // Layer 2: AI validation
+    try {
+      const res = await fetch('/api/validate-goal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ goalText })
+      })
+      const validation = await res.json()
+
+      if (!validation.approved) {
+        setSafetyError(validation.reason || 
+          `This goal is not available on Cognara. Please enter an educational or skill-building goal.`)
+        setIsValidating(false)
+        return
+      }
+
+      // Goal approved — save detected subject and proceed
+      if (validation.subject) {
+        setSubject(validation.subject)
+      }
+      setStep(3)
+
+    } catch (err) {
+      // Network/API error — proceed anyway, roadmap generation prompt fallback will handle it
+      console.warn('Safety API validation failed, proceeding anyway:', err)
+      setStep(3)
+    } finally {
+      setIsValidating(false)
+    }
+  }
 
   // Submit onboarding details to API route
   async function triggerGeneration() {
@@ -149,7 +198,9 @@ export default function OnboardingPage() {
               onGoalChange={setGoalText}
               onSubjectChange={setSubject}
               onBack={() => setStep(1)}
-              onNext={() => setStep(3)}
+              onNext={handleGoalContinue}
+              safetyError={safetyError}
+              isValidating={isValidating}
             />
           )}
 

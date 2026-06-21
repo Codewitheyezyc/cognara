@@ -18,7 +18,7 @@ interface DownloadedLessonEntry {
   downloadedAt: string
 }
 
-const depthLabels = ["", "Like I'm 10", "Beginner", "Intermediate", "Advanced", "Expert"]
+const depthLabels = ["Like I'm 6", "Like I'm 10", "Beginner", "Intermediate", "Advanced", "Expert"]
 
 // Automatic Vital Concept Highlight Parser
 function highlightKeywords(text: string, keyIndex: { value: number }) {

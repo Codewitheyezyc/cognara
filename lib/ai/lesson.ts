@@ -2,7 +2,7 @@ import { GeneratedLesson } from '@/types/ai'
 import { callClaudeJSON } from './client'
 import { LESSON_SYSTEM_PROMPT, buildLessonUserMessage, isCodeSubject } from './prompts'
 
-const depthLabels = ["", "Like I'm 10", "Beginner", "Intermediate", "Advanced", "Expert"];
+const depthLabels = ["Like I'm 6", "Like I'm 10", "Beginner", "Intermediate", "Advanced", "Expert"];
 
 export async function generateLesson(
   lessonTitle: string,

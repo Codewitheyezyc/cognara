@@ -30,7 +30,7 @@ const learningIdentitySchema = z.object({
 })
 
 const learningPreferencesSchema = z.object({
-  default_depth_level: z.number().min(1).max(5),
+  default_depth_level: z.number().min(0).max(5),
   daily_study_minutes: z.number().min(15),
   preferred_study_time: z.string().min(1, 'Please select preferred study time'),
 })
@@ -314,6 +314,7 @@ const dailyMinutesOptions = [
 ]
 
 const depthLevels = [
+  { value: 0, label: "Like I'm 6" },
   { value: 1, label: "Like I'm 10" },
   { value: 2, label: 'Beginner' },
   { value: 3, label: 'Intermediate' },
@@ -994,7 +995,7 @@ export default function ProfilePage() {
               name="default_depth_level"
               control={learningPreferencesForm.control}
               render={({ field }) => (
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
                   {depthLevels.map(item => {
                     const isSelected = field.value === item.value
                     return (
