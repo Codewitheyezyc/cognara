@@ -314,7 +314,6 @@ const dailyMinutesOptions = [
 ]
 
 const depthLevels = [
-  { value: 0, label: "Like I'm 6" },
   { value: 1, label: "Like I'm 10" },
   { value: 2, label: 'Beginner' },
   { value: 3, label: 'Intermediate' },

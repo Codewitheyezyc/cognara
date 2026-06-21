@@ -1,21 +1,17 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { Lock } from 'lucide-react'
 
 interface StepDepthProps {
   depth: number
   onChange: (val: number) => void
   onNext: () => void
   onBack: () => void
+  isPro?: boolean
 }
 
 const depthLevels = [
-  {
-    value: 0,
-    title: "Like I'm 6",
-    description: "For young children — very simple, fun, visual explanations, ages 6-9",
-    preview: "Think of a variable like a small labeled box. If you put a toy inside and write 'my_toy' on it, you can find it easily later!",
-  },
   {
     value: 1,
     title: "Like I'm 10",
@@ -48,8 +44,12 @@ const depthLevels = [
   },
 ]
 
-export default function StepDepth({ depth, onChange, onNext, onBack }: StepDepthProps) {
+export default function StepDepth({ depth, onChange, onNext, onBack, isPro = false }: StepDepthProps) {
   const handleLevelClick = (value: number) => {
+    const isLvlLocked = !isPro && value !== 2
+    if (isLvlLocked) {
+      return
+    }
     onChange(value)
   }
 
@@ -64,22 +64,34 @@ export default function StepDepth({ depth, onChange, onNext, onBack }: StepDepth
       <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
         {depthLevels.map((item) => {
           const isSelected = depth === item.value
+          const isLvlLocked = !isPro && item.value !== 2
           return (
             <button
               key={item.value}
               type="button"
               onClick={() => handleLevelClick(item.value)}
-              className={`w-full text-left p-4 rounded-md border transition-all duration-150 cursor-pointer bg-surface-alt hover:bg-border ${
-                isSelected
-                  ? 'border-primary ring-1 ring-primary/45 bg-surface'
-                  : 'border-border'
+              disabled={isLvlLocked}
+              className={`w-full text-left p-4 rounded-md border transition-all duration-150 bg-surface-alt ${
+                isLvlLocked
+                  ? 'opacity-55 cursor-not-allowed border-border/80'
+                  : isSelected
+                    ? 'border-primary ring-1 ring-primary/45 bg-surface cursor-pointer'
+                    : 'border-border cursor-pointer hover:bg-border'
               }`}
             >
               <div className="flex flex-col">
                 <div className="flex justify-between items-baseline">
-                  <span className={`font-semibold text-base ${isSelected ? 'text-primary' : 'text-text-1'}`}>
-                    {item.title}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {isLvlLocked && <Lock className="h-3.5 w-3.5 text-text-3 shrink-0" />}
+                    <span className={`font-semibold text-base ${isLvlLocked ? 'text-text-3' : isSelected ? 'text-primary' : 'text-text-1'}`}>
+                      {item.title}
+                    </span>
+                    {isLvlLocked && (
+                      <span className="inline-flex items-center px-1.5 py-0.5 border border-primary/20 bg-primary/10 text-primary text-[8px] font-mono font-bold uppercase rounded-sm">
+                        PRO
+                      </span>
+                    )}
+                  </div>
                   <span className="text-[10px] font-mono text-text-3 font-semibold uppercase">
                     Level {item.value}
                   </span>

@@ -59,7 +59,7 @@ export default function MarketingPage() {
   // FAQ states
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
-  const depthLabels = ["Like I'm 6", "Like I'm 10", "Beginner", "Intermediate", "Advanced", "Expert"]
+  const depthLabels = ["", "Like I'm 10", "Beginner", "Intermediate", "Advanced", "Expert"]
 
   const subjects = [
     { id: 'tech', label: 'Tech & Code', concept: 'JavaScript Closures' },
@@ -467,7 +467,7 @@ export default function MarketingPage() {
             <div className="lg:col-span-7 space-y-4">
               {/* Depth Toggles Header */}
               <div className="flex flex-wrap gap-2 border-b border-border pb-3 justify-start">
-                {[0, 1, 2, 3, 4, 5].map((lvl) => (
+                {[1, 2, 3, 4, 5].map((lvl) => (
                   <button
                     key={lvl}
                     onClick={() => setActiveDepth(lvl)}

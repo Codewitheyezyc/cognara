@@ -31,6 +31,7 @@ export default function OnboardingPage() {
   
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [isInitializing, setIsInitializing] = useState(true)
+  const [isPro, setIsPro] = useState(false)
   
   const [safetyError, setSafetyError] = useState<string | null>(null)
   const [isValidating, setIsValidating] = useState(false)
@@ -44,7 +45,7 @@ export default function OnboardingPage() {
         if (user) {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('name')
+            .select('name, subscription_tier, subscription_status, subscription_end_date')
             .eq('id', user.id)
             .maybeSingle()
 
@@ -52,6 +53,17 @@ export default function OnboardingPage() {
             setName(profile.name)
             hasName = true
           }
+
+          const tier = profile?.subscription_tier || 'free'
+          const status = profile?.subscription_status || 'inactive'
+          const endDate = profile?.subscription_end_date || null
+          const isProTier = tier === 'pro_monthly' || tier === 'pro_yearly'
+          const isStatusActive = status === 'active' || status === 'trialing' || status === 'trailing'
+          const isExpired = endDate ? new Date(endDate) < new Date() : false
+          const isUserPro = (isProTier && isStatusActive && !isExpired) || 
+                            user.id === '4c1fbae5-c423-42e7-8394-1112fe00d42e' ||
+                            user.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID
+          setIsPro(isUserPro)
         }
 
         // Parse query params
@@ -227,6 +239,7 @@ export default function OnboardingPage() {
               onChange={setLearningDepth}
               onBack={() => setStep(4)}
               onNext={() => setStep(6)}
+              isPro={isPro}
             />
           )}
 

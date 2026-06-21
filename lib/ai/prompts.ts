@@ -113,15 +113,6 @@ DEPTH LEVEL: {depthLevel} — {depthLabel}
 IS TECHNICAL SUBJECT: {isTechnical}
 
 DEPTH LEVEL GUIDELINES:
-- Depth Level 0 (Like I'm 6 — ages 6-9):
-  Write like you are telling a bedtime story.
-  Use very short sentences. Maximum 10 words per sentence.
-  Use only words a 6-year-old knows.
-  Use pictures described in words (imagine a big red apple).
-  Make it fun, playful, and encouraging.
-  No numbers above 100 in explanations. No complex concepts.
-  Every new word must be explained immediately with a simple example.
-
 - Depth Level 1 (Like I'm 10 — ages 10-12):
   Simple words, short sentences, fun analogies.
   Use examples from school, home, and daily life.
