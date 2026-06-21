@@ -152,6 +152,77 @@ export async function POST(request: Request) {
       console.log(`[generate-lesson] Cached content for lesson ${lessonId} depth ${depthLevel} is mock data — forcing regeneration with Claude.`)
     }
 
+    // 6.5. Organic Cross-User Caching Check
+    let sharedLessonContent = null
+    if (!forceRegenerate) {
+      try {
+        // Find roadmaps for the same subject
+        const { data: matchingRoadmaps } = await supabase
+          .from('roadmaps')
+          .select('id, learning_goals!inner(subject)')
+          .eq('learning_goals.subject', goal.subject)
+
+        const roadmapIds = matchingRoadmaps?.map((r) => r.id) || []
+
+        if (roadmapIds.length > 0) {
+          const { data: sharedLessons } = await supabase
+            .from('lessons')
+            .select('content')
+            .eq('title', lesson.title)
+            .in('roadmap_id', roadmapIds)
+            .not('content', 'is', null)
+
+          if (sharedLessons && sharedLessons.length > 0) {
+            for (const candidate of sharedLessons) {
+              const candidateMap = candidate.content as any
+              const candidateCached = (candidateMap && typeof candidateMap === 'object') ? candidateMap[depthLevel] : null
+              if (candidateCached && !isMockLesson(candidateCached)) {
+                sharedLessonContent = candidateCached
+                console.log(`[Cross-User Caching] Found generated lesson for "${lesson.title}" under subject "${goal.subject}" and depth ${depthLevel}`)
+                break
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[Cross-User Caching] Sibling check failed:', err)
+      }
+    }
+
+    if (sharedLessonContent) {
+      // Cache it for the current user
+      const updatedContent = {
+        ...(contentMap || {}),
+        [depthLevel]: sharedLessonContent
+      }
+      await supabase
+        .from('lessons')
+        .update({
+          content: updatedContent,
+          generated_at: new Date().toISOString(),
+        })
+        .eq('id', lessonId)
+
+      // Ensure progress is set to in_progress
+      const { data: progress } = await supabase
+        .from('lesson_progress')
+        .select('status')
+        .eq('user_id', user.id)
+        .eq('lesson_id', lessonId)
+        .maybeSingle()
+
+      if (!progress) {
+        await supabase.from('lesson_progress').insert({
+          user_id: user.id,
+          lesson_id: lessonId,
+          status: 'in_progress',
+          started_at: new Date().toISOString(),
+        })
+      }
+
+      return NextResponse.json({ content: sharedLessonContent })
+    }
+
     // 7. Enforce Rate Limit (30 per day)
     const rateLimit = await checkRateLimit(supabase, user.id, 'lesson', 30)
     if (!rateLimit.allowed) {
@@ -228,7 +299,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ content: generatedLesson })
   } catch (err: any) {
     console.error('[API Lesson Generation Error]', err)
-    const errorMessage = err?.message || 'Lesson generation failed. Check your Anthropic API key and account credits at console.anthropic.com.'
-    return NextResponse.json({ error: errorMessage }, { status: 500 })
+    const errorMessage = err?.message || 'Cognara is experiencing temporary system maintenance. Please try again shortly.'
+    // Safeguard to sanitize any developer/billing instruction keywords
+    let cleanMessage = errorMessage
+    if (
+      cleanMessage.includes('console.anthropic.com') ||
+      cleanMessage.includes('credit') ||
+      cleanMessage.includes('API key') ||
+      cleanMessage.includes('balance is too low')
+    ) {
+      cleanMessage = 'Cognara is experiencing temporary system maintenance. Please try again shortly.'
+    }
+    return NextResponse.json({ error: cleanMessage }, { status: 500 })
   }
 }

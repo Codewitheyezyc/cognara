@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { generateRoadmap } from '@/lib/ai/roadmap'
 import { checkRateLimit as checkNewRateLimit } from '@/lib/rateLimit'
 import { logApiUsage } from '@/lib/ai/logUsage'
+import { callClaudeJSON } from '@/lib/ai/client'
 
 function slugify(text: string) {
   return text
@@ -10,6 +11,10 @@ function slugify(text: string) {
     .replace(/[^\w\s-]/g, '')
     .replace(/[\s_]+/g, '-')
     .trim()
+}
+
+interface StandardizeResult {
+  standardizedSubject: string
 }
 
 export async function POST(request: Request) {
@@ -83,6 +88,23 @@ export async function POST(request: Request) {
       )
     }
 
+    // Standardize subject name via Claude Haiku
+    let standardizedSubject = subject
+    try {
+      const mappingResult = await callClaudeJSON<StandardizeResult>(
+        "You are an expert curriculum intent classifier. Map the user's input subject into a clean, standard, concise 2-4 word subject title representing the primary educational category (e.g. 'React Frontend Development', 'WAEC Mathematics', 'Beginning Acoustic Guitar', 'Baking Basics'). Return JSON ONLY: { \"standardizedSubject\": \"title\" }",
+        `Input subject: "${subject}"`,
+        async () => ({ standardizedSubject: subject }),
+        'claude-haiku-4-5-20251001'
+      )
+      if (mappingResult.standardizedSubject) {
+        standardizedSubject = mappingResult.standardizedSubject
+        console.log(`[Intent Mapping] Standardized "${subject}" to "${standardizedSubject}"`)
+      }
+    } catch (err) {
+      console.warn('[Intent Mapping] Failed to standardize subject, falling back to original:', err)
+    }
+
     // 3. Update Profile Name, Learning Depth, & Learning Style if provided
     if (name || learningDepth || learningStyleDetail) {
       const { error: profileError } = await supabase
@@ -100,7 +122,7 @@ export async function POST(request: Request) {
     }
 
     // 4. Generate the curriculum roadmap (simulated AI)
-    const generatedRoadmap = await generateRoadmap(goalText, subject, level, Number(dailyMinutes), Number(learningDepth || 2))
+    const generatedRoadmap = await generateRoadmap(goalText, standardizedSubject, level, Number(dailyMinutes), Number(learningDepth || 2))
 
     const usage = (generatedRoadmap as any)._usage
     if (usage) {
@@ -125,7 +147,7 @@ export async function POST(request: Request) {
       .insert({
         user_id: user.id,
         goal_text: goalText,
-        subject,
+        subject: standardizedSubject,
         level,
         daily_minutes: Number(dailyMinutes),
         depth_level: Number(learningDepth || 2),

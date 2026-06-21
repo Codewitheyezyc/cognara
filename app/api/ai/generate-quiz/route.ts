@@ -127,7 +127,72 @@ export async function POST(request: Request) {
       ? fullTextParts.join('\n\n') 
       : `${lesson.title} - ${lessonSummary}`
 
-    // 6.5. Enforce Rate Limit (30 per day)
+    // 6.6. Organic Cross-User Quiz Caching Check
+    let sharedQuizQuestions = null
+    try {
+      // Find roadmaps for the same subject
+      const { data: matchingRoadmaps } = await supabase
+        .from('roadmaps')
+        .select('id, learning_goals!inner(subject)')
+        .eq('learning_goals.subject', goal.subject)
+
+      const roadmapIds = matchingRoadmaps?.map((r) => r.id) || []
+
+      if (roadmapIds.length > 0) {
+        // Find lessons with the same title on those roadmaps
+        const { data: siblingLessons } = await supabase
+          .from('lessons')
+          .select('id')
+          .eq('title', lesson.title)
+          .in('roadmap_id', roadmapIds)
+
+        const lessonIds = siblingLessons?.map((l) => l.id) || []
+
+        if (lessonIds.length > 0) {
+          // Find any generated quiz in these lessons
+          const { data: sharedQuizzes } = await supabase
+            .from('quizzes')
+            .select('questions')
+            .in('lesson_id', lessonIds)
+            .not('questions', 'is', null)
+
+          if (sharedQuizzes && sharedQuizzes.length > 0) {
+            for (const candidate of sharedQuizzes) {
+              if (Array.isArray(candidate.questions) && candidate.questions.length > 0 && !isMockQuiz(candidate.questions)) {
+                sharedQuizQuestions = candidate.questions
+                console.log(`[Cross-User Caching] Found generated quiz for lesson "${lesson.title}" under subject "${goal.subject}"`)
+                break
+              }
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[Cross-User Caching] Sibling quiz check failed:', err)
+    }
+
+    if (sharedQuizQuestions) {
+      // Cache it for the current user's lesson
+      const { data: newQuiz, error: insertError } = await supabase
+        .from('quizzes')
+        .insert({
+          lesson_id: lessonId,
+          user_id: user.id,
+          questions: sharedQuizQuestions,
+          ai_generated: true,
+        })
+        .select('id')
+        .single()
+
+      if (!insertError && newQuiz) {
+        return NextResponse.json({
+          quizId: newQuiz.id,
+          questions: sharedQuizQuestions,
+        })
+      }
+    }
+
+    // 6.7. Enforce Rate Limit (30 per day)
     const rateLimit = await checkRateLimit(supabase, user.id, 'quiz', 30)
     if (!rateLimit.allowed) {
       return NextResponse.json(

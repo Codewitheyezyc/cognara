@@ -82,17 +82,10 @@ export async function callClaudeJSON<T>(
     const status = error?.status ?? error?.statusCode ?? 'unknown'
     const msg = error?.error?.message ?? error?.message ?? String(error)
 
-    // Map to user-friendly diagnosis
-    let diagnosis = msg
-    if (status === 401 || msg?.toLowerCase().includes('api key') || msg?.toLowerCase().includes('authentication')) {
-      diagnosis = `Invalid or expired API key (HTTP ${status}). Go to console.anthropic.com → API Keys and create a fresh key, then update ANTHROPIC_API_KEY in Vercel environment variables.`
-    } else if (status === 429 || msg?.toLowerCase().includes('rate')) {
-      diagnosis = `Rate limit or credit exhaustion (HTTP ${status}). Check your Anthropic account billing at console.anthropic.com.`
-    } else if (status === 404 || msg?.toLowerCase().includes('model')) {
-      diagnosis = `Model not found (HTTP ${status}): ${msg}`
-    }
-
+    // Log the detailed error message for developer diagnostics (server logs)
     console.error(`[Claude] Failed — HTTP ${status}: ${msg}`)
-    throw new Error(diagnosis)
+
+    // Throw a clean, generic user-facing message to prevent exposing internal API keys/credit issues
+    throw new Error('Cognara is experiencing temporary system maintenance. Please try again shortly.')
   }
 }

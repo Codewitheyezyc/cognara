@@ -25,6 +25,27 @@ const suggestions = [
   { label: 'UI/UX Product Design', subject: 'UI/UX Design' },
 ]
  
+const autocompleteSubjects = [
+  'React Frontend Development',
+  'Next.js Web Development',
+  'Python Programming',
+  'UI/UX Product Design',
+  'WAEC Mathematics',
+  'JAMB English Language',
+  'Chemistry for Beginners',
+  'Public Speaking & Presentation',
+  'Creative Writing & Storytelling',
+  'Baking & Pastry Arts',
+  'Fashion Design & Tailoring',
+  'Personal Finance & Budgeting',
+  'Time Management & Productivity',
+  'Digital Marketing & SEO',
+  'Data Science & Analytics',
+  'Spanish Language Basics',
+  'Beginning Acoustic Guitar',
+  'Photography & Composition'
+]
+
 export default function StepGoal({
   goalText,
   subject,
@@ -36,7 +57,10 @@ export default function StepGoal({
   isValidating = false,
 }: StepGoalProps) {
   const [error, setError] = useState(false)
- 
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([])
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0)
+
   const handleNext = () => {
     if (!goalText.trim() || !subject.trim()) {
       setError(true)
@@ -45,13 +69,66 @@ export default function StepGoal({
     setError(false)
     onNext()
   }
- 
+
   const handleSuggestionClick = (label: string, subj: string) => {
     onGoalChange(label)
     onSubjectChange(subj)
     setError(false)
   }
- 
+
+  const handleSubjectChange = (val: string) => {
+    onSubjectChange(val)
+    if (error) setError(false)
+    if (val.trim()) {
+      const filtered = autocompleteSubjects.filter(item =>
+        item.toLowerCase().includes(val.toLowerCase())
+      )
+      setFilteredSuggestions(filtered)
+      setShowSuggestions(true)
+      setActiveSuggestionIndex(0)
+    } else {
+      setFilteredSuggestions(autocompleteSubjects)
+      setShowSuggestions(true)
+      setActiveSuggestionIndex(0)
+    }
+  }
+
+  const handleSubjectFocus = () => {
+    const val = subject
+    if (val.trim()) {
+      const filtered = autocompleteSubjects.filter(item =>
+        item.toLowerCase().includes(val.toLowerCase())
+      )
+      setFilteredSuggestions(filtered)
+    } else {
+      setFilteredSuggestions(autocompleteSubjects)
+    }
+    setShowSuggestions(true)
+    setActiveSuggestionIndex(0)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showSuggestions || filteredSuggestions.length === 0) return
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setActiveSuggestionIndex((prev) => 
+        prev < filteredSuggestions.length - 1 ? prev + 1 : 0
+      )
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setActiveSuggestionIndex((prev) => 
+        prev > 0 ? prev - 1 : filteredSuggestions.length - 1
+      )
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      onSubjectChange(filteredSuggestions[activeSuggestionIndex])
+      setShowSuggestions(false)
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -59,7 +136,7 @@ export default function StepGoal({
         <h2 className="font-heading text-3xl font-bold text-text-1">What do you want to master?</h2>
         <p className="text-sm text-text-2">Be specific! For example, &quot;I want to become a frontend engineer.&quot;</p>
       </div>
- 
+
       <div className="space-y-4">
         {/* Goal Text Input */}
         <div className="space-y-1">
@@ -79,9 +156,9 @@ export default function StepGoal({
             disabled={isValidating}
           />
         </div>
- 
-        {/* Subject/Category Input */}
-        <div className="space-y-1">
+
+        {/* Subject/Category Input with Autocomplete */}
+        <div className="space-y-1 relative">
           <Label htmlFor="subject" className="text-xs font-medium text-text-2 uppercase tracking-wider">
             Primary Subject
           </Label>
@@ -90,15 +167,42 @@ export default function StepGoal({
             type="text"
             value={subject}
             placeholder="e.g. Frontend Development"
-            onChange={(e) => {
-              onSubjectChange(e.target.value)
-              if (error) setError(false)
+            onChange={(e) => handleSubjectChange(e.target.value)}
+            onFocus={handleSubjectFocus}
+            onBlur={() => {
+              // Delay slightly so that mouseDown click registers before menu unmounts
+              setTimeout(() => setShowSuggestions(false), 200)
             }}
+            onKeyDown={handleKeyDown}
             className="h-10 border-border bg-surface-alt text-text-1 placeholder-text-3 focus:border-primary focus:ring-1 focus:ring-primary rounded-sm"
             disabled={isValidating}
+            autoComplete="off"
           />
+
+          {showSuggestions && filteredSuggestions.length > 0 && (
+            <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-surface border border-border rounded-sm shadow-xl max-h-56 overflow-y-auto z-50 animate-fadeIn">
+              {filteredSuggestions.map((suggestion, index) => (
+                <div
+                  key={suggestion}
+                  onMouseDown={(e) => {
+                    e.preventDefault() // Prevents input blur from firing before selection click
+                    onSubjectChange(suggestion)
+                    setShowSuggestions(false)
+                    setError(false)
+                  }}
+                  className={`px-4 py-2 text-sm cursor-pointer transition-colors duration-150 ${
+                    index === activeSuggestionIndex
+                      ? 'bg-primary/10 text-primary font-medium'
+                      : 'text-text-1 hover:bg-surface-alt'
+                  }`}
+                >
+                  {suggestion}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
- 
+
         {error && (
           <p className="text-xs text-error">Please fill in both your learning goal and subject.</p>
         )}
