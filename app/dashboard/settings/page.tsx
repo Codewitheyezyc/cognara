@@ -23,6 +23,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [updatingAccount, setUpdatingAccount] = useState(false)
   const [processingPrivacy, setProcessingPrivacy] = useState(false)
+  const [loadingUpgrade, setLoadingUpgrade] = useState<'monthly' | 'annual' | null>(null)
 
   // Account form fields
   const [newEmail, setNewEmail] = useState('')
@@ -156,41 +157,33 @@ export default function SettingsPage() {
     toast(`Font size set to ${sz}`)
   }
 
-  // Toggle Subscription Handler
-  const handleToggleSubscription = async (tier: 'free' | 'pro_monthly' | 'pro_yearly') => {
-    if (!user) return
+  // Paystack Upgrade Checkout Handler
+  const handleUpgrade = async (plan: 'monthly' | 'annual') => {
     try {
-      const status = tier !== 'free' ? 'active' : 'inactive'
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          subscription_tier: tier,
-          subscription_status: status,
-          subscription_end_date: null
-        })
-        .eq('id', user.id)
+      setLoadingUpgrade(plan)
+      const res = await fetch('/api/paystack/initialize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          plan,
+          cancelUrl: typeof window !== 'undefined' ? window.location.href : undefined,
+          redirectUrl: '/dashboard/settings'
+        }),
+      })
 
-      if (error) throw error
-
-      setProfile((prev: any) => ({
-        ...prev,
-        subscription_tier: tier,
-        subscription_status: status,
-        subscription_end_date: null
-      }))
-
-      if (tier === 'pro_monthly' || tier === 'pro_yearly') {
-        await supabase.rpc('grant_monthly_shields')
+      const data = await res.json()
+      if (!res.ok || !data.authorization_url) {
+        throw new Error(data.error || 'Failed to initialize payment')
       }
 
-      const tierLabel = tier === 'free' ? 'Free Plan' : tier === 'pro_monthly' ? 'Pro Monthly' : 'Pro Annual'
-      toast(`Subscription changed to ${tierLabel}!`)
-      
-      // Force reload page to apply new tier to context/cache if any
-      router.refresh()
+      // Redirect to Paystack
+      window.location.href = data.authorization_url
     } catch (err: any) {
-      console.error(err)
-      toast(err.message || 'Failed to update subscription', 'error')
+      console.error('Checkout error:', err)
+      toast(err.message || 'Unable to start checkout. Please try again.', 'error')
+      setLoadingUpgrade(null)
     }
   }
 
@@ -396,14 +389,14 @@ export default function SettingsPage() {
           )}
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="grid grid-cols-2 gap-4 bg-surface-alt/40 p-4 rounded-lg border border-border/50 text-xs">
             <div>
               <span className="text-text-2 block mb-0.5">Current Plan</span>
               <span className="font-bold text-text-1 capitalize">
                 {profile?.subscription_tier === 'pro_yearly'
                   ? 'Pro Annual'
-                  : (profile?.subscription_tier?.replace('_', ' ') || 'Free')}
+                  : (profile?.subscription_tier === 'pro_monthly' ? 'Pro Monthly' : 'Free Plan')}
               </span>
             </div>
             <div>
@@ -414,33 +407,74 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <span className="text-xs font-semibold text-text-2">Developer Controls (Simulate billing changes):</span>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button 
-                variant="outline"
-                onClick={() => handleToggleSubscription('free')}
-                disabled={profile?.subscription_tier === 'free'}
-                className="flex-1 cursor-pointer"
-              >
-                Switch to Free Plan
-              </Button>
-              <Button 
-                onClick={() => handleToggleSubscription('pro_monthly')}
-                disabled={profile?.subscription_tier === 'pro_monthly'}
-                className="flex-1 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/20 cursor-pointer"
-              >
-                Pro Monthly (₦4,500)
-              </Button>
-              <Button 
-                onClick={() => handleToggleSubscription('pro_yearly')}
-                disabled={profile?.subscription_tier === 'pro_yearly'}
-                className="flex-1 bg-primary hover:bg-primary/95 text-white cursor-pointer shadow-[0_0_12px_rgba(91,142,255,0.2)]"
-              >
-                Pro Annual (₦45,000)
-              </Button>
+          {/* Conditional Plan Options */}
+          {profile?.subscription_tier === 'pro_monthly' || profile?.subscription_tier === 'pro_yearly' ? (
+            <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex flex-col gap-2 text-xs">
+              <p className="text-text-1 font-semibold flex items-center gap-1.5">
+                <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+                You are currently subscribed to the Pro Plan!
+              </p>
+              <p className="text-text-2 leading-relaxed">
+                Your premium access is active. All premium roadmap paths, depth levels (up to Expert), coding workspaces, and analytics are unlocked. Your subscription payments are processed securely via Paystack.
+              </p>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-semibold text-text-1 mb-1">Upgrade to Premium</h3>
+                <p className="text-xs text-text-2 leading-relaxed">
+                  Choose a subscription plan below to unlock all lessons, custom study paths, expert depth explanations, and unlimited interactive learning.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Monthly Plan Card */}
+                <div className="border border-border/80 rounded-xl p-4 flex flex-col justify-between bg-surface-alt/25 hover:bg-surface-alt/45 transition">
+                  <div>
+                    <span className="text-[10px] uppercase font-mono tracking-wider text-text-3 font-bold block mb-1">Monthly Plan</span>
+                    <p className="text-lg font-bold text-text-1 font-mono">₦4,500<span className="text-xs text-text-3 font-normal font-sans">/mo</span></p>
+                    <p className="text-[10px] text-text-3 mt-1.5 leading-relaxed">Access to all features, billed month-to-month. Cancel anytime.</p>
+                  </div>
+                  <Button
+                    onClick={() => handleUpgrade('monthly')}
+                    disabled={loadingUpgrade !== null}
+                    className="mt-4 w-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 font-bold"
+                  >
+                    {loadingUpgrade === 'monthly' ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                    ) : (
+                      <Sparkles className="h-3.5 w-3.5 text-primary mr-1.5 fill-current" />
+                    )}
+                    <span>{loadingUpgrade === 'monthly' ? 'Redirecting...' : 'Upgrade Monthly'}</span>
+                  </Button>
+                </div>
+
+                {/* Annual Plan Card */}
+                <div className="border border-primary/30 rounded-xl p-4 flex flex-col justify-between bg-primary/5 hover:bg-primary/10 transition relative overflow-hidden">
+                  <div className="absolute top-0 right-0 bg-accent text-white font-bold text-[8px] px-2.5 py-0.5 rounded-bl uppercase font-mono">
+                    Save 16%
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-mono tracking-wider text-accent font-bold block mb-1">Annual Plan</span>
+                    <p className="text-lg font-bold text-text-1 font-mono">₦45,000<span className="text-xs text-text-3 font-normal font-sans">/yr</span></p>
+                    <p className="text-[10px] text-text-3 mt-1.5 leading-relaxed">Save 16% compared to the monthly plan. Billed annually.</p>
+                  </div>
+                  <Button
+                    onClick={() => handleUpgrade('annual')}
+                    disabled={loadingUpgrade !== null}
+                    className="mt-4 w-full bg-primary hover:bg-primary/95 text-white font-bold"
+                  >
+                    {loadingUpgrade === 'annual' ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                    ) : (
+                      <Sparkles className="h-3.5 w-3.5 text-white mr-1.5 fill-current" />
+                    )}
+                    <span>{loadingUpgrade === 'annual' ? 'Redirecting...' : 'Upgrade Annual'}</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

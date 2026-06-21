@@ -43,7 +43,8 @@ export function LessonPreviewModal({
         },
         body: JSON.stringify({ 
           plan,
-          cancelUrl: typeof window !== 'undefined' ? window.location.href : undefined
+          cancelUrl: typeof window !== 'undefined' ? window.location.href : undefined,
+          redirectUrl: typeof window !== 'undefined' ? (window.location.pathname + window.location.search) : undefined
         }),
       })
 

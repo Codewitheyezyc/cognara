@@ -1,5 +1,5 @@
 'use client'
-
+ 
 import React, { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -8,14 +8,68 @@ import { Home, Map, BarChart2, Flame, Search, Bell, Bookmark, Download, Sparkles
 import { ProfileDropdown } from '@/components/dashboard/ProfileDropdown'
 import { Logo } from '@/components/ui/Logo'
 import { LessonPreviewModal } from '@/components/dashboard/LessonPreviewModal'
+import { useToast } from '@/components/ui/toast'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const { toast } = useToast()
   
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
   const [isOffline, setIsOffline] = useState(false)
+
+  // Paystack transaction verification listener
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const payment = params.get('payment')
+    const reference = params.get('reference')
+
+    if (payment === 'success' && reference) {
+      const verifyPayment = async () => {
+        toast('Verifying payment, unlocking pro access...', 'info')
+        
+        try {
+          const res = await fetch('/api/paystack/verify', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ reference }),
+          })
+
+          const data = await res.json()
+          if (!res.ok || !data.success) {
+            throw new Error(data.error || 'Payment verification failed')
+          }
+
+          toast('Subscription activated successfully! Enjoy Pro access.', 'success')
+
+          // Refresh profile data locally
+          if (data.profile) {
+            setProfile(data.profile)
+          }
+
+          // Force router update so all lessons and routes refresh immediately
+          router.refresh()
+
+        } catch (err: any) {
+          console.error('Payment verification error:', err)
+          toast(err.message || 'Verification failed. Contact support.', 'error')
+        } finally {
+          // Remove payment and reference query params from URL safely
+          const url = new URL(window.location.href)
+          url.searchParams.delete('payment')
+          url.searchParams.delete('plan')
+          url.searchParams.delete('trxref')
+          url.searchParams.delete('reference')
+          window.history.replaceState({}, '', url.pathname + url.search)
+        }
+      }
+      verifyPayment()
+    }
+  }, [supabase])
 
   useEffect(() => {
     if (typeof window !== 'undefined') {

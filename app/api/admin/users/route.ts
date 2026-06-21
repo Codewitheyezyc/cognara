@@ -164,22 +164,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Cannot delete the admin account' }, { status: 400 })
     }
 
-    const adminClient = getAdminClient()
-    
-    // First, try deleting auth user (this will cascade delete profile in a linked DB setup, or we delete profile manually)
-    let deletedAuth = false
-    try {
-      const { error: authDeleteError } = await adminClient.auth.admin.deleteUser(userId)
-      if (!authDeleteError) {
-        deletedAuth = true
-      } else {
-        console.warn('[Admin User DELETE] Auth service deletion failed (likely mock service role key):', authDeleteError.message)
-      }
-    } catch (e) {
-      console.warn('[Admin User DELETE] Auth delete throw:', e)
-    }
-
-    // Delete from profiles (fallback / explicit deletion of database entry)
+    // Delete from profiles (which will automatically trigger deletion of auth.users via database trigger)
     const { error: dbDeleteError } = await supabase
       .from('profiles')
       .delete()
@@ -191,9 +176,7 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ 
       success: true, 
-      message: deletedAuth 
-        ? 'User fully deleted from Auth and Database' 
-        : 'User deleted from Database profiles (auth record might persist if using mock service key)' 
+      message: 'User account successfully deleted from database and auth'
     })
 
   } catch (err: any) {

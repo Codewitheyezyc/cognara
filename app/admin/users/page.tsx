@@ -1,12 +1,13 @@
 'use client'
-
+ 
 import React, { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { 
   Search, ShieldAlert, Sparkles, Mail, Trash2, 
   ChevronDown, ShieldCheck, ArrowRight, RefreshCw, Eye
 } from 'lucide-react'
-
+ 
 interface UserItem {
   id: string
   name: string | null
@@ -18,7 +19,7 @@ interface UserItem {
   current_subject: string
   last_active: string
 }
-
+ 
 export default function AdminUsersList() {
   const [users, setUsers] = useState<UserItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -29,7 +30,8 @@ export default function AdminUsersList() {
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null)
   const [toastMsg, setToastMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
-
+  const [mounted, setMounted] = useState(false)
+ 
   const fetchUsers = async () => {
     try {
       const res = await fetch('/api/admin/users')
@@ -43,9 +45,10 @@ export default function AdminUsersList() {
       setLoading(false)
     }
   }
-
+ 
   useEffect(() => {
     fetchUsers()
+    setMounted(true)
   }, [])
 
   const showToast = (text: string, type: 'success' | 'error' = 'success') => {
@@ -376,8 +379,8 @@ export default function AdminUsersList() {
       </div>
 
       {/* DELETE CONFIRMATION MODAL */}
-      {deleteConfirmId && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+      {deleteConfirmId && mounted && createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4 backdrop-blur-xs">
           <div className="bg-surface border border-border p-6 rounded-2xl max-w-sm w-full space-y-4 shadow-2xl animate-page-enter">
             <div className="flex items-center space-x-3 text-error">
               <ShieldAlert className="h-6 w-6" />
@@ -413,7 +416,8 @@ export default function AdminUsersList() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function POST(req: Request) {
   try {
-    const { plan, cancelUrl } = await req.json()
+    const { plan, cancelUrl, redirectUrl } = await req.json()
 
     if (!plan || !['monthly', 'annual'].includes(plan)) {
       return NextResponse.json({ error: 'Invalid plan. Must be "monthly" or "annual".' }, { status: 400 })
@@ -31,8 +31,25 @@ export async function POST(req: Request) {
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.cognaralearn.com'
-    const callbackUrl = `${appUrl}/dashboard/settings?payment=success&plan=${plan}`
-    const cancelAction = cancelUrl || `${appUrl}/dashboard/settings`
+    
+    // Determine the base success redirect path
+    let redirectPath = '/dashboard/settings'
+    if (redirectUrl) {
+      try {
+        if (redirectUrl.startsWith('http')) {
+          const parsed = new URL(redirectUrl)
+          redirectPath = parsed.pathname + parsed.search
+        } else {
+          redirectPath = redirectUrl
+        }
+      } catch (e) {
+        redirectPath = redirectUrl
+      }
+    }
+
+    const separator = redirectPath.includes('?') ? '&' : '?'
+    const callbackUrl = `${appUrl}${redirectPath}${separator}payment=success&plan=${plan}`
+    const cancelAction = cancelUrl || `${appUrl}${redirectPath}`
 
     // Initialize Paystack transaction
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
