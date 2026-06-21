@@ -49,10 +49,14 @@ export async function POST(req: Request) {
     const customerCode = txData.customer?.customer_code || ''
     const tier = planType === 'annual' ? 'pro_yearly' : 'pro_monthly'
 
-    // 5. Update user's profile with elevated service role client
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-    const adminSupabase = createBaseClient(supabaseUrl, supabaseServiceKey)
+    // 5. Update user's profile with elevated service role client if available, otherwise fallback to the authenticated user client
+    const hasServiceKey = 
+      process.env.SUPABASE_SERVICE_ROLE_KEY && 
+      process.env.SUPABASE_SERVICE_ROLE_KEY !== 'placeholder_service_role_key_for_dev'
+
+    const adminSupabase = hasServiceKey
+      ? createBaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+      : serverSupabase
 
     const { data: updatedProfile, error: dbError } = await adminSupabase
       .from('profiles')
