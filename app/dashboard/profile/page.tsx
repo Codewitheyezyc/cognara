@@ -348,6 +348,7 @@ export default function ProfilePage() {
   
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [timezoneList, setTimezoneList] = useState<string[]>(defaultTimezones)
+  const [isPro, setIsPro] = useState(false)
 
   useEffect(() => {
     if (typeof Intl !== 'undefined' && typeof Intl.supportedValuesOf === 'function') {
@@ -416,6 +417,17 @@ export default function ProfilePage() {
           if (profile) {
             setAvatarUrl(profile.avatar_url || null)
             setUserName(profile.name || '')
+            
+            const tier = profile.subscription_tier || 'free'
+            const status = profile.subscription_status || 'inactive'
+            const endDate = profile.subscription_end_date || null
+            const isProTier = tier === 'pro_monthly' || tier === 'pro_yearly'
+            const isStatusActive = status === 'active' || status === 'trialing' || status === 'trailing'
+            const isExpired = endDate ? new Date(endDate) < new Date() : false
+            const isUserPro = (isProTier && isStatusActive && !isExpired) || 
+                              user.id === '4c1fbae5-c423-42e7-8394-1112fe00d42e' ||
+                              user.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID
+            setIsPro(isUserPro)
             
             // Auto detect timezone on first load if it's empty
             const autoDetectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -582,7 +594,7 @@ export default function ProfilePage() {
       const { error } = await supabase
         .from('profiles')
         .update({
-          default_depth_level: values.default_depth_level,
+          default_depth_level: !isPro ? 2 : values.default_depth_level,
           daily_study_minutes: values.daily_study_minutes,
           preferred_study_time: values.preferred_study_time
         })
@@ -997,18 +1009,29 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
                   {depthLevels.map(item => {
                     const isSelected = field.value === item.value
+                    const isLvlLocked = !isPro && item.value !== 2
                     return (
                       <button
                         type="button"
                         key={item.value}
-                        onClick={() => field.onChange(item.value)}
+                        disabled={isLvlLocked}
+                        onClick={() => {
+                          if (!isLvlLocked) {
+                            field.onChange(item.value)
+                          }
+                        }}
                         className={`text-center py-3 px-2 rounded-md border transition-all duration-150 cursor-pointer flex flex-col justify-center gap-1 ${
-                          isSelected
-                            ? 'border-primary bg-primary/10 text-primary'
-                            : 'border-border bg-transparent hover:bg-surface-alt/50 text-text-2'
+                          isLvlLocked
+                            ? 'opacity-55 cursor-not-allowed border-border/80 bg-surface-alt/20'
+                            : isSelected
+                              ? 'border-primary bg-primary/10 text-primary'
+                              : 'border-border bg-transparent hover:bg-surface-alt/50 text-text-2'
                         }`}
                       >
-                        <span className="font-semibold text-xs">{item.label}</span>
+                        <span className="font-semibold text-xs flex items-center justify-center gap-1">
+                          {isLvlLocked && <Lock className="h-3.5 w-3.5 text-text-3 shrink-0" />}
+                          {item.label}
+                        </span>
                         <span className="text-[9px] font-mono opacity-80">Lvl {item.value}</span>
                       </button>
                     )

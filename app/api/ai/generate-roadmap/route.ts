@@ -105,13 +105,15 @@ export async function POST(request: Request) {
       console.warn('[Intent Mapping] Failed to standardize subject, falling back to original:', err)
     }
 
+    const resolvedDepth = (!isPro && !isAdmin) ? 2 : Number(learningDepth || 2);
+
     // 3. Update Profile Name, Learning Depth, & Learning Style if provided
     if (name || learningDepth || learningStyleDetail) {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
           ...(name ? { name } : {}),
-          ...(learningDepth ? { learning_depth: Number(learningDepth) } : {}),
+          ...(learningDepth ? { learning_depth: resolvedDepth } : {}),
           ...(learningStyleDetail ? { learning_style_detail: learningStyleDetail } : {})
         })
         .eq('id', user.id)
@@ -122,7 +124,7 @@ export async function POST(request: Request) {
     }
 
     // 4. Generate the curriculum roadmap (simulated AI)
-    const generatedRoadmap = await generateRoadmap(goalText, standardizedSubject, level, Number(dailyMinutes), Number(learningDepth || 2))
+    const generatedRoadmap = await generateRoadmap(goalText, standardizedSubject, level, Number(dailyMinutes), resolvedDepth)
 
     const usage = (generatedRoadmap as any)._usage
     if (usage) {
@@ -150,7 +152,7 @@ export async function POST(request: Request) {
         subject: standardizedSubject,
         level,
         daily_minutes: Number(dailyMinutes),
-        depth_level: Number(learningDepth || 2),
+        depth_level: resolvedDepth,
         is_active: true,
       })
       .select('id')

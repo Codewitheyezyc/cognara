@@ -53,6 +53,8 @@ export default function StepDepth({ depth, onChange, onNext, onBack, isPro = fal
     onChange(value)
   }
 
+  const displayedLevels = isPro ? depthLevels : depthLevels.filter(item => item.value === 2)
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -62,7 +64,7 @@ export default function StepDepth({ depth, onChange, onNext, onBack, isPro = fal
       </div>
 
       <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
-        {depthLevels.map((item) => {
+        {(isPro ? depthLevels : depthLevels.filter(item => item.value === 2)).map((item) => {
           const isSelected = depth === item.value
           const isLvlLocked = !isPro && item.value !== 2
           return (
