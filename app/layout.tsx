@@ -49,10 +49,10 @@ export const metadata: Metadata = {
     siteName: "Cognara",
     images: [
       {
-        url: "/og-image.png",
+        url: "/images/dashboard-dark.png",
         width: 1200,
-        height: 630,
-        alt: "Cognara — AI Learning Operating System Preview",
+        height: 675,
+        alt: "Cognara — AI Learning Operating System Dashboard",
       }
     ],
     locale: "en_US",
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Cognara — AI Learning Operating System",
     description: "Your mind. Your path. Your era. Dynamically generated personalized roadmaps, lessons, and quizzes.",
-    images: ["/og-image.png"],
+    images: ["/images/dashboard-dark.png"],
   },
   robots: {
     index: true,
