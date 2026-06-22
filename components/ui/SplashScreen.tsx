@@ -49,7 +49,14 @@ export function SplashScreen() {
     >
       <div className="flex flex-col items-center justify-center space-y-6">
         {/* Animated Mascot Logo */}
-        <div className="animate-splash-logo relative">
+        <div 
+          className="animate-splash-logo relative"
+          style={{ 
+            opacity: 0, 
+            transform: 'scale(0.3) rotate(-8deg)', 
+            filter: 'blur(8px)' 
+          }}
+        >
           <Logo className="w-24 h-24 sm:w-28 sm:h-28" />
           {/* Subtle glowing halo behind logo */}
           <div className="absolute inset-0 -z-10 rounded-full bg-primary/10 blur-xl animate-pulse-subtle scale-110" />
@@ -59,10 +66,13 @@ export function SplashScreen() {
         <div className="flex flex-col items-center space-y-2 text-center">
           {/* Title */}
           <h1
-            className="animate-splash-text text-3xl sm:text-4xl font-extrabold tracking-widest text-[#F0F4FF] opacity-0"
+            className="animate-splash-text text-3xl sm:text-4xl font-extrabold tracking-widest text-[#F0F4FF]"
             style={{
               fontFamily: 'var(--font-heading)',
               textShadow: '0 0 20px rgba(91,142,255,0.15)',
+              opacity: 0,
+              transform: 'translateY(12px)',
+              filter: 'blur(2px)'
             }}
           >
             COGNARA
@@ -70,10 +80,13 @@ export function SplashScreen() {
 
           {/* Subtitle */}
           <p
-            className="animate-splash-text text-[10px] sm:text-xs font-bold uppercase tracking-[0.25em] text-[#8B95B3] opacity-0"
+            className="animate-splash-text text-[10px] sm:text-xs font-bold uppercase tracking-[0.25em] text-[#8B95B3]"
             style={{
               animationDelay: '0.8s',
               fontFamily: 'var(--font-sans)',
+              opacity: 0,
+              transform: 'translateY(12px)',
+              filter: 'blur(2px)'
             }}
           >
             AI Learning Operating System
