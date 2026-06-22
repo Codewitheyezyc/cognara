@@ -312,3 +312,63 @@
 .font-signature {
   font-family: 'Dancing Script', 'Brush Script MT', cursive;
 }
+
+/* ===== SPLASH SCREEN ANIMATIONS ===== */
+@keyframes splashLogoPop {
+  0% {
+    transform: scale(0.3) rotate(-8deg);
+    opacity: 0;
+    filter: blur(8px);
+  }
+  65% {
+    transform: scale(1.08) rotate(1deg);
+    opacity: 1;
+    filter: blur(0px);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
+@keyframes splashTextFade {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(2px);
+    letter-spacing: 0.35em;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0px);
+    letter-spacing: 0.15em;
+  }
+}
+
+@keyframes splashFadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.03);
+    filter: blur(4px);
+    visibility: hidden;
+  }
+}
+
+.animate-splash-logo {
+  animation: splashLogoPop 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-splash-text {
+  animation: splashTextFade 1.3s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+}
+
+.animate-splash-overlay-out {
+  animation: splashFadeOut 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

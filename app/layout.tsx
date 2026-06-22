@@ -77,6 +77,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { SplashScreen } from "@/components/ui/SplashScreen";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -113,7 +115,10 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-bg text-text-1">
         <ToastProvider>
-          <QueryProvider>{children}</QueryProvider>
+          <QueryProvider>
+            <SplashScreen />
+            {children}
+          </QueryProvider>
         </ToastProvider>
       </body>
     </html>
