@@ -57,7 +57,8 @@ export default function AdminUsersList() {
   }
 
   const handleUpdatePlan = async (userId: string, currentTier: string) => {
-    const nextTier = currentTier === 'pro' ? 'free' : 'pro'
+    const isCurrentPro = currentTier === 'pro' || currentTier === 'pro_monthly' || currentTier === 'pro_yearly'
+    const nextTier = isCurrentPro ? 'free' : 'pro_monthly'
     setUpdatingUserId(userId)
     setActiveDropdownId(null)
     try {

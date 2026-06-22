@@ -43,12 +43,12 @@ export async function checkRateLimit(
     return { allowed: true, count: 0, limit: 999999 }
   }
 
-  // Raise default limits for free users during testing/launch
+  // Enforce strict limits for free users to protect API costs
   let dynamicLimit = limitDaily
-  if (route === 'lesson' && limitDaily < 100) dynamicLimit = 100
-  if (route === 'quiz' && limitDaily < 100) dynamicLimit = 100
-  if (route === 'roadmap' && limitDaily < 20) dynamicLimit = 20
-  if (route === 'insight' && limitDaily < 10) dynamicLimit = 10
+  if (route === 'lesson') dynamicLimit = 2
+  if (route === 'quiz') dynamicLimit = 2
+  if (route === 'roadmap') dynamicLimit = 1
+  if (route === 'insight') dynamicLimit = 0
 
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
 

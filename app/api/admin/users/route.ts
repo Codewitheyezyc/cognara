@@ -118,12 +118,13 @@ export async function PUT(request: Request) {
     }
 
     // 3. Update subscription details
-    const isPro = tier === 'pro'
+    const isPro = tier === 'pro' || tier === 'pro_monthly' || tier === 'pro_yearly'
+    const resolvedTier = isPro ? 'pro_monthly' : 'free'
     const { error: updateError } = await supabase
       .from('profiles')
       .update({
-        subscription_tier: tier,
-        plan: tier,
+        subscription_tier: resolvedTier,
+        plan: resolvedTier,
         subscription_status: isPro ? 'active' : 'inactive',
         subscription_start_date: isPro ? new Date().toISOString() : null,
         subscription_end_date: null // Unlimited tier or manual

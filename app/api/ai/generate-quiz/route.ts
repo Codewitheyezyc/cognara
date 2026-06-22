@@ -192,11 +192,11 @@ export async function POST(request: Request) {
       }
     }
 
-    // 6.7. Enforce Rate Limit (30 per day)
+    // 6.7. Enforce Rate Limit (2 per day for free, unlimited/managed for pro)
     const rateLimit = await checkRateLimit(supabase, user.id, 'quiz', 30)
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: 'Daily quiz generation limit reached. Please try again tomorrow.' },
+        { error: 'You have reached your daily limit of 2 new quizzes on the free tier. Upgrade to Pro for unlimited daily quizzes.' },
         { status: 429 }
       )
     }
