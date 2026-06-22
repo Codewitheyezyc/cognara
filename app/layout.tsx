@@ -30,8 +30,12 @@ export const metadata: Metadata = {
   description: "Your mind. Your path. Your era. Dynamically generated personalized roadmaps, lessons, and quizzes.",
   manifest: "/manifest.json",
   icons: {
-    icon: "/icon.svg",
-    apple: "/icon.svg",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon.png", type: "image/png" }
+    ],
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
   },
   keywords: [
     "Cognara", "Cognaralearn", "AI learning", "personalized roadmaps", 
@@ -45,20 +49,20 @@ export const metadata: Metadata = {
     siteName: "Cognara",
     images: [
       {
-        url: "/logo.svg",
-        width: 512,
-        height: 512,
-        alt: "Cognara Logo",
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Cognara — AI Learning Operating System Preview",
       }
     ],
     locale: "en_US",
     type: "website",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Cognara — AI Learning Operating System",
     description: "Your mind. Your path. Your era. Dynamically generated personalized roadmaps, lessons, and quizzes.",
-    images: ["/logo.svg"],
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,
