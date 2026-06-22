@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     // Send notification to you (the owner)
     await resend.emails.send({
       from: 'Cognara Contact <noreply@cognaralearn.com>',
-      to: process.env.CONTACT_RECEIVER_EMAIL || 'noreply@cognaralearn.com',
+      to: process.env.CONTACT_RECEIVER_EMAIL || 'hello@cognaralearn.com',
       subject: `[Cognara Contact] ${subject} — from ${name}`,
       html: `
         <h2>New contact form submission</h2>
