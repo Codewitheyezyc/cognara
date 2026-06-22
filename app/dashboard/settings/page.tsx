@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { 
   Settings, User, Mail, ShieldAlert, CreditCard, Sparkles, 
-  Trash2, Download, AlertCircle, Sun, Moon, Laptop, Loader2 
+  Trash2, Download, AlertCircle, Sun, Moon, Laptop, Loader2,
+  Bell
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -33,6 +34,11 @@ export default function SettingsPage() {
   // Appearance fields
   const [theme, setTheme] = useState<'dark' | 'light' | 'system'>('dark')
   const [fontSize, setFontSize] = useState<'normal' | 'large'>('normal')
+
+  // Daily reminder fields
+  const [reminderEnabled, setReminderEnabled] = useState(false)
+  const [reminderTime, setReminderTime] = useState('09:00')
+  const [savingReminders, setSavingReminders] = useState(false)
 
   // Modals state
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false)
@@ -59,6 +65,8 @@ export default function SettingsPage() {
           if (userProfile) {
             setProfile(userProfile)
             setFontSize(userProfile.font_size || 'normal')
+            setReminderEnabled(userProfile.reminder_enabled || false)
+            setReminderTime(userProfile.reminder_time || '09:00')
           }
         }
 
@@ -280,9 +288,35 @@ export default function SettingsPage() {
     } catch (err) {
       console.error(err)
       toast('Failed to delete account', 'error')
+    }
+  }
+
+  // Save Reminder Settings Handler
+  const handleSaveReminderSettings = async () => {
+    if (!user) return
+    setSavingReminders(true)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          reminder_enabled: reminderEnabled,
+          reminder_time: reminderTime
+        })
+        .eq('id', user.id)
+
+      if (error) throw error
+      toast('Reminder settings saved successfully!')
+      
+      setProfile((prev: any) => ({
+        ...prev,
+        reminder_enabled: reminderEnabled,
+        reminder_time: reminderTime
+      }))
+    } catch (err: any) {
+      console.error(err)
+      toast(err.message || 'Failed to save reminder settings', 'error')
     } finally {
-      setDeletingAccount(false)
-      setShowDeleteAccountModal(false)
+      setSavingReminders(false)
     }
   }
 
@@ -511,6 +545,65 @@ export default function SettingsPage() {
                 </button>
               )
             })}
+          </div>
+        </div>
+      </div>
+
+      {/* DAILY REMINDER SECTION */}
+      <div className="rounded-[10px] border border-border bg-surface p-6 shadow-md space-y-6">
+        <div className="flex items-center space-x-2 text-primary border-b border-border pb-3">
+          <Bell className="h-5 w-5" strokeWidth={1.5} />
+          <h2 className="font-heading text-xl font-bold text-text-1">Daily Reminder</h2>
+        </div>
+
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-sm font-semibold text-text-1">Daily study reminder</Label>
+              <p className="text-xs text-text-3 mt-1">We will email you when it is time to study</p>
+            </div>
+            <button
+              onClick={() => setReminderEnabled(!reminderEnabled)}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                reminderEnabled ? 'bg-primary' : 'bg-surface-alt border border-border/80'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out ${
+                  reminderEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          {reminderEnabled && (
+            <div className="space-y-2 animate-fade-in">
+              <Label htmlFor="reminderTime" className="text-xs text-text-2 font-semibold">
+                What time should we remind you?
+              </Label>
+              <div className="flex gap-4 items-center">
+                <Input
+                  id="reminderTime"
+                  type="time"
+                  value={reminderTime}
+                  onChange={(e) => setReminderTime(e.target.value)}
+                  className="w-full sm:w-auto"
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end pt-2">
+            <Button onClick={handleSaveReminderSettings} disabled={savingReminders}>
+              {savingReminders ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                  Saving...
+                </>
+              ) : (
+                'Save reminder settings'
+              )}
+            </Button>
           </div>
         </div>
       </div>

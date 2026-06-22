@@ -13,6 +13,7 @@ import { OfflinePwa } from '@/components/marketing/OfflinePwa'
 import { WhyCognara } from '@/components/marketing/WhyCognara'
 import { PricingSection } from '@/components/marketing/PricingSection'
 import { FaqSection } from '@/components/marketing/FaqSection'
+import { ContactSection } from '@/components/marketing/ContactSection'
 import { LandingFooter } from '@/components/marketing/LandingFooter'
 
 export default function MarketingPage() {
@@ -56,6 +57,8 @@ export default function MarketingPage() {
         <PricingSection />
         <FaqSection />
       </main>
+
+      <ContactSection />
 
       <LandingFooter />
     </div>
