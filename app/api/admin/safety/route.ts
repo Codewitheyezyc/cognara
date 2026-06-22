@@ -112,7 +112,7 @@ export async function GET() {
     // Format logs with user info and flags
     const formattedLogs = logs.map(l => {
       const uId = l.user_id || ''
-      const p = profileMap.get(uId) || { name: 'Unknown Learner', email: 'unknown@cognara.com' }
+      const p = profileMap.get(uId) || { name: 'Unknown Learner', email: 'unknown@cognaralearn.com' }
       const lifetime = lifetimeRejections.get(uId) || 0
       const daily = dailyRejections.get(uId) || 0
 

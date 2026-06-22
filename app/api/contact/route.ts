@@ -40,7 +40,7 @@ export async function POST(req: Request) {
 
     // Send confirmation to the visitor
     await resend.emails.send({
-      from: 'Cognara <noreply@cognaralearn.com>',
+      from: 'Cognara <hello@cognaralearn.com>',
       to: email,
       subject: `We received your message, ${name.split(' ')[0]}`,
       html: `

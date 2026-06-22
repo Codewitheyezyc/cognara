@@ -193,7 +193,7 @@ export function ProfileDropdown({ profile, email, recentBadgeEmoji, onSignOut }:
           {/* Section 4: Secondary Links */}
           <div className="space-y-0.5">
             <a
-              href="mailto:support@cognara.com"
+              href="mailto:support@cognaralearn.com"
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-text-1 hover:bg-surface rounded-md transition duration-100"
             >
