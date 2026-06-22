@@ -67,6 +67,13 @@ export function LandingHeader({
           >
             FAQ
           </a>
+          <a 
+            href="#contact" 
+            onClick={(e) => handleScrollToSection(e, 'contact')}
+            className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150"
+          >
+            Contact
+          </a>
         </nav>
 
         <div className="flex items-center space-x-3">
@@ -149,6 +156,16 @@ export function LandingHeader({
               className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
             >
               FAQ
+            </a>
+            <a 
+              href="#contact" 
+              onClick={(e) => {
+                setMobileMenuOpen(false)
+                handleScrollToSection(e, 'contact')
+              }}
+              className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
+            >
+              Contact
             </a>
           </nav>
           
