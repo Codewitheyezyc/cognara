@@ -46,8 +46,9 @@ export async function POST(req: Request) {
       html: `
         <div style="font-family: Inter, sans-serif; max-width: 520px;
                     margin: 0 auto; padding: 40px 20px;
-                    background: #0A0C14; color: #F0F4FF;">
-          <h2 style="color: #5B8EFF;">⚡ Cognara</h2>
+                    background: #0A0C14; color: #F0F4FF; text-align: center;">
+          <img src="${appUrl}/icon-192.png" width="48" height="48" alt="Cognara" style="margin: 0 auto 8px; display: block;" />
+          <h2 style="color: #5B8EFF; margin: 0; font-size: 20px;">Cognara</h2>
           <h3 style="color: #F0F4FF;">
             Thanks for reaching out, ${name.split(' ')[0]}!
           </h3>

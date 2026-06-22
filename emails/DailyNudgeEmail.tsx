@@ -1,6 +1,6 @@
 import {
   Html, Head, Body, Container, Section,
-  Text, Button, Hr, Preview
+  Text, Button, Hr, Preview, Img
 } from '@react-email/components'
 import * as React from 'react'
 
@@ -49,14 +49,21 @@ export function DailyNudgeEmail({
             padding: '28px 32px 0',
             textAlign: 'center'
           }}>
+            <Img
+              src={`${appUrl}/icon-192.png`}
+              width="48"
+              height="48"
+              alt="Cognara"
+              style={{ margin: '0 auto 8px', display: 'block' }}
+            />
             <Text style={{
               color: '#5B8EFF',
-              fontSize: '22px',
+              fontSize: '20px',
               fontWeight: '700',
-              margin: '0 0 4px',
+              margin: '0',
               letterSpacing: '-0.02em'
             }}>
-              Cognara ⚡
+              Cognara
             </Text>
           </Section>
 
