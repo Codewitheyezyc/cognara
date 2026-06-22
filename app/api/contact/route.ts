@@ -22,8 +22,8 @@ export async function POST(req: Request) {
 
     // Send notification to you (the owner)
     await resend.emails.send({
-      from: 'Cognara Contact <hello@cognaralearn.com>',
-      to: 'hello@cognaralearn.com',
+      from: 'Cognara Contact <noreply@cognaralearn.com>',
+      to: process.env.CONTACT_RECEIVER_EMAIL || 'noreply@cognaralearn.com',
       subject: `[Cognara Contact] ${subject} — from ${name}`,
       html: `
         <h2>New contact form submission</h2>
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
 
     // Send confirmation to the visitor
     await resend.emails.send({
-      from: 'Cognara <hello@cognaralearn.com>',
+      from: 'Cognara <noreply@cognaralearn.com>',
       to: email,
       subject: `We received your message, ${name.split(' ')[0]}`,
       html: `

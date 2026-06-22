@@ -22,7 +22,7 @@ export async function sendDailyNudge(params: {
 }) {
   const resend = getResendClient()
   await resend.emails.send({
-    from: 'Cognara <hello@cognara.com>',
+    from: 'Cognara <noreply@cognaralearn.com>',
     to: params.to,
     subject: params.streakDays > 0
       ? `🔥 ${params.streakDays} day streak — keep going, ${params.userName}`
