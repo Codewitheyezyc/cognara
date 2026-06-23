@@ -223,11 +223,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ content: sharedLessonContent })
     }
 
-    // 7. Enforce Rate Limit (2 per day for free, unlimited/managed for pro)
+    // 7. Enforce Rate Limit (30 per day)
     const rateLimit = await checkRateLimit(supabase, user.id, 'lesson', 30)
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: 'You have reached your daily limit of 2 new lessons on the free tier. Upgrade to Pro for unlimited daily lessons.' },
+        { error: 'Daily lesson generation limit reached. Please try again tomorrow.' },
         { status: 429 }
       )
     }
