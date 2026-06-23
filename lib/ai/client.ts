@@ -45,9 +45,12 @@ export async function callClaudeJSON<T>(
   }
 
   // API key present — call Claude
+  let lastError: any = null
+  let currentModel = model
+
   try {
     const response = await anthropic.messages.create({
-      model: model,
+      model: currentModel,
       max_tokens: 4000,
       temperature: 0.2,
       system: systemPrompt,
@@ -72,20 +75,67 @@ export async function callClaudeJSON<T>(
       (parsed as any)._usage = {
         input_tokens: response.usage.input_tokens,
         output_tokens: response.usage.output_tokens,
-        model: response.model || 'claude-sonnet-4-6'
+        model: response.model || currentModel
       }
     }
     return parsed
 
   } catch (error: any) {
-    // Extract meaningful reason from Anthropic's error structure
+    lastError = error
     const status = error?.status ?? error?.statusCode ?? 'unknown'
     const msg = error?.error?.message ?? error?.message ?? String(error)
 
     // Log the detailed error message for developer diagnostics (server logs)
-    console.error(`[Claude] Failed — HTTP ${status}: ${msg}`)
+    console.error(`[Claude] Primary model (${currentModel}) failed — HTTP ${status}: ${msg}`)
 
-    // Throw a clean, generic user-facing message to prevent exposing internal API keys/credit issues
-    throw new Error('Cognara is experiencing temporary system maintenance. Please try again shortly.')
+    // If the primary model failed and it is not already our fallback model (claude-haiku-4-5-20251001),
+    // attempt to fall back to it.
+    if (currentModel !== 'claude-haiku-4-5-20251001') {
+      const fallbackModel = 'claude-haiku-4-5-20251001'
+      console.warn(`⚠️ [Claude] Attempting fallback to ${fallbackModel}...`)
+      try {
+        const response = await anthropic.messages.create({
+          model: fallbackModel,
+          max_tokens: 4000,
+          temperature: 0.2,
+          system: systemPrompt,
+          messages: [
+            {
+              role: 'user',
+              content: userPrompt
+            }
+          ]
+        })
+
+        const textContent = response.content[0].type === 'text'
+          ? response.content[0].text
+          : ''
+
+        const jsonMatch = textContent.match(/\{[\s\S]*\}/)
+        const jsonString = jsonMatch ? jsonMatch[0] : textContent
+
+        const parsed = JSON.parse(jsonString) as T
+        if (parsed && typeof parsed === 'object') {
+          (parsed as any)._usage = {
+            input_tokens: response.usage.input_tokens,
+            output_tokens: response.usage.output_tokens,
+            model: response.model || fallbackModel,
+            fallbackUsed: true
+          }
+        }
+        console.log(`✅ [Claude] Fallback to ${fallbackModel} succeeded!`)
+        return parsed
+
+      } catch (fallbackError: any) {
+        lastError = fallbackError
+        const fbStatus = fallbackError?.status ?? fallbackError?.statusCode ?? 'unknown'
+        const fbMsg = fallbackError?.error?.message ?? fallbackError?.message ?? String(fallbackError)
+        console.error(`[Claude] Fallback model (${fallbackModel}) also failed — HTTP ${fbStatus}: ${fbMsg}`)
+      }
+    }
   }
+
+  // If we reach here, both primary and fallback failed.
+  // Throw a clean, generic user-facing message to prevent exposing internal API keys/credit issues
+  throw new Error('Cognara is experiencing temporary system maintenance. Please try again shortly.')
 }
