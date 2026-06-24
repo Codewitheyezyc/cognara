@@ -10,6 +10,7 @@ import { QuizQuestion } from '@/types/ai'
 import AIBadge from '@/components/lesson/AIBadge'
 import { QuizResultModal } from '@/components/mascot/QuizResultModal'
 import MascotOverlay from '@/components/mascot/MascotOverlay'
+import { Spark } from '@/components/mascot/Spark'
 
 const BADGE_DESCRIPTIONS: Record<string, string> = {
   phase_1: 'Completed Phase 1',
@@ -371,6 +372,47 @@ export default function QuizPage() {
   const totalQuestions = questions.length
   const progressPercent = (questionNumber / totalQuestions) * 100
 
+  // Derive Spark's state during the quiz
+  let sparkEmotion: 'idle' | 'happy' | 'celebrate' | 'thinking' | 'wave' = 'thinking'
+  let sparkBubble = "Read the question carefully and choose the best option."
+  const isCorrect = selectedAnswer.trim().toLowerCase() === currentQuestion.correct_answer.trim().toLowerCase()
+
+  if (isAnswerChecked) {
+    if (isCorrect) {
+      sparkEmotion = currentIdx % 2 === 0 ? 'celebrate' : 'happy'
+      const correctBubbles = [
+        "Fabulous! Synaptic connection established! 🧠",
+        "Spot on! Your cognitive accuracy is peak. ⚡",
+        "Excellent choice! You've mastered this concept. 🏆",
+        "Correct! Keep up this incredible mental focus. 🚀"
+      ]
+      sparkBubble = correctBubbles[currentIdx % correctBubbles.length]
+    } else {
+      sparkEmotion = currentIdx % 2 === 0 ? 'thinking' : 'wave'
+      const incorrectBubbles = [
+        "Synapse misfire! Let's check the explanation below. 🔍",
+        "Not quite, but every mistake is a learning hook! 🔄",
+        "Almost! Review the explanation to reinforce your learning. 📚",
+        "No worries, mistakes are how our brains adapt! 🧠"
+      ]
+      sparkBubble = incorrectBubbles[currentIdx % incorrectBubbles.length]
+    }
+  } else {
+    if (selectedAnswer) {
+      sparkEmotion = 'idle'
+      sparkBubble = "Looking good! Click 'Check Answer' to test your hypothesis. 🧪"
+    } else {
+      sparkEmotion = 'thinking'
+      const thinkingBubbles = [
+        "Activate your critical thinking pathways! ⚡",
+        "Take your time... Let's analyze this concept carefully. 🧠",
+        "Select the option that matches the cognitive target. 🎯",
+        "Study the options. Which one makes the most sense? 📚"
+      ]
+      sparkBubble = thinkingBubbles[currentIdx % thinkingBubbles.length]
+    }
+  }
+
   return (
     <div className="min-h-screen bg-bg text-text-1 flex flex-col animate-page-enter">
       {/* Minimal Focus Header */}
@@ -409,6 +451,31 @@ export default function QuizPage() {
           <h2 className="font-heading text-lg md:text-xl font-semibold leading-snug text-text-1">
             {currentQuestion.question}
           </h2>
+        </div>
+
+        {/* Live Spark Mascot Feedback & Guidance */}
+        <div className={`p-4 border rounded-xl flex items-center gap-4 transition-all duration-300 ${
+          isAnswerChecked 
+            ? isCorrect 
+              ? 'border-success/20 bg-success/5 shadow-[0_0_12px_rgba(16,185,129,0.04)]' 
+              : 'border-error/20 bg-error/5 shadow-[0_0_12px_rgba(239,68,68,0.04)]' 
+            : 'border-border/80 bg-surface-alt/45'
+        }`}>
+          <div className="shrink-0 flex items-center justify-center p-1 bg-surface rounded-xl border border-border/40">
+            <Spark emotion={sparkEmotion} size={48} />
+          </div>
+          <div className="flex-grow space-y-0.5 min-w-0">
+            <span className="text-[9px] font-mono font-bold text-primary uppercase tracking-wider block">Spark Coach</span>
+            <p className={`text-[12px] font-medium leading-relaxed ${
+              isAnswerChecked 
+                ? isCorrect 
+                  ? 'text-success' 
+                  : 'text-error' 
+                : 'text-text-2'
+            }`}>
+              {sparkBubble}
+            </p>
+          </div>
         </div>
 
         {/* Inputs based on type */}

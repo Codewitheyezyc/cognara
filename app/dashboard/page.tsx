@@ -9,6 +9,7 @@ import { getUserSubscription } from '@/lib/subscription'
 import StreakVitals from '@/components/dashboard/StreakVitals'
 import { getLevelInfo } from '@/lib/leveling'
 import QuestsWidget from '@/components/dashboard/QuestsWidget'
+import SparkDialogue from '@/components/dashboard/SparkDialogue'
 
 export const dynamic = 'force-dynamic'
 
@@ -147,6 +148,13 @@ export default async function DashboardPage() {
         userName={name}
         hasSeenWelcome={hasSeenWelcome}
         currentStreak={streakData.current_streak}
+      />
+
+      {/* Live Mascot Spark Dialogue Bubble banner */}
+      <SparkDialogue
+        userName={name}
+        streak={streakData.current_streak}
+        level={levelInfo.level}
       />
 
       {/* 1. Welcoming Header */}
