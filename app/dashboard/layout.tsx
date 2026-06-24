@@ -509,9 +509,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Unified Topbar/Navbar for mobile and desktop */}
         <header className="h-16 bg-surface border-b border-border flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
           {/* Logo visible on mobile only */}
-          <div className="md:hidden flex items-center space-x-2">
+          <div className="md:hidden flex items-center space-x-1.5">
             <Logo className="h-5 w-5" />
-            <span className="font-heading text-base font-bold tracking-tight text-text-1">Cognara</span>
+            <span className="font-heading text-base font-bold tracking-tight text-text-1 hidden xs:inline-block">Cognara</span>
           </div>
           
           {/* Command Search Box for desktop */}
@@ -527,14 +527,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </kbd>
           </button>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-1.5 sm:space-x-3">
             {isFree && (
               <button
                 onClick={() => setIsUpgradeModalOpen(true)}
-                className="flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-primary to-accent hover:from-primary/95 hover:to-accent/95 text-white font-bold rounded-full text-[10px] sm:text-xs transition duration-150 cursor-pointer shadow-[0_0_10px_rgba(91,142,255,0.2)] hover:scale-[1.03] active:scale-[0.97]"
+                className="flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-gradient-to-r from-primary to-accent hover:from-primary/95 hover:to-accent/95 text-white font-bold rounded-full text-[10px] sm:text-xs transition duration-150 cursor-pointer shadow-[0_0_10px_rgba(91,142,255,0.2)] hover:scale-[1.03] active:scale-[0.97] shrink-0"
               >
                 <Sparkles className="h-3 w-3 fill-current text-white animate-pulse" />
-                <span>Go Pro</span>
+                <span className="hidden sm:inline">Go Pro</span>
               </button>
             )}
 
@@ -542,8 +542,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {isLoading ? (
               <div className="w-12 h-6 bg-border/40 rounded-full animate-pulse" />
             ) : (
-              <div className="flex items-center space-x-1.5 px-3 py-1 bg-accent-warm/10 text-accent-warm border border-accent-warm/20 rounded-full text-xs font-mono">
-                <Flame className="h-4 w-4 fill-current text-accent-warm animate-pulse-subtle" />
+              <div className="flex items-center space-x-1 px-2 py-0.5 sm:px-3 sm:py-1 bg-accent-warm/10 text-accent-warm border border-accent-warm/20 rounded-full text-[10px] sm:text-xs font-mono shrink-0">
+                <Flame className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-current text-accent-warm animate-pulse-subtle" />
                 <span className="font-bold">{streak}d</span>
               </div>
             )}
@@ -555,11 +555,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               const levelInfo = getLevelInfo(profile.xp || 0);
               return (
                 <div 
-                  className="flex items-center space-x-2 px-3 py-1 bg-accent/10 text-accent border border-accent/20 rounded-full text-xs font-mono select-none cursor-help shrink-0" 
+                  className="flex items-center space-x-1.5 px-2 py-0.5 sm:px-3 sm:py-1 bg-accent/10 text-accent border border-accent/20 rounded-full text-[10px] sm:text-xs font-mono select-none cursor-help shrink-0" 
                   title={`${levelInfo.xpWithinLevel}/${levelInfo.xpNeededForLevelUp} XP to next level`}
                 >
                   <span className="font-extrabold uppercase text-[9px] tracking-wider text-accent">Lvl {levelInfo.level}</span>
-                  <div className="w-12 h-1.5 bg-border rounded-full overflow-hidden hidden xs:block shrink-0">
+                  <span className="text-[9px] font-bold opacity-90 hidden xs:inline">• {levelInfo.xpWithinLevel}/{levelInfo.xpNeededForLevelUp} XP</span>
+                  <div className="w-10 h-1 bg-border rounded-full overflow-hidden hidden md:block shrink-0">
                     <div 
                       className="h-full bg-accent rounded-full transition-all duration-300"
                       style={{ width: `${levelInfo.progressPercentage}%` }}

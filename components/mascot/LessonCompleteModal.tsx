@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { Spark } from './Spark'
-import { ArrowRight, Star } from 'lucide-react'
+import { ArrowRight, Star, X } from 'lucide-react'
 
 interface LessonCompleteModalProps {
   lessonTitle: string
@@ -40,15 +40,19 @@ export function LessonCompleteModal({
 
   return (
     <>
-      <div style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.6)',
-        backdropFilter: 'blur(6px)',
-        zIndex: 200,
-        opacity: visible ? 1 : 0,
-        transition: 'opacity 0.3s ease'
-      }} />
+      <div 
+        onClick={onDismiss}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.6)',
+          backdropFilter: 'blur(6px)',
+          zIndex: 200,
+          opacity: visible ? 1 : 0,
+          transition: 'opacity 0.3s ease',
+          cursor: 'pointer'
+        }} 
+      />
 
       {/* Confetti */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 201, pointerEvents: 'none', overflow: 'hidden' }}>
@@ -73,7 +77,7 @@ export function LessonCompleteModal({
         left: '50%',
         transform: visible
           ? 'translate(-50%, -50%) scale(1)'
-          : 'translate(-50%, -50%) scale(0.8)',
+          : 'translate(-50%, -50%) scale(0.85)',
         opacity: visible ? 1 : 0,
         transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
         width: '90%',
@@ -85,6 +89,26 @@ export function LessonCompleteModal({
         zIndex: 202,
         textAlign: 'center'
       }}>
+        {/* Close Button */}
+        <button
+          onClick={onDismiss}
+          style={{
+            position: 'absolute',
+            top: '16px',
+            right: '16px',
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--color-text-3)',
+            cursor: 'pointer',
+            padding: '4px',
+            transition: 'color 0.15s ease'
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-1)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-3)' }}
+        >
+          <X size={18} />
+        </button>
+
         {/* Spark celebrating */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
           <Spark emotion="celebrate" size={90} />

@@ -7,6 +7,7 @@ import AICoachInsight from '@/components/dashboard/AICoachInsight'
 import { MascotWelcomeManager } from '@/components/mascot/MascotWelcomeManager'
 import { getUserSubscription } from '@/lib/subscription'
 import StreakVitals from '@/components/dashboard/StreakVitals'
+import { getLevelInfo } from '@/lib/leveling'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,15 +26,16 @@ export default async function DashboardPage() {
 
 
 
-  // 2. Fetch Profile Name & welcome seen state
+  // 2. Fetch Profile details
   const { data: profile } = await supabase
     .from('profiles')
-    .select('name, has_seen_welcome')
+    .select('name, has_seen_welcome, xp, level')
     .eq('id', user.id)
     .maybeSingle()
 
   const name = profile?.name || 'Learner'
   const hasSeenWelcome = profile?.has_seen_welcome ?? false
+  const levelInfo = getLevelInfo(profile?.xp || 0)
 
   // 3. Fetch Active Goal
   const { data: goal } = await supabase
@@ -212,17 +214,37 @@ export default async function DashboardPage() {
               </div>
             </div>
 
+            {/* Level & XP progression card */}
+            <div className="flex items-center space-x-3 mt-1">
+              <div className="w-10 h-10 rounded-md bg-accent/10 text-accent flex items-center justify-center border border-accent/15">
+                <BrainCircuit className="h-5 w-5" strokeWidth={1.5} />
+              </div>
+              <div className="flex-1 flex flex-col min-w-0">
+                <div className="flex justify-between items-baseline">
+                  <span className="text-sm font-bold text-text-1 font-mono">Lvl {levelInfo.level}</span>
+                  <span className="text-[10px] text-text-3 font-semibold font-mono">{levelInfo.xpWithinLevel}/{levelInfo.xpNeededForLevelUp} XP</span>
+                </div>
+                {/* XP Progress Bar */}
+                <div className="w-full h-1 bg-border rounded-full mt-1.5 overflow-hidden">
+                  <div 
+                    className="h-full bg-accent transition-all duration-300"
+                    style={{ width: `${levelInfo.progressPercentage}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Completion ratio stat card */}
-            <div className="flex items-center space-x-3 col-span-2 mt-2">
+            <div className="flex items-center space-x-3 mt-1">
               <div className="w-10 h-10 rounded-md bg-success/10 text-success flex items-center justify-center border border-success/15">
                 <BookOpen className="h-5 w-5" strokeWidth={1.5} />
               </div>
               <div className="flex-1 flex flex-col min-w-0">
                 <div className="flex justify-between items-baseline">
-                  <span className="text-lg font-bold text-text-1 font-mono">
+                  <span className="text-sm font-bold text-text-1 font-mono">
                     {completedLessonsCount}/{totalLessonsCount}
                   </span>
-                  <span className="text-[10px] text-text-2">Completed</span>
+                  <span className="text-[10px] text-text-3 font-semibold">Completed</span>
                 </div>
                 {/* Visual Progress Bar */}
                 <div className="w-full h-1 bg-border rounded-full mt-1.5 overflow-hidden">
