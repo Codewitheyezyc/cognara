@@ -36,10 +36,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             key={t.id}
             className={`pointer-events-auto flex items-center justify-between p-4 rounded-lg shadow-lg border animate-page-enter ${
               t.type === 'success'
-                ? 'bg-success/10 text-success border-success/20'
+                ? 'bg-[#111622] text-[var(--color-success)] border-[var(--color-success)]/30'
                 : t.type === 'error'
-                ? 'bg-error/10 text-error border-error/20'
-                : 'bg-surface-alt text-text-1 border-border'
+                ? 'bg-[#1a131b] text-[var(--color-error)] border-[var(--color-error)]/30'
+                : 'bg-[var(--color-surface-alt)] text-[var(--color-text-1)] border-[var(--color-border)]'
             }`}
           >
             <div className="flex items-center gap-3">

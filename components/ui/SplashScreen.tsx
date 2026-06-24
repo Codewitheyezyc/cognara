@@ -89,7 +89,7 @@ export function SplashScreen() {
               filter: 'blur(2px)'
             }}
           >
-            AI Learning Operating System
+            Cognitive Adaptive System
           </p>
         </div>
       </div>

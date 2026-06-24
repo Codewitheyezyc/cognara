@@ -141,7 +141,7 @@ export function ExerciseWriting({
           <div style={{ maxWidth: '380px' }}>
             <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono), monospace', textTransform: 'uppercase', color: 'var(--color-accent)', fontWeight: 600, letterSpacing: '0.05em' }}>Practice Environment Locked</span>
             <p style={{ color: 'var(--color-text-2)', fontSize: '13px', margin: '6px 0 0', lineHeight: '1.5' }}>
-              Writing exercise AI review workspace is locked. Upgrade to Pro to submit your text and receive personal feedback.
+              Writing exercise cognitive review workspace is locked. Upgrade to Pro to submit your text and receive personal feedback.
             </p>
           </div>
           <button
@@ -213,13 +213,13 @@ export function ExerciseWriting({
               >
                 {loading
                   ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Reviewing...</>
-                  : <><Send size={14} /> Submit for AI Review</>
+                  : <><Send size={14} /> Submit for Cognitive Review</>
                 }
               </button>
             </div>
           </div>
 
-          {/* AI Feedback */}
+          {/* Cognitive Feedback */}
           {feedback && (
             <div style={{
               padding: '20px',

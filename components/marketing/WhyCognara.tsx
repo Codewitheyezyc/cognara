@@ -87,7 +87,7 @@ const cards = [
   {
     icon: <Brain size={20} />,
     headline: 'It remembers everything about you',
-    body: 'Generic AI tools forget you the moment you close the tab. Cognara remembers your goal, your progress, every lesson you completed, every quiz you passed, and every topic you struggled with. Every time you return it picks up exactly where you left off — because your learning journey never resets.'
+    body: 'Generic chat tools forget you the moment you close the tab. Cognara remembers your goal, your progress, every lesson you completed, every quiz you passed, and every topic you struggled with. Every time you return it picks up exactly where you left off — because your learning journey never resets.'
   },
   {
     icon: <Map size={20} />,
@@ -179,7 +179,7 @@ export function WhyCognara() {
             margin: '0 0 16px',
             letterSpacing: '-0.02em'
           }}>
-            This is not just another AI tool.
+            This is not just another generic study tool.
           </h2>
 
           <p style={{
@@ -188,7 +188,7 @@ export function WhyCognara() {
             lineHeight: 1.7,
             margin: 0
           }}>
-            Anyone can paste a topic into an AI chatbot and get a list
+            Anyone can paste a topic into a general chat tool and get a list
             of things to study. But getting a list is not the same as
             actually learning. Cognara is the system built around the
             part everyone skips — showing up every day, staying on

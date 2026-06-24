@@ -369,7 +369,7 @@ export default function PublicPortfolioPage() {
 
       {/* Footer */}
       <footer className="w-full border-t border-border/40 bg-surface/30 py-6 text-center text-[10px] text-text-3 font-semibold uppercase tracking-wider select-none">
-        &copy; {new Date().getFullYear()} Cognara. Powered by AI.
+        &copy; {new Date().getFullYear()} Cognara. Powered by Cognara.
       </footer>
     </div>
   )

@@ -486,7 +486,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             style={{ border: '1px solid var(--color-border)' }}
           >
             <Search className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
-            <span className="text-[11px] font-medium text-text-3 select-none flex-1 text-left">Ask AI or search...</span>
+            <span className="text-[11px] font-medium text-text-3 select-none flex-1 text-left">Ask coach or search...</span>
             <kbd className="hidden sm:inline-flex h-4 select-none items-center gap-0.5 rounded border border-border/90 bg-surface px-1.5 font-mono text-[8px] font-medium text-text-3 leading-none opacity-80 shadow-xs">
               ⌘K
             </kbd>
@@ -637,7 +637,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Search className="h-4 w-4 text-text-3" />
               <input
                 type="text"
-                placeholder="Type a lesson title, topic, or ask AI coach..."
+                placeholder="Type a lesson title, topic, or ask study coach..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="flex-1 bg-transparent text-text-1 placeholder-text-3 text-sm outline-none border-none py-1"

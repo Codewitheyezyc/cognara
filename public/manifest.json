@@ -1,7 +1,7 @@
 {
   "name": "Cognara",
   "short_name": "Cognara",
-  "description": "Your personalized AI learning operating system.",
+  "description": "Your personalized cognitive adaptive system.",
   "start_url": "/dashboard",
   "display": "standalone",
   "orientation": "portrait",

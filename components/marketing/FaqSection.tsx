@@ -6,15 +6,15 @@ import { HelpCircle } from 'lucide-react'
 const faqs = [
   {
     q: "Can I use Cognara to learn non-technical subjects?",
-    a: "Yes! Cognara is designed to master any structured body of knowledge. Whether you are studying corporate finance, learning classical guitar, or practicing public speaking, our AI partitions the concepts, creates custom roadmaps, and adjusts explanations to your level."
+    a: "Yes! Cognara is designed to master any structured body of knowledge. Whether you are studying corporate finance, learning classical guitar, or practicing public speaking, our system partitions the concepts, creates custom roadmaps, and adjusts explanations to your level."
   },
   {
     q: "How does Cognara know which depth level is right for me?",
     a: "During onboarding, you choose a preferred depth level. You can also change this at any time in your Settings or directly in the header of any active lesson. If a concept feels too complex or too basic, just toggle the depth to reload it immediately."
   },
   {
-    q: "Does Cognara query the AI every time I load a page?",
-    a: "No. Cognara uses a smart lazy-generation caching layer. The very first time you click a lesson on your roadmap, the AI compiles and structures it for your chosen depth. Once generated, it is cached in our secure database forever. This gives you instant loading times for future visits."
+    q: "Does Cognara query the server every time I load a page?",
+    a: "No. Cognara uses a smart lazy-generation caching layer. The very first time you click a lesson on your roadmap, the system compiles and structures it for your chosen depth. Once generated, it is cached in our secure database forever. This gives you instant loading times for future visits."
   },
   {
     q: "How are the daily streaks calculated?",

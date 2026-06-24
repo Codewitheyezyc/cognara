@@ -16,7 +16,7 @@ export function HeroSection() {
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Calibrated to You.</span>
         </h1>
         <p className="text-text-2 text-sm sm:text-base leading-relaxed max-w-xl">
-          Cognara is an AI Learning Operating System. We dynamically compile your learning goals into logical roadmaps, rendering rich lesson layouts and adaptive quiz challenges engineered around your personal schedule and explanation depth.
+          Cognara is a Cognitive Adaptive System. We dynamically compile your learning goals into logical roadmaps, rendering rich lesson layouts and adaptive quiz challenges engineered around your personal schedule and explanation depth.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">

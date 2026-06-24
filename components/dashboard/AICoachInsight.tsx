@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react'
 import { BrainCircuit, ArrowRight, Lock } from 'lucide-react'
 import Link from 'next/link'
 import { GeneratedInsight } from '@/types/ai'
-import AIBadge from '../lesson/AIBadge'
 
 export default function AICoachInsight({ isPro = false }: { isPro?: boolean }) {
   const [insight, setInsight] = useState<GeneratedInsight | null>(null)
@@ -66,13 +65,13 @@ export default function AICoachInsight({ isPro = false }: { isPro?: boolean }) {
           <div className="space-y-1 flex-1 relative">
             <div className="flex items-center space-x-2">
               <span className="text-[10px] font-mono uppercase text-text-3 font-bold tracking-wider">
-                AI Coach Insight
+                Cognitive Coach Insight
               </span>
               <span className="text-[9px] bg-primary/10 text-primary border border-primary/20 px-1.5 py-0.5 rounded-full font-mono uppercase tracking-wider font-extrabold">Pro</span>
             </div>
 
             <p className="text-xs text-text-2 leading-relaxed">
-              Unlock personalized, daily study recommendations tailored to your learning behavior, quiz results, and study streak. Let our AI coach optimize your roadmap.
+              Unlock personalized, daily study recommendations tailored to your learning behavior, quiz results, and study streak. Let our cognitive coach optimize your roadmap.
             </p>
           </div>
         </div>
@@ -102,9 +101,8 @@ export default function AICoachInsight({ isPro = false }: { isPro?: boolean }) {
       <div className="space-y-2 flex-1 relative">
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-mono uppercase text-accent font-bold tracking-wider">
-            AI Coach Insight
+            Cognitive Coach Insight
           </span>
-          <AIBadge />
         </div>
 
         <p className="text-xs text-text-1 leading-relaxed font-medium">

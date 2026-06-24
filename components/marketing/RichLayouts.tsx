@@ -18,9 +18,9 @@ export function RichLayouts() {
         <ul className="space-y-3">
           {[
             { title: "Monaco Code Practice Playgrounds", desc: "Live code editor with syntax highlighting for hands-on technical lessons (HTML/CSS/JS)." },
-            { title: "AI Soft-Skills Writing Workspaces", desc: "Advanced text area with instant, context-aware AI feedback for paragraph assignments." },
+            { title: "Cognitive Writing Workspaces", desc: "Advanced text area with instant, context-aware cognitive feedback for paragraph assignments." },
             { title: "Actionable Task Checklists", desc: "Visual, step-by-step guides for practical offline training exercises." },
-            { title: "Interactive Spark Mascot Greetings", desc: "A CSS/SVG animated AI companion that celebrates your study wins and habit streaks." },
+            { title: "Interactive Spark Mascot Greetings", desc: "A CSS/SVG animated learning companion that celebrates your study wins and habit streaks." },
             { title: "Progressive Subscription Paywalls", desc: "Freemium plan layout options and structured limits tailored for active goals." },
             { title: "Colored Context Callouts", desc: "Important, Warning, Tip, and Pro Tip callouts highlighting critical concepts." }
           ].map((item, idx) => (

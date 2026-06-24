@@ -307,7 +307,7 @@ export default function ProgressPage() {
             <span className="text-xs font-mono uppercase tracking-wider font-extrabold text-accent">Pro Feature</span>
             <h2 className="font-heading text-2xl font-bold text-text-1">Unlock Your Analytics</h2>
             <p className="text-text-2 text-sm leading-relaxed">
-              Track your active learning streak, quiz history trajectory, topic strengths/weaknesses breakdown, and receive customized AI coach insights to guide your roadmap.
+              Track your active learning streak, quiz history trajectory, topic strengths/weaknesses breakdown, and receive customized cognitive coach insights to guide your roadmap.
             </p>
           </div>
 

@@ -26,7 +26,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.cognaralearn.com'),
-  title: "Cognara — AI Learning Operating System",
+  title: "Cognara — Cognitive Adaptive System",
   description: "Your mind. Your path. Your era. Dynamically generated personalized roadmaps, lessons, and quizzes.",
   manifest: "/manifest.json",
   icons: {
@@ -38,12 +38,12 @@ export const metadata: Metadata = {
     apple: "/favicon.png",
   },
   keywords: [
-    "Cognara", "Cognaralearn", "AI learning", "personalized roadmaps", 
-    "adaptive learning", "AI education", "study planner", "learning operating system"
+    "Cognara", "Cognaralearn", "cognitive learning", "personalized roadmaps", 
+    "adaptive learning", "cognitive education", "study planner", "learning operating system"
   ],
   authors: [{ name: "Cognara Team" }],
   openGraph: {
-    title: "Cognara — AI Learning Operating System",
+    title: "Cognara — Cognitive Adaptive System",
     description: "Your mind. Your path. Your era. Dynamically generated personalized roadmaps, lessons, and quizzes.",
     url: "https://www.cognaralearn.com",
     siteName: "Cognara",
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
         url: "/images/dashboard-dark.png",
         width: 1200,
         height: 675,
-        alt: "Cognara — AI Learning Operating System Dashboard",
+        alt: "Cognara — Cognitive Adaptive System Dashboard",
       }
     ],
     locale: "en_US",
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Cognara — AI Learning Operating System",
+    title: "Cognara — Cognitive Adaptive System",
     description: "Your mind. Your path. Your era. Dynamically generated personalized roadmaps, lessons, and quizzes.",
     images: ["/images/dashboard-dark.png"],
   },

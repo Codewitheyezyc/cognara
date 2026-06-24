@@ -74,7 +74,7 @@ export function PricingSection() {
               </li>
               <li className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-success shrink-0" strokeWidth={2.5} />
-                <span>Standard AI Lesson Generation</span>
+                <span>Standard Cognitive Lesson Generation</span>
               </li>
               <li className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-success shrink-0" strokeWidth={2.5} />
@@ -99,7 +99,7 @@ export function PricingSection() {
               <Sparkles className="h-5 w-5 text-primary fill-current" />
               <h3 className="font-heading text-lg font-bold text-text-1">Pro Access</h3>
             </div>
-            <p className="text-text-2 text-xs mt-1">Unlock the full power of adaptive, offline AI learning.</p>
+            <p className="text-text-2 text-xs mt-1">Unlock the full power of adaptive, offline cognitive learning.</p>
             <div className="flex items-baseline">
               <span className="font-heading text-3xl font-extrabold text-text-1">
                 {billingPeriod === 'monthly' ? '₦4,500' : '₦45,000'}
@@ -124,7 +124,7 @@ export function PricingSection() {
               </li>
               <li className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
-                <span>AI Explanations ("Confused?" Study Helper)</span>
+                <span>Cognitive Explanations ("Confused?" Study Helper)</span>
               </li>
               <li className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
@@ -132,7 +132,7 @@ export function PricingSection() {
               </li>
               <li className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
-                <span>Monaco Code Playground & AI Writing Workspaces</span>
+                <span>Monaco Code Playground & Cognitive Writing Workspaces</span>
               </li>
               <li className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
@@ -140,7 +140,7 @@ export function PricingSection() {
               </li>
               <li className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
-                <span>AI Coach Insights Trajectory & Study Vitals</span>
+                <span>Cognitive Coach Insights Trajectory & Study Vitals</span>
               </li>
               <li className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />

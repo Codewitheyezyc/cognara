@@ -69,7 +69,7 @@ export function ConfusedButton({
 
   const handleConfusedClick = async () => {
     if (typeof window !== 'undefined' && !window.navigator.onLine) {
-      toast("You are offline. AI explanations require an active internet connection.", "error")
+      toast("You are offline. Cognitive explanations require an active internet connection.", "error")
       return
     }
 

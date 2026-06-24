@@ -89,7 +89,7 @@ export default function CertificatePreviewPage() {
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                 <span className="font-signature text-xs text-primary leading-none" style={{ color: '#5B8EFF', fontSize: 12, marginBottom: 2 }}>Cognara Team</span>
                 <div style={{ borderTop: '1px solid #1E2540', width: 90, paddingTop: 2, opacity: 0.5 }}>
-                  <p style={{ color: '#8B95B3', fontSize: 6, margin: 0, lineHeight: 1 }}>Cognara AI Platform</p>
+                  <p style={{ color: '#8B95B3', fontSize: 6, margin: 0, lineHeight: 1 }}>Cognara Learning Platform</p>
                   <p style={{ color: '#4A5272', fontSize: 5, margin: 0 }}>Verified issuer</p>
                 </div>
               </div>
@@ -240,7 +240,7 @@ export default function CertificatePreviewPage() {
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                 <span className="font-signature text-xs text-amber-500 leading-none" style={{ color: '#F59E0B', fontSize: 12, marginBottom: 2 }}>Cognara Board</span>
                 <div style={{ borderTop: '1px solid #92400E', width: 90, paddingTop: 2, opacity: 0.5 }}>
-                  <p style={{ color: '#A8956A', fontSize: 6, margin: 0, lineHeight: 1 }}>Cognara AI Platform</p>
+                  <p style={{ color: '#A8956A', fontSize: 6, margin: 0, lineHeight: 1 }}>Cognara Learning Platform</p>
                   <p style={{ color: '#6B5B3A', fontSize: 5, margin: 0 }}>Verified Master Issuer</p>
                 </div>
               </div>
