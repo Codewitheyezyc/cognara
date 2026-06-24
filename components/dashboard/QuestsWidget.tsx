@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { Sparkles, Trophy, Check, Loader2 } from 'lucide-react'
 import { useToast } from '@/components/ui/toast'
+import { SoundEffects } from '@/lib/sound'
 
 interface QuestItem {
   key: string
@@ -65,6 +66,7 @@ export default function QuestsWidget() {
 
       // Success
       toast(`Reward Claimed! +${quest.xpReward} XP 🧠`)
+      SoundEffects.play('achievement')
 
       // Dispatch XP gained window event to trigger header progress update & Level Up Modal
       if (data.xp) {

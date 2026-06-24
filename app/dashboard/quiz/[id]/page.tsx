@@ -11,6 +11,7 @@ import AIBadge from '@/components/lesson/AIBadge'
 import { QuizResultModal } from '@/components/mascot/QuizResultModal'
 import MascotOverlay from '@/components/mascot/MascotOverlay'
 import { Spark } from '@/components/mascot/Spark'
+import { SoundEffects } from '@/lib/sound'
 
 const BADGE_DESCRIPTIONS: Record<string, string> = {
   phase_1: 'Completed Phase 1',
@@ -173,6 +174,10 @@ export default function QuizPage() {
       [currentQuestion.id]: selectedAnswer,
     }))
     setIsAnswerChecked(true)
+
+    // Play feedback sound
+    const isCorrect = selectedAnswer.trim().toLowerCase() === currentQuestion.correct_answer.trim().toLowerCase()
+    SoundEffects.play(isCorrect ? 'success' : 'failure')
   }
 
   // Handle proceeding to next question or final results submission
@@ -203,6 +208,11 @@ export default function QuizPage() {
 
         setQuizResult(result)
 
+        // Play sound on completion
+        if (result.passed) {
+          SoundEffects.play('achievement')
+        }
+
         // Dispatch XP gained event
         if (result.xp) {
           window.dispatchEvent(new CustomEvent('cognara_xp_gained', {
@@ -231,6 +241,7 @@ export default function QuizPage() {
             if (badgeData.newBadges && badgeData.newBadges.length > 0) {
               setNewBadges(badgeData.newBadges)
               setCurrentBadgeIndex(0)
+              SoundEffects.play('achievement') // Play sound when badge earned
             }
           }
         } catch (badgeErr) {

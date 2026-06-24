@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { 
   Settings, User, Mail, ShieldAlert, CreditCard, Sparkles, 
   Trash2, Download, AlertCircle, Sun, Moon, Laptop, Loader2,
-  Bell
+  Bell, Volume2
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -34,6 +34,9 @@ export default function SettingsPage() {
   // Appearance fields
   const [theme, setTheme] = useState<'dark' | 'light' | 'system'>('dark')
   const [fontSize, setFontSize] = useState<'normal' | 'large'>('normal')
+
+  // Sounds state
+  const [soundsEnabled, setSoundsEnabled] = useState(true)
 
   // Daily reminder fields
   const [reminderEnabled, setReminderEnabled] = useState(false)
@@ -77,6 +80,10 @@ export default function SettingsPage() {
         // Load font size from localStorage
         const savedFont = localStorage.getItem('cognara-font-size') as 'normal' | 'large' | null
         setFontSize(savedFont || 'normal')
+
+        // Load sounds preference from localStorage
+        const savedSounds = localStorage.getItem('cognara-sounds')
+        setSoundsEnabled(savedSounds !== 'false')
       } catch (err) {
         console.error('Error loading settings:', err)
       } finally {
@@ -163,6 +170,14 @@ export default function SettingsPage() {
       }
     }
     toast(`Font size set to ${sz}`)
+  }
+
+  // Toggle Sounds Handler
+  const handleToggleSounds = () => {
+    const nextVal = !soundsEnabled
+    setSoundsEnabled(nextVal)
+    localStorage.setItem('cognara-sounds', nextVal ? 'true' : 'false')
+    toast(`Sound effects ${nextVal ? 'enabled' : 'disabled'}`)
   }
 
   // Paystack Upgrade Checkout Handler
@@ -545,6 +560,35 @@ export default function SettingsPage() {
                 </button>
               )
             })}
+          </div>
+        </div>
+      </div>
+
+      {/* SOUND EFFECTS SECTION */}
+      <div className="rounded-[10px] border border-border bg-surface p-6 shadow-md space-y-6">
+        <div className="flex items-center space-x-2 text-primary border-b border-border pb-3">
+          <Volume2 className="h-5 w-5" strokeWidth={1.5} />
+          <h2 className="font-heading text-xl font-bold text-text-1">Sound Effects</h2>
+        </div>
+
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-sm font-semibold text-text-1">Enable sound effects</Label>
+              <p className="text-xs text-text-3 mt-1">Play subtle chimes and celebration sounds when completing tasks</p>
+            </div>
+            <button
+              onClick={handleToggleSounds}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                soundsEnabled ? 'bg-primary' : 'bg-surface-alt border border-border/80'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out ${
+                  soundsEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { Spark } from './Spark'
 import { ArrowRight, Star, X } from 'lucide-react'
+import { SoundEffects } from '@/lib/sound'
 
 interface LessonCompleteModalProps {
   lessonTitle: string
@@ -27,6 +28,9 @@ export function LessonCompleteModal({
   useEffect(() => {
     setTimeout(() => setVisible(true), 100)
     setTimeout(() => setShowContent(true), 600)
+
+    // Play complete sound
+    SoundEffects.play('achievement')
 
     // Generate confetti particles
     const pieces = Array.from({ length: 20 }, (_, i) => ({

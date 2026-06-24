@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Spark } from './Spark'
 import { ArrowRight, Trophy, X } from 'lucide-react'
+import { SoundEffects } from '@/lib/sound'
 
 interface LevelUpModalProps {
   oldLevel: number
@@ -19,6 +20,9 @@ export function LevelUpModal({ oldLevel, newLevel, rankName, onDismiss }: LevelU
   useEffect(() => {
     setMounted(true)
     setTimeout(() => setVisible(true), 100)
+    
+    // Play celebratory sound
+    SoundEffects.play('achievement')
 
     // Generate celebrating level-up confetti particles
     const pieces = Array.from({ length: 30 }, (_, i) => ({
