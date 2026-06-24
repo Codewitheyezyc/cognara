@@ -1,36 +1,51 @@
 'use client'
 
+import React from 'react'
+import { Lightbulb, CheckCircle2, AlertTriangle, AlertCircle, Sparkles } from 'lucide-react'
+
 const CALLOUT_CONFIG = {
-  info:      { icon: '💡', label: 'Note',      bg: 'rgba(91,142,255,0.08)',  border: '#5B8EFF', color: '#5B8EFF' },
-  tip:       { icon: '✅', label: 'Tip',       bg: 'rgba(52,211,153,0.08)',  border: '#34D399', color: '#34D399' },
-  warning:   { icon: '⚠️', label: 'Warning',   bg: 'rgba(245,158,11,0.08)', border: '#F59E0B', color: '#F59E0B' },
-  important: { icon: '🔴', label: 'Important', bg: 'rgba(248,113,113,0.08)', border: '#F87171', color: '#F87171' },
-  pro_tip:   { icon: '⚡', label: 'Pro Tip',   bg: 'rgba(167,139,250,0.08)', border: '#A78BFA', color: '#A78BFA' },
+  info:      { icon: Lightbulb, label: 'Note',      bg: 'rgba(91,142,255,0.05)',  border: 'rgba(91,142,255,0.2)', color: '#5B8EFF' },
+  tip:       { icon: CheckCircle2, label: 'Tip',       bg: 'rgba(52,211,153,0.05)',  border: 'rgba(52,211,153,0.2)', color: '#34D399' },
+  warning:   { icon: AlertTriangle, label: 'Warning',   bg: 'rgba(245,158,11,0.05)', border: 'rgba(245,158,11,0.2)', color: '#F59E0B' },
+  important: { icon: AlertCircle, label: 'Important', bg: 'rgba(248,113,113,0.05)', border: 'rgba(248,113,113,0.2)', color: '#F87171' },
+  pro_tip:   { icon: Sparkles, label: 'Pro Tip',   bg: 'rgba(167,139,250,0.05)', border: 'rgba(167,139,250,0.2)', color: '#A78BFA' },
 }
 
 export function Callout({ type, body }: { type: keyof typeof CALLOUT_CONFIG, body: string }) {
   const config = CALLOUT_CONFIG[type] || CALLOUT_CONFIG.info
+  const Icon = config.icon
+
   return (
-    <div style={{
-      background: config.bg,
-      border: `1px solid ${config.border}`,
-      borderLeft: `4px solid ${config.border}`,
-      borderRadius: '8px',
-      padding: '16px 20px',
-      marginBlock: '20px',
-      display: 'flex',
-      gap: '12px',
-      alignItems: 'flex-start'
-    }}>
-      <span style={{ fontSize: '16px', flexShrink: 0, marginTop: '1px' }}>{config.icon}</span>
-      <div>
-        <div style={{ color: config.color, fontWeight: 600, fontSize: '13px', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+    <div 
+      className="border rounded-xl p-4 my-6 flex gap-3.5 items-start shadow-[0_2px_12px_rgba(0,0,0,0.05)] transition-all relative overflow-hidden"
+      style={{
+        background: config.bg,
+        borderColor: config.border,
+        borderLeft: `4px solid ${config.color}`
+      }}
+    >
+      <div 
+        className="p-1.5 rounded-lg shrink-0 mt-0.5 border"
+        style={{
+          color: config.color,
+          borderColor: `${config.color}25`,
+          background: `${config.color}08`
+        }}
+      >
+        <Icon size={15} />
+      </div>
+      <div className="space-y-1 min-w-0 flex-1">
+        <span 
+          className="text-[10px] font-bold font-mono uppercase tracking-wider block"
+          style={{ color: config.color }}
+        >
           {config.label}
-        </div>
-        <div style={{ color: 'var(--color-text-1)', fontSize: '15px', lineHeight: '1.65' }}>
+        </span>
+        <p className="text-text-2 text-xs md:text-[13.5px] leading-relaxed font-medium">
           {body}
-        </div>
+        </p>
       </div>
     </div>
   )
 }
+export default Callout

@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { GeneratedLesson } from '@/types/ai'
-import { BookOpen, ArrowRight, ChevronDown, Lock, Download } from 'lucide-react'
+import { BookOpen, ArrowRight, ChevronDown, Lock, Download, Compass, Terminal, Activity, CheckCircle2 } from 'lucide-react'
 import { CodeBlock } from './CodeBlock'
 import { Callout } from './Callout'
 import { LessonTable } from './LessonTable'
@@ -354,8 +354,6 @@ export default function LessonContent({
           const sectionEl = (() => {
             switch (section.type) {
             case 'explanation':
-            case 'analogy':
-            case 'use_case':
               return (
                 <div key={idx}>
                   <ConfusedButton
@@ -392,14 +390,119 @@ export default function LessonContent({
                 </div>
               )
 
+            case 'analogy':
+              return (
+                <div key={idx}>
+                  <ConfusedButton
+                    sectionHeading={section.heading}
+                    sectionBody={section.body || ''}
+                    subject={subject}
+                    depthLevel={depthLevel}
+                    isPro={isPro}
+                    onUpgradePrompt={() => setIsModalOpen(true)}
+                    bookmarkSlot={
+                      <BookmarkButton
+                        lessonId={lessonId}
+                        lessonTitle={lessonTitle}
+                        sectionIndex={idx}
+                        sectionHeading={section.heading || ''}
+                        sectionBody={section.body?.slice(0, 200) || ''}
+                        userId={userId}
+                        initialBookmark={sectionBookmark}
+                        onBookmarkChange={(newBookmark) => {
+                          if (newBookmark) {
+                            setBookmarks(prev => [...prev.filter(b => b.section_index !== idx), newBookmark])
+                          } else {
+                            setBookmarks(prev => prev.filter(b => b.section_index !== idx))
+                          }
+                        }}
+                        variant="inline"
+                      />
+                    }
+                  >
+                    <div className="my-3 p-5 rounded-xl border border-primary/20 bg-primary/5 shadow-sm relative overflow-hidden flex gap-4">
+                      <div className="absolute right-0 bottom-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
+                      <div className="p-2 rounded-lg bg-surface border border-border/80 text-primary shrink-0 mt-0.5 shadow-sm">
+                        <Compass size={16} className="text-primary" />
+                      </div>
+                      <div className="space-y-1.5 min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 text-primary text-[10px] font-bold font-mono uppercase tracking-wider">
+                          <span>Concept Analogy</span>
+                        </div>
+                        <div className="text-text-2 text-xs md:text-sm leading-relaxed font-medium">
+                          {formatLessonText(section.body || '')}
+                        </div>
+                      </div>
+                    </div>
+                  </ConfusedButton>
+                </div>
+              )
+
+            case 'use_case':
+              return (
+                <div key={idx}>
+                  <ConfusedButton
+                    sectionHeading={section.heading}
+                    sectionBody={section.body || ''}
+                    subject={subject}
+                    depthLevel={depthLevel}
+                    isPro={isPro}
+                    onUpgradePrompt={() => setIsModalOpen(true)}
+                    bookmarkSlot={
+                      <BookmarkButton
+                        lessonId={lessonId}
+                        lessonTitle={lessonTitle}
+                        sectionIndex={idx}
+                        sectionHeading={section.heading || ''}
+                        sectionBody={section.body?.slice(0, 200) || ''}
+                        userId={userId}
+                        initialBookmark={sectionBookmark}
+                        onBookmarkChange={(newBookmark) => {
+                          if (newBookmark) {
+                            setBookmarks(prev => [...prev.filter(b => b.section_index !== idx), newBookmark])
+                          } else {
+                            setBookmarks(prev => prev.filter(b => b.section_index !== idx))
+                          }
+                        }}
+                        variant="inline"
+                      />
+                    }
+                  >
+                    <div className="my-3 p-5 rounded-xl border border-accent/25 bg-accent/5 shadow-sm relative overflow-hidden flex gap-4">
+                      <div className="absolute right-0 bottom-0 w-24 h-24 bg-accent/10 rounded-full blur-2xl pointer-events-none" />
+                      <div className="p-2 rounded-lg bg-surface border border-border/80 text-accent shrink-0 mt-0.5 shadow-sm">
+                        <Terminal size={16} className="text-accent" />
+                      </div>
+                      <div className="space-y-1.5 min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 text-accent text-[10px] font-bold font-mono uppercase tracking-wider">
+                          <span>Real-World Scenario</span>
+                        </div>
+                        <div className="text-text-2 text-xs md:text-sm leading-relaxed font-medium">
+                          {formatLessonText(section.body || '')}
+                        </div>
+                      </div>
+                    </div>
+                  </ConfusedButton>
+                </div>
+              )
+
             case 'summary':
               return (
-                <div key={idx} className="space-y-3 border-l-2 border-primary/40 pl-4 bg-primary/2.5 py-2.5 rounded-r-md">
-                  <h3 className="font-heading text-lg font-bold text-text-1 pr-12">
-                    {section.heading}
-                  </h3>
-                  <div className="space-y-2">
-                    {formatLessonText(section.body || '')}
+                <div key={idx} className="my-6 p-5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 shadow-[0_2px_12px_rgba(16,185,129,0.02)] relative overflow-hidden flex gap-4">
+                  <div className="absolute right-0 bottom-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none" />
+                  <div className="p-2 rounded-lg bg-surface border border-border/80 text-success shrink-0 mt-0.5 shadow-sm select-none">
+                    <CheckCircle2 size={16} className="text-success" />
+                  </div>
+                  <div className="space-y-1.5 min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 text-success text-[10px] font-bold font-mono uppercase tracking-wider">
+                      <span>Concept Summary</span>
+                    </div>
+                    <h4 className="font-heading text-[15px] font-bold text-text-1 leading-snug">
+                      {section.heading}
+                    </h4>
+                    <div className="text-text-2 text-xs md:text-sm leading-relaxed font-medium">
+                      {formatLessonText(section.body || '')}
+                    </div>
                   </div>
                 </div>
               )
@@ -506,23 +609,26 @@ export default function LessonContent({
 
             case 'diagram':
               return (
-                <div key={idx} className="space-y-2">
-                  <h3 className="font-heading text-lg font-semibold text-text-1 pr-12">
+                <div key={idx} className="my-6 space-y-3">
+                  <div className="flex items-center gap-1.5 text-accent text-[10px] font-bold font-mono uppercase tracking-wider select-none">
+                    <Activity size={11} className="animate-pulse" />
+                    <span>Visual Schema / Diagram</span>
+                  </div>
+                  <h4 className="font-heading text-sm font-semibold text-text-1 pr-12">
                     {section.heading}
-                  </h3>
-                  <pre style={{
-                    background: 'var(--color-surface-alt)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '10px',
-                    padding: '24px',
-                    fontFamily: 'var(--font-mono), JetBrains Mono, monospace',
-                    fontSize: '13px',
-                    color: 'var(--color-text-1)',
-                    overflowX: 'auto',
-                    lineHeight: '1.8'
-                  }}>
-                    {section.diagram_content}
-                  </pre>
+                  </h4>
+                  
+                  <div 
+                    className="relative rounded-xl border border-border shadow-[inset_0_2px_8px_rgba(0,0,0,0.25)] overflow-hidden bg-[#090b11] my-2"
+                    style={{
+                      backgroundImage: 'radial-gradient(rgba(91,142,255,0.08) 1.5px, transparent 1.5px)',
+                      backgroundSize: '16px 16px'
+                    }}
+                  >
+                    <pre className="m-0 p-6 overflow-x-auto text-[12px] md:text-[13px] font-mono leading-relaxed text-[#5B8EFF] select-all">
+                      {section.diagram_content}
+                    </pre>
+                  </div>
                 </div>
               )
 

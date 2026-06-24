@@ -45,49 +45,34 @@ export function CodeBlock({ code, language, caption }: CodeBlockProps) {
   const normalizedLang = (language || 'javascript').toLowerCase()
 
   return (
-    <div style={{
-      borderRadius: '10px',
-      overflow: 'hidden',
-      border: '1px solid var(--color-border)',
-      marginBlock: '20px'
-    }}>
+    <div className="rounded-xl overflow-hidden border border-border my-6 shadow-[0_4px_20px_rgba(0,0,0,0.15)] bg-[#0A0D14] transition-all group">
       {/* Header bar */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '10px 16px',
-        background: 'var(--color-surface-alt)',
-        borderBottom: '1px solid var(--color-border)'
-      }}>
-        <span style={{
-          fontSize: '11px',
-          fontFamily: 'var(--font-mono), JetBrains Mono, monospace',
-          color: 'var(--color-accent)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-          fontWeight: 600
-        }}>
-          {language}
-        </span>
+      <div className="flex items-center justify-between px-4 py-2.5 bg-surface-alt border-b border-border/70 select-none">
+        <div className="flex items-center gap-1.5">
+          {/* Decorative terminal dots */}
+          <span className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
+          <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
+          <span className="text-[10px] font-mono font-bold text-accent uppercase tracking-widest ml-2 bg-accent/5 px-2 py-0.5 border border-accent/10 rounded-sm">
+            {language}
+          </span>
+        </div>
         <button
           onClick={copy}
           type="button"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--color-text-2)',
-            cursor: 'pointer',
-            fontSize: '12px',
-            padding: '4px 8px',
-            borderRadius: '6px'
-          }}
+          className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-text-3 hover:text-text-1 hover:bg-surface border border-border/80 hover:border-border rounded-lg transition-all duration-150 cursor-pointer focus:outline-none"
         >
-          {copied ? <Check size={13} className="text-success" /> : <Copy size={13} />}
-          <span style={{ color: 'var(--color-text-2)' }}>{copied ? 'Copied' : 'Copy'}</span>
+          {copied ? (
+            <>
+              <Check size={11} className="text-success animate-bounce" />
+              <span className="text-success font-extrabold font-mono">Copied!</span>
+            </>
+          ) : (
+            <>
+              <Copy size={11} className="transition-transform duration-100 group-hover:scale-105" />
+              <span className="font-mono">Copy</span>
+            </>
+          )}
         </button>
       </div>
 
@@ -95,10 +80,10 @@ export function CodeBlock({ code, language, caption }: CodeBlockProps) {
       <pre className={`language-${normalizedLang}`} style={{
         margin: 0,
         padding: '20px',
-        background: '#0D1117',
+        background: '#0A0D14',
         overflowX: 'auto',
-        fontSize: '14px',
-        lineHeight: '1.7',
+        fontSize: '13.5px',
+        lineHeight: '1.8',
         fontFamily: 'var(--font-mono), JetBrains Mono, monospace'
       }}>
         <code ref={codeRef} className={`language-${normalizedLang}`} style={{ color: '#E6EDF3' }}>
@@ -108,14 +93,8 @@ export function CodeBlock({ code, language, caption }: CodeBlockProps) {
 
       {/* Caption */}
       {caption && (
-        <div style={{
-          padding: '10px 16px',
-          background: 'var(--color-surface-alt)',
-          borderTop: '1px solid var(--color-border)',
-          color: 'var(--color-text-2)',
-          fontSize: '13px'
-        }}>
-          {caption}
+        <div className="px-4 py-2.5 bg-surface-alt/60 border-t border-border/70 text-text-2 text-[11.5px] leading-relaxed italic font-medium">
+          💡 {caption}
         </div>
       )}
     </div>
