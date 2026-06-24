@@ -54,7 +54,7 @@ export default async function PathPage() {
   // 4. Fetch lessons for this roadmap
   const { data: lessons } = await supabase
     .from('lessons')
-    .select('id, phase_id, title, slug, order_index, description')
+    .select('id, phase_id, title, slug, order_index')
     .eq('roadmap_id', roadmap.id)
     .order('order_index', { ascending: true })
 
@@ -71,7 +71,7 @@ export default async function PathPage() {
 
   // Group lessons by phase_id
   const lessonsByPhase: {
-    [key: string]: Array<{ id: string; phase_id: string; title: string; slug: string | null; order_index: number; description: string | null }>
+    [key: string]: Array<{ id: string; phase_id: string; title: string; slug: string | null; order_index: number }>
   } = {}
   lessons?.forEach((lesson) => {
     if (!lessonsByPhase[lesson.phase_id]) {
@@ -97,7 +97,7 @@ export default async function PathPage() {
       return {
         id: lesson.id,
         title: lesson.title,
-        description: lesson.description || `Lesson ${lesson.order_index} • Ready to learn`,
+        description: `Lesson ${lesson.order_index} • Ready to learn`,
         order_index: lesson.order_index,
         isAccessible: isLessonAccessible(phase.phase_number, lesson.order_index, isPro),
         status: status as 'not_started' | 'in_progress' | 'completed'
