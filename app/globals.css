@@ -372,3 +372,54 @@
 .animate-splash-overlay-out {
   animation: splashFadeOut 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* ===== SKILL TREE GAMIFICATION STYLES ===== */
+@keyframes nodePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(91, 142, 255, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 16px rgba(91, 142, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(91, 142, 255, 0);
+  }
+}
+
+.animate-node-pulse {
+  animation: nodePulse 2s infinite;
+}
+
+@keyframes floatSubtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-float-subtle {
+  animation: floatSubtle 3s ease-in-out infinite;
+}
+
+.btn-3d-node {
+  position: relative;
+  transition: transform 0.1s ease, border-bottom-width 0.1s ease, box-shadow 0.1s ease;
+  border-bottom-style: solid;
+}
+
+.btn-3d-node:active:not(:disabled) {
+  transform: translateY(4px) scale(0.98);
+  border-bottom-width: 2px !important;
+}
+
+.btn-3d-node-completed {
+  border-bottom-color: #047857 !important;
+}
+.btn-3d-node-active {
+  border-bottom-color: #2b62cd !important;
+}
+.btn-3d-node-locked {
+  border-bottom-color: #12151e !important;
+}
