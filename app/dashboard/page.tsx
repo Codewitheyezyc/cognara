@@ -199,33 +199,39 @@ export default async function DashboardPage() {
         <div className="rounded-[10px] border border-border bg-surface p-6 shadow-md space-y-6 flex flex-col justify-between">
           <h4 className="text-xs font-mono uppercase tracking-wider text-text-2">Learning Vitals</h4>
           
-          <div className="grid grid-cols-2 gap-4">
-            {/* Streak stat card */}
-            <StreakVitals initialStreak={streakData} isPro={isPro} />
-
-            {/* Quiz avg stat card */}
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-md bg-primary/10 text-primary flex items-center justify-center border border-primary/15">
-                <Award className="h-5 w-5" strokeWidth={1.5} />
+          <div className="flex flex-col gap-3">
+            {/* Row 1: Streak & Quiz side-by-side */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center p-3 bg-surface-alt/45 border border-border/80 rounded-xl">
+                <StreakVitals initialStreak={streakData} isPro={isPro} />
               </div>
-              <div className="flex flex-col">
-                <span className="text-lg font-bold text-text-1 font-mono">{avgScore}%</span>
-                <span className="text-[10px] text-text-2">Quiz Average</span>
+
+              <div className="flex items-center space-x-3 p-3 bg-surface-alt/45 border border-border/80 rounded-xl">
+                <div className="w-10 h-10 rounded-md bg-primary/10 text-primary flex items-center justify-center border border-primary/15 shrink-0">
+                  <Award className="h-5 w-5" strokeWidth={1.5} />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-lg font-bold text-text-1 font-mono leading-none mb-1">{avgScore}%</span>
+                  <span className="text-[10px] text-text-3 truncate">Quiz Average</span>
+                </div>
               </div>
             </div>
 
-            {/* Level & XP progression card */}
-            <div className="flex items-center space-x-3 mt-1">
-              <div className="w-10 h-10 rounded-md bg-accent/10 text-accent flex items-center justify-center border border-accent/15">
+            {/* Row 2: Level & XP card (Full Width) */}
+            <div className="flex items-center space-x-3 p-3 bg-accent/5 rounded-xl border border-accent/10">
+              <div className="w-10 h-10 rounded-md bg-accent/10 text-accent flex items-center justify-center border border-accent/15 shrink-0">
                 <BrainCircuit className="h-5 w-5" strokeWidth={1.5} />
               </div>
-              <div className="flex-1 flex flex-col min-w-0">
-                <div className="flex justify-between items-baseline">
-                  <span className="text-sm font-bold text-text-1 font-mono">Lvl {levelInfo.level}</span>
-                  <span className="text-[10px] text-text-3 font-semibold font-mono">{levelInfo.xpWithinLevel}/{levelInfo.xpNeededForLevelUp} XP</span>
+              <div className="flex-grow min-w-0">
+                <div className="flex justify-between items-baseline mb-1">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-text-1 font-sans leading-none">Lvl {levelInfo.level}</span>
+                    <span className="text-[10px] text-text-3 mt-1.5 leading-none">Current Level</span>
+                  </div>
+                  <span className="text-[10.5px] text-accent font-semibold font-mono leading-none">{levelInfo.xpWithinLevel} / {levelInfo.xpNeededForLevelUp} XP</span>
                 </div>
                 {/* XP Progress Bar */}
-                <div className="w-full h-1 bg-border rounded-full mt-1.5 overflow-hidden">
+                <div className="w-full h-1.5 bg-border rounded-full overflow-hidden mt-1.5">
                   <div 
                     className="h-full bg-accent transition-all duration-300"
                     style={{ width: `${levelInfo.progressPercentage}%` }}
@@ -234,20 +240,21 @@ export default async function DashboardPage() {
               </div>
             </div>
 
-            {/* Completion ratio stat card */}
-            <div className="flex items-center space-x-3 mt-1">
-              <div className="w-10 h-10 rounded-md bg-success/10 text-success flex items-center justify-center border border-success/15">
+            {/* Row 3: Completed Path card (Full Width) */}
+            <div className="flex items-center space-x-3 p-3 bg-success/5 rounded-xl border border-success/10">
+              <div className="w-10 h-10 rounded-md bg-success/10 text-success flex items-center justify-center border border-success/15 shrink-0">
                 <BookOpen className="h-5 w-5" strokeWidth={1.5} />
               </div>
-              <div className="flex-1 flex flex-col min-w-0">
-                <div className="flex justify-between items-baseline">
-                  <span className="text-sm font-bold text-text-1 font-mono">
-                    {completedLessonsCount}/{totalLessonsCount}
-                  </span>
-                  <span className="text-[10px] text-text-3 font-semibold">Completed</span>
+              <div className="flex-grow min-w-0">
+                <div className="flex justify-between items-baseline mb-1">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-text-1 font-sans leading-none">{completedLessonsCount} / {totalLessonsCount}</span>
+                    <span className="text-[10px] text-text-3 mt-1.5 leading-none">Lessons Completed</span>
+                  </div>
+                  <span className="text-[10.5px] text-success font-semibold font-mono leading-none">{Math.round(progressRatio)}%</span>
                 </div>
                 {/* Visual Progress Bar */}
-                <div className="w-full h-1 bg-border rounded-full mt-1.5 overflow-hidden">
+                <div className="w-full h-1.5 bg-border rounded-full overflow-hidden mt-1.5">
                   <div 
                     className="h-full bg-success transition-all duration-300"
                     style={{ width: `${progressRatio}%` }}

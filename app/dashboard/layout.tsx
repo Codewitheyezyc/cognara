@@ -534,7 +534,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 className="flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-gradient-to-r from-primary to-accent hover:from-primary/95 hover:to-accent/95 text-white font-bold rounded-full text-[10px] sm:text-xs transition duration-150 cursor-pointer shadow-[0_0_10px_rgba(91,142,255,0.2)] hover:scale-[1.03] active:scale-[0.97] shrink-0"
               >
                 <Sparkles className="h-3 w-3 fill-current text-white animate-pulse" />
-                <span className="hidden sm:inline">Go Pro</span>
+                <span>Go Pro</span>
               </button>
             )}
 
