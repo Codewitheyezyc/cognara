@@ -14,6 +14,7 @@ import { ReadingProgressBar } from '@/components/lesson/ReadingProgressBar'
 import MascotOverlay from '@/components/mascot/MascotOverlay'
 import LessonGeneratingOverlay from '@/components/lesson/LessonGeneratingOverlay'
 import { useToast } from '@/components/ui/toast'
+import { SoundEffects } from '@/lib/sound'
 
 const BADGE_DESCRIPTIONS: Record<string, string> = {
   phase_1: 'Completed Phase 1',
@@ -45,6 +46,8 @@ export default function LessonPage() {
   const [generationErrorMsg, setGenerationErrorMsg] = useState('')
   const [isCompleting, setIsCompleting] = useState(false)
   const [status, setStatus] = useState<'not_started' | 'in_progress' | 'completed'>('not_started')
+  const [heartsCount, setHeartsCount] = useState<number>(3)
+  const [hasRefilledThisSession, setHasRefilledThisSession] = useState(false)
   
   const [depthLevel, setDepthLevel] = useState<number>(2)
   const [isChangingDepth, setIsChangingDepth] = useState(false)
@@ -66,6 +69,17 @@ export default function LessonPage() {
   const [phaseId, setPhaseId] = useState('')
   const [phaseTitle, setPhaseTitle] = useState('')
   const [phaseNumber, setPhaseNumber] = useState<number>(1)
+
+  useEffect(() => {
+    const handleHeartsChanged = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (detail && detail.hearts !== undefined) {
+        setHeartsCount(detail.hearts)
+      }
+    }
+    window.addEventListener('cognara_hearts_changed', handleHeartsChanged)
+    return () => window.removeEventListener('cognara_hearts_changed', handleHeartsChanged)
+  }, [])
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -146,7 +160,7 @@ export default function LessonPage() {
           ? supabase.from('roadmap_phases').select('id, phase_number').eq('roadmap_id', lesson.roadmap_id)
           : Promise.resolve({ data: null, error: null }),
         supabase.from('lesson_progress').select('status').eq('user_id', user.id).eq('lesson_id', lessonId).maybeSingle(),
-        supabase.from('profiles').select('learning_depth, subscription_tier, subscription_status, subscription_end_date').eq('id', user.id).maybeSingle(),
+        supabase.from('profiles').select('learning_depth, subscription_tier, subscription_status, subscription_end_date, hearts').eq('id', user.id).maybeSingle(),
         lesson.roadmap_id
           ? supabase.from('roadmaps').select('goal_id').eq('id', lesson.roadmap_id).maybeSingle()
           : Promise.resolve({ data: null, error: null }),
@@ -189,6 +203,9 @@ export default function LessonPage() {
 
       // Calculate isPro status
       const prof = profileRes.data as any
+      if (prof) {
+        setHeartsCount(prof.hearts ?? 3)
+      }
       const tier = prof?.subscription_tier || 'free'
       const statusVal = prof?.subscription_status || 'inactive'
       const endDate = prof?.subscription_end_date || null
@@ -452,6 +469,37 @@ export default function LessonPage() {
         }
       } else {
         console.error('Error updating progress:', error)
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setIsCompleting(false)
+    }
+  }
+
+  const handleRefillHeartReview = async () => {
+    setIsCompleting(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data: newHearts, error } = await supabase.rpc('refill_heart', { user_id: user.id })
+
+      if (!error) {
+        setHasRefilledThisSession(true)
+        const updatedHearts = typeof newHearts === 'number' ? newHearts : (heartsCount + 1)
+        setHeartsCount(updatedHearts)
+        
+        SoundEffects.play('success')
+
+        // Dispatch hearts changed event
+        window.dispatchEvent(new CustomEvent('cognara_hearts_changed', {
+          detail: { hearts: updatedHearts }
+        }))
+        toast('Heart Refilled! ❤️ +1 Cognitive Energy')
+      } else {
+        console.error('Error refilling heart:', error)
+        toast('Failed to refill heart.', 'error')
       }
     } catch (err) {
       console.error(err)
@@ -724,6 +772,14 @@ export default function LessonPage() {
               className="h-10 px-5 bg-transparent border border-border hover:bg-surface-alt text-text-1 rounded-sm text-xs font-semibold disabled:opacity-50"
             >
               {isCompleting ? 'Saving...' : isOffline ? 'Offline' : 'Mark as Complete'}
+            </Button>
+          ) : !isPro && heartsCount < 3 ? (
+            <Button
+              onClick={handleRefillHeartReview}
+              disabled={isCompleting || hasRefilledThisSession || isOffline}
+              className="h-10 px-5 bg-red-500 hover:bg-red-600 text-white rounded-sm text-xs font-semibold animate-pulse-subtle"
+            >
+              {isCompleting ? 'Saving...' : hasRefilledThisSession ? 'Heart Refilled ❤️' : 'Refill Heart (+1 ❤️)'}
             </Button>
           ) : (
             <Button

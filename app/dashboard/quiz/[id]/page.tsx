@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import React, { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, CheckCircle2, XCircle, Flame, Clock, Award, RotateCcw, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, XCircle, Flame, Clock, Award, RotateCcw, AlertTriangle, Heart } from 'lucide-react'
 import Link from 'next/link'
 import { QuizQuestion } from '@/types/ai'
 import AIBadge from '@/components/lesson/AIBadge'
@@ -83,6 +83,8 @@ export default function QuizPage() {
   const [newBadges, setNewBadges] = useState<any[]>([])
   const [currentBadgeIndex, setCurrentBadgeIndex] = useState(0)
   const [phaseId, setPhaseId] = useState('')
+  const [userId, setUserId] = useState<string | null>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [phaseTitle, setPhaseTitle] = useState('')
 
   // Timer
@@ -100,6 +102,22 @@ export default function QuizPage() {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) {
           router.push('/login')
+          return
+        }
+        setUserId(user.id)
+
+        // Fetch profile to check hearts
+        const { data: profRow } = await supabase
+          .from('profiles')
+          .select('subscription_tier, hearts')
+          .eq('id', user.id)
+          .maybeSingle()
+          
+        setProfile(profRow)
+
+        if (profRow && profRow.subscription_tier === 'free' && (profRow.hearts ?? 3) <= 0) {
+          setErrorMsg('OUT_OF_HEARTS')
+          setIsLoading(false)
           return
         }
 
@@ -166,7 +184,7 @@ export default function QuizPage() {
 
   // Handle checking active question's answer
   const handleCheckAnswer = () => {
-    if (!selectedAnswer.trim()) return
+    if (!selectedAnswer.trim() || !userId) return
 
     const currentQuestion = questions[currentIdx]
     setUserAnswers((prev) => ({
@@ -178,6 +196,30 @@ export default function QuizPage() {
     // Play feedback sound
     const isCorrect = selectedAnswer.trim().toLowerCase() === currentQuestion.correct_answer.trim().toLowerCase()
     SoundEffects.play(isCorrect ? 'success' : 'failure')
+
+    // Decrement heart if incorrect and user is free
+    if (!isCorrect && profile?.subscription_tier === 'free') {
+      supabase.rpc('decrement_heart', { user_id: userId })
+        .then(({ data, error }: any) => {
+          if (!error && data && data.length > 0) {
+            const newHearts = data[0].new_hearts
+            const isGameOver = data[0].is_game_over
+            
+            setProfile((prev: any) => prev ? { ...prev, hearts: newHearts } : null)
+            
+            // Dispatch hearts changed event
+            window.dispatchEvent(new CustomEvent('cognara_hearts_changed', {
+              detail: { hearts: newHearts }
+            }))
+            
+            if (isGameOver) {
+              setTimeout(() => {
+                setErrorMsg('OUT_OF_HEARTS')
+              }, 1500) // Small delay to let them see explanation first
+            }
+          }
+        })
+    }
   }
 
   // Handle proceeding to next question or final results submission
@@ -286,6 +328,46 @@ export default function QuizPage() {
 
   // Error Screen
   if (errorMsg) {
+    if (errorMsg === 'OUT_OF_HEARTS') {
+      return (
+        <div className="min-h-screen bg-bg text-text-1 flex flex-col items-center justify-center p-6 space-y-6 max-w-md mx-auto text-center animate-page-enter">
+          <div className="p-4 bg-error/10 border border-error/20 rounded-full text-error">
+            <Heart className="h-10 w-10 fill-current animate-pulse text-error" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="font-heading text-2xl font-bold text-text-1">No Hearts Left!</h2>
+            <p className="text-sm text-text-2">
+              You ran out of cognitive energy. Hearts regenerate automatically at a rate of 1 heart every 2 hours, or you can get instant refills.
+            </p>
+          </div>
+          
+          <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl text-left w-full space-y-2.5">
+            <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-primary block">Synapse Refill Plan</span>
+            <p className="text-[11.5px] text-text-2 leading-relaxed">
+              Reviewing previously completed lessons reinforces long-term memory and refills <strong className="text-text-1">+1 Heart</strong> per lesson!
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 w-full">
+            <Link href="/dashboard/path" className="w-full">
+              <Button
+                className="w-full h-11 bg-primary hover:bg-primary/95 text-white rounded-lg text-xs font-semibold"
+              >
+                Review Completed Lessons
+              </Button>
+            </Link>
+            <Link href="/dashboard/settings" className="w-full">
+              <Button
+                className="w-full h-11 bg-transparent border border-border hover:bg-surface-alt text-text-2 rounded-lg text-xs font-semibold"
+              >
+                Upgrade to Pro (Unlimited Hearts)
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className="min-h-screen bg-bg text-text-1 flex flex-col items-center justify-center p-6 space-y-6 max-w-md mx-auto">
         <div className="p-4 bg-error/10 border border-error/20 rounded-full">
@@ -437,6 +519,14 @@ export default function QuizPage() {
             <span>Exit Focus Mode</span>
           </Link>
           <div className="flex items-center space-x-3">
+            {profile && (
+              <div className="flex items-center space-x-1 text-red-500 text-xs font-mono select-none mr-1">
+                <Heart className="h-3.5 w-3.5 fill-current animate-pulse-subtle" />
+                <span className="font-extrabold">
+                  {profile.subscription_tier !== 'free' ? '∞' : profile.hearts}
+                </span>
+              </div>
+            )}
             <AIBadge />
             <span className="text-[10px] font-mono text-text-2">
               Question {questionNumber} of {totalQuestions}

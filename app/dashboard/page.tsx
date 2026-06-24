@@ -167,40 +167,70 @@ export default async function DashboardPage() {
 
       {/* 2. Top row: Active Lesson + Stats card */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Active Lesson Card (with Learning Pulse) */}
-        <div className="lg:col-span-2 relative group overflow-hidden rounded-[10px] border border-border bg-surface p-6 shadow-md flex flex-col justify-between min-h-[200px]">
-          {/* Signature Learning Pulse background gradient element */}
-          <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-gradient-to-br from-primary/10 to-accent/15 blur-[60px] opacity-75 pointer-events-none group-hover:scale-110 transition-transform duration-500 animate-learning-pulse" />
+        <div className="lg:col-span-2 space-y-6">
+          {/* Active Lesson Card (with Learning Pulse) */}
+          <div className="relative group overflow-hidden rounded-[10px] border border-border bg-surface p-6 shadow-md flex flex-col justify-between min-h-[200px]">
+            {/* Signature Learning Pulse background gradient element */}
+            <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-gradient-to-br from-primary/10 to-accent/15 blur-[60px] opacity-75 pointer-events-none group-hover:scale-110 transition-transform duration-500 animate-learning-pulse" />
 
-          <div className="relative space-y-3">
-            <div className="flex items-center space-x-2 text-primary">
-              <Zap className="h-4 w-4" strokeWidth={1.5} />
-              <span className="text-[10px] font-mono uppercase tracking-wider font-semibold">Active Milestone</span>
+            <div className="relative space-y-3">
+              <div className="flex items-center space-x-2 text-primary">
+                <Zap className="h-4 w-4" strokeWidth={1.5} />
+                <span className="text-[10px] font-mono uppercase tracking-wider font-semibold">Active Milestone</span>
+              </div>
+              {activeLesson && (
+                <>
+                  <h3 className="font-heading text-2xl font-bold text-text-1 tracking-tight">
+                    {activeLesson.title}
+                  </h3>
+                  <p className="text-text-2 text-xs leading-relaxed max-w-md">
+                    Resume your custom path. We generated detailed explanations, code instances, exercises, and quizzes for this concept.
+                  </p>
+                </>
+              )}
             </div>
-            {activeLesson && (
-              <>
-                <h3 className="font-heading text-2xl font-bold text-text-1 tracking-tight">
-                  {activeLesson.title}
-                </h3>
-                <p className="text-text-2 text-xs leading-relaxed max-w-md">
-                  Resume your custom path. We generated detailed explanations, code instances, exercises, and quizzes for this concept.
-                </p>
-              </>
-            )}
+
+            <div className="relative mt-6 pt-4 border-t border-border/50 flex items-center justify-between">
+              <span className="text-xs text-text-2 font-medium">
+                Goal: {goal.subject} ({goal.level})
+              </span>
+              {activeLesson && (
+                <Link href={`/dashboard/lesson/${activeLesson.id}`}>
+                  <Button className="bg-primary hover:bg-primary/90 text-white text-xs px-4 h-9 shadow-[0_0_12px_rgba(91,142,255,0.2)] rounded-sm">
+                    <span>Continue Lesson</span>
+                    <ArrowRight className="ml-1 h-3.5 w-3.5" strokeWidth={2} />
+                  </Button>
+                </Link>
+              )}
+            </div>
           </div>
 
-          <div className="relative mt-6 pt-4 border-t border-border/50 flex items-center justify-between">
-            <span className="text-xs text-text-2 font-medium">
-              Goal: {goal.subject} ({goal.level})
-            </span>
-            {activeLesson && (
-              <Link href={`/dashboard/lesson/${activeLesson.id}`}>
-                <Button className="bg-primary hover:bg-primary/90 text-white text-xs px-4 h-9 shadow-[0_0_12px_rgba(91,142,255,0.2)] rounded-sm">
-                  <span>Continue Lesson</span>
-                  <ArrowRight className="ml-1 h-3.5 w-3.5" strokeWidth={2} />
+          {/* Time-Attack Speed Run Banner */}
+          <div className="relative group overflow-hidden rounded-[10px] border border-border bg-gradient-to-r from-violet-600/10 via-primary/5 to-transparent p-6 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            {/* Glowing blur */}
+            <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-violet-500/15 rounded-full blur-[50px] pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+            
+            <div className="space-y-2 relative min-w-0">
+              <div className="flex items-center space-x-2 text-violet-500">
+                <Zap className="h-4 w-4 fill-current animate-pulse text-violet-500" strokeWidth={1.5} />
+                <span className="text-[10px] font-mono uppercase tracking-wider font-extrabold">Time-Attack Mode</span>
+              </div>
+              <h3 className="font-heading text-xl font-bold text-text-1 tracking-tight">
+                Lightning Round Review
+              </h3>
+              <p className="text-text-2 text-xs leading-relaxed max-w-md">
+                Got 60 seconds? Challenge your brain with a fast-paced active recall test. Build streaks to earn up to 4x XP!
+              </p>
+            </div>
+
+            <div className="relative shrink-0">
+              <Link href="/dashboard/speedrun">
+                <Button className="bg-violet-600 hover:bg-violet-700 text-white text-xs px-5 h-10 shadow-[0_0_12px_rgba(139,92,246,0.25)] rounded-sm font-semibold flex items-center gap-1.5 transition-all hover:scale-[1.03] active:scale-[0.97]">
+                  <span>Play Speed Run</span>
+                  <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
                 </Button>
               </Link>
-            )}
+            </div>
           </div>
         </div>
 

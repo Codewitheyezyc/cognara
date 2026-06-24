@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Home, Map, BarChart2, Flame, Search, Bell, Bookmark, Download, Sparkles } from 'lucide-react'
+import { Home, Map, BarChart2, Flame, Search, Bell, Bookmark, Download, Sparkles, Heart } from 'lucide-react'
 import { ProfileDropdown } from '@/components/dashboard/ProfileDropdown'
 import { Logo } from '@/components/ui/Logo'
 import { LessonPreviewModal } from '@/components/dashboard/LessonPreviewModal'
@@ -138,6 +138,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         
       if (!active) return
       if (profileData) {
+        let currentHearts = profileData.hearts !== undefined ? profileData.hearts : 3
+        const isFreeUser = profileData.subscription_tier === 'free'
+        
+        if (isFreeUser && currentHearts < 3 && profileData.last_heart_refill_at) {
+          const lastRefill = new Date(profileData.last_heart_refill_at).getTime()
+          const now = Date.now()
+          const elapsed = now - lastRefill
+          const REGEN_TIME = 2 * 60 * 60 * 1000 // 2 hours
+          
+          if (elapsed >= REGEN_TIME) {
+            const regenerated = Math.floor(elapsed / REGEN_TIME)
+            const newHearts = Math.min(3, currentHearts + regenerated)
+            
+            if (newHearts !== currentHearts) {
+              const newRefillTime = new Date(lastRefill + regenerated * REGEN_TIME).toISOString()
+              
+              // Sync to DB
+              await supabase
+                .from('profiles')
+                .update({
+                  hearts: newHearts,
+                  last_heart_refill_at: newHearts === 3 ? new Date().toISOString() : newRefillTime
+                })
+                .eq('id', user.id)
+                
+              profileData.hearts = newHearts
+              profileData.last_heart_refill_at = newHearts === 3 ? new Date().toISOString() : newRefillTime
+            }
+          }
+        }
         setProfile(profileData)
       }
 
@@ -279,6 +309,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     window.addEventListener('cognara_xp_gained', handleXpGained)
     return () => window.removeEventListener('cognara_xp_gained', handleXpGained)
+  }, [])
+
+  // Listen for global hearts changes
+  useEffect(() => {
+    const handleHeartsChanged = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail || detail.hearts === undefined) return
+      setProfile((prev: any) => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          hearts: detail.hearts
+        }
+      })
+    }
+
+    window.addEventListener('cognara_hearts_changed', handleHeartsChanged)
+    return () => window.removeEventListener('cognara_hearts_changed', handleHeartsChanged)
   }, [])
 
   // Real-time badge event listener
@@ -547,6 +595,43 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <span className="font-bold">{streak}d</span>
               </div>
             )}
+
+            {/* Hearts Indicator */}
+            {isLoading || !profile ? (
+              <div className="w-12 h-6 bg-border/40 rounded-full animate-pulse" />
+            ) : (() => {
+              const isProUser = profile.subscription_tier !== 'free'
+              const heartsCount = profile.hearts !== undefined ? profile.hearts : 3
+              
+              // Calculate time to next heart if free and < 3
+              let tooltipText = "Unlimited Hearts (Pro Access) 💖"
+              if (!isProUser) {
+                if (heartsCount >= 3) {
+                  tooltipText = "Hearts Full! (3/3) ❤️"
+                } else if (profile.last_heart_refill_at) {
+                  const lastRefill = new Date(profile.last_heart_refill_at).getTime()
+                  const nextRefill = lastRefill + 2 * 60 * 60 * 1000
+                  const minutesLeft = Math.max(0, Math.round((nextRefill - Date.now()) / 1000 / 60))
+                  const hrs = Math.floor(minutesLeft / 60)
+                  const mins = minutesLeft % 60
+                  tooltipText = `Next heart in ${hrs > 0 ? `${hrs}h ` : ''}${mins}m ❤️`
+                }
+              }
+
+              return (
+                <div 
+                  className={`flex items-center space-x-1 px-2.5 py-0.5 sm:px-3 sm:py-1 border rounded-full text-[10px] sm:text-xs font-mono select-none cursor-help shrink-0 ${
+                    !isProUser && heartsCount === 0
+                      ? 'bg-error/10 text-error border-error/25'
+                      : 'bg-red-500/10 text-red-500 border-red-500/20'
+                  }`}
+                  title={tooltipText}
+                >
+                  <Heart className={`h-3.5 w-3.5 fill-current ${!isProUser && heartsCount === 0 ? 'text-error animate-pulse' : 'text-red-500 animate-pulse-subtle'}`} />
+                  <span className="font-extrabold">{isProUser ? '∞' : heartsCount}</span>
+                </div>
+              )
+            })()}
 
             {/* XP Level Indicator */}
             {isLoading || !profile ? (
