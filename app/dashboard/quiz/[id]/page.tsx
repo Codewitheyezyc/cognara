@@ -70,6 +70,7 @@ export default function QuizPage() {
     streak: { current: number; longest: number }
     roadmapCompleted?: boolean
     roadmapId?: string | null
+    xp?: { xpGained: number; newXp: number; newLevel: number; leveledUp: boolean } | null
   } | null>(null)
 
   // Loading / Error
@@ -201,6 +202,18 @@ export default function QuizPage() {
 
         setQuizResult(result)
 
+        // Dispatch XP gained event
+        if (result.xp) {
+          window.dispatchEvent(new CustomEvent('cognara_xp_gained', {
+            detail: {
+              xpGained: result.xp.xpGained,
+              newXp: result.xp.newXp,
+              newLevel: result.xp.newLevel,
+              leveledUp: result.xp.leveledUp
+            }
+          }))
+        }
+
         // Trigger badge check on quiz submission
         try {
           const badgeRes = await fetch('/api/badges/check-and-award', {
@@ -296,6 +309,7 @@ export default function QuizPage() {
           score={quizResult.score}
           passed={quizResult.passed}
           lessonTitle={lessonTitle}
+          xpGained={quizResult.xp?.xpGained}
           onContinue={() => {
             if (quizResult.roadmapCompleted && quizResult.roadmapId) {
               router.push(`/dashboard/roadmap-complete/${quizResult.roadmapId}`)

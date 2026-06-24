@@ -56,6 +56,18 @@ export function ExerciseWriting({
       })
       const data = await res.json()
       setFeedback(data.feedback)
+
+      // Dispatch XP gained event
+      if (data.xp) {
+        window.dispatchEvent(new CustomEvent('cognara_xp_gained', {
+          detail: {
+            xpGained: data.xp.xpGained,
+            newXp: data.xp.newXp,
+            newLevel: data.xp.newLevel,
+            leveledUp: data.xp.leveledUp
+          }
+        }))
+      }
     } catch (err) {
       console.error('Review failed', err)
     } finally {

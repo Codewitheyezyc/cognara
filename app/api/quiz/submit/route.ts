@@ -215,6 +215,28 @@ export async function POST(request: Request) {
       }
     }
 
+    // 7. Award XP dynamically based on performance
+    let xpAward = 50 // Baseline attempt XP
+    if (passed) {
+      xpAward = 150
+      if (score === 100) {
+        xpAward += 50 // Perfect score bonus
+      }
+    }
+
+    let xpData: any = null
+    try {
+      const { data: rpcData, error: rpcError } = await supabase.rpc('add_xp', {
+        user_id: user.id,
+        amount: xpAward
+      })
+      if (!rpcError && rpcData) {
+        xpData = rpcData
+      }
+    } catch (xpErr) {
+      console.error('[Quiz Submit] Error calling add_xp RPC:', xpErr)
+    }
+
     return NextResponse.json({
       attemptId: attempt.id,
       score,
@@ -227,6 +249,12 @@ export async function POST(request: Request) {
       },
       roadmapCompleted,
       roadmapId,
+      xp: xpData ? {
+        xpGained: xpData.xp_gained,
+        newXp: xpData.xp,
+        newLevel: xpData.level,
+        leveledUp: xpData.leveled_up
+      } : null
     })
   } catch (err) {
     console.error('[API Submit Quiz Error]', err)

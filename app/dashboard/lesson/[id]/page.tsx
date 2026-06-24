@@ -13,6 +13,7 @@ import { LessonCompleteModal } from '@/components/mascot/LessonCompleteModal'
 import { ReadingProgressBar } from '@/components/lesson/ReadingProgressBar'
 import MascotOverlay from '@/components/mascot/MascotOverlay'
 import LessonGeneratingOverlay from '@/components/lesson/LessonGeneratingOverlay'
+import { useToast } from '@/components/ui/toast'
 
 const BADGE_DESCRIPTIONS: Record<string, string> = {
   phase_1: 'Completed Phase 1',
@@ -31,6 +32,7 @@ export default function LessonPage() {
   const router = useRouter()
   const lessonId = params.id as string
   const supabase = createClient()
+  const { toast } = useToast()
 
   const [lessonTitle, setLessonTitle] = useState('')
   const [content, setContent] = useState<GeneratedLesson | null>(null)
@@ -409,6 +411,27 @@ export default function LessonPage() {
       if (!error) {
         setStatus('completed')
         setShowCelebration(true)
+
+        // Award +100 XP
+        try {
+          const { data: xpData, error: xpError } = await supabase.rpc('add_xp', {
+            user_id: user.id,
+            amount: 100
+          })
+          if (!xpError && xpData) {
+            window.dispatchEvent(new CustomEvent('cognara_xp_gained', {
+              detail: {
+                xpGained: 100,
+                newXp: xpData.xp,
+                newLevel: xpData.level,
+                leveledUp: xpData.leveled_up
+              }
+            }))
+            toast('Brain Powered! +100 XP Earned 🧠')
+          }
+        } catch (xpErr) {
+          console.error('Error awarding XP on lesson complete:', xpErr)
+        }
         
         // Trigger badge check on lesson completion
         try {

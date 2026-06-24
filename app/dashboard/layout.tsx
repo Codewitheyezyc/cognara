@@ -9,6 +9,8 @@ import { ProfileDropdown } from '@/components/dashboard/ProfileDropdown'
 import { Logo } from '@/components/ui/Logo'
 import { LessonPreviewModal } from '@/components/dashboard/LessonPreviewModal'
 import { useToast } from '@/components/ui/toast'
+import { getLevelInfo } from '@/lib/leveling'
+import { LevelUpModal } from '@/components/mascot/LevelUpModal'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -18,6 +20,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
   const [isOffline, setIsOffline] = useState(false)
+  const [levelUpInfo, setLevelUpInfo] = useState<{ oldLevel: number; newLevel: number; rankName: string } | null>(null)
+  const [isLevelUpOpen, setIsLevelUpOpen] = useState(false)
 
   // Paystack transaction verification listener
   useEffect(() => {
@@ -245,6 +249,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       subscription.unsubscribe()
     }
   }, [supabase, pathname])
+
+  // Listen for global XP gains and level ups
+  useEffect(() => {
+    const handleXpGained = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail) return
+
+      setProfile((prev: any) => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          xp: detail.newXp,
+          level: detail.newLevel
+        }
+      })
+
+      if (detail.leveledUp) {
+        const oldLvl = detail.oldLevel || (detail.newLevel - 1)
+        const rank = getLevelInfo(detail.newXp)
+        setLevelUpInfo({
+          oldLevel: oldLvl,
+          newLevel: detail.newLevel,
+          rankName: rank.rankName
+        })
+        setIsLevelUpOpen(true)
+      }
+    }
+
+    window.addEventListener('cognara_xp_gained', handleXpGained)
+    return () => window.removeEventListener('cognara_xp_gained', handleXpGained)
+  }, [])
 
   // Real-time badge event listener
   useEffect(() => {
@@ -513,6 +548,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             )}
 
+            {/* XP Level Indicator */}
+            {isLoading || !profile ? (
+              <div className="w-16 h-6 bg-border/40 rounded-full animate-pulse" />
+            ) : (() => {
+              const levelInfo = getLevelInfo(profile.xp || 0);
+              return (
+                <div 
+                  className="flex items-center space-x-2 px-3 py-1 bg-accent/10 text-accent border border-accent/20 rounded-full text-xs font-mono select-none cursor-help shrink-0" 
+                  title={`${levelInfo.xpWithinLevel}/${levelInfo.xpNeededForLevelUp} XP to next level`}
+                >
+                  <span className="font-extrabold uppercase text-[9px] tracking-wider text-accent">Lvl {levelInfo.level}</span>
+                  <div className="w-12 h-1.5 bg-border rounded-full overflow-hidden hidden xs:block shrink-0">
+                    <div 
+                      className="h-full bg-accent rounded-full transition-all duration-300"
+                      style={{ width: `${levelInfo.progressPercentage}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* Notification Bell */}
             <div className="relative" ref={notificationsRef}>
               <button 
@@ -702,6 +758,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         isOpen={isUpgradeModalOpen} 
         onClose={() => setIsUpgradeModalOpen(false)} 
       />
+
+      {isLevelUpOpen && levelUpInfo && (
+        <LevelUpModal
+          oldLevel={levelUpInfo.oldLevel}
+          newLevel={levelUpInfo.newLevel}
+          rankName={levelUpInfo.rankName}
+          onDismiss={() => {
+            setIsLevelUpOpen(false)
+            setLevelUpInfo(null)
+          }}
+        />
+      )}
     </div>
   )
 }

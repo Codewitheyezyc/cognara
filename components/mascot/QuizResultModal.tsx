@@ -9,6 +9,7 @@ interface QuizResultModalProps {
   lessonTitle: string
   onContinue: () => void
   onRetry: () => void
+  xpGained?: number
 }
 
 export function QuizResultModal({
@@ -16,7 +17,8 @@ export function QuizResultModal({
   passed,
   lessonTitle,
   onContinue,
-  onRetry
+  onRetry,
+  xpGained
 }: QuizResultModalProps) {
   const [visible, setVisible] = useState(false)
   const [displayScore, setDisplayScore] = useState(0)
@@ -105,20 +107,42 @@ export function QuizResultModal({
           <span style={{ fontSize: '24px', color: 'var(--color-text-3)' }}>%</span>
         </div>
 
-        {/* Pass/fail badge */}
+        {/* Pass/fail and XP badges */}
         <div style={{
-          display: 'inline-block',
-          background: passed ? 'rgba(52,211,153,0.1)' : 'rgba(248,113,113,0.1)',
-          color: passed ? 'var(--color-success)' : 'var(--color-error)',
-          fontSize: '12px',
-          fontWeight: 700,
-          padding: '4px 14px',
-          borderRadius: '999px',
-          marginBottom: '16px',
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em'
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '8px',
+          marginBottom: '16px'
         }}>
-          {passed ? '✓ Passed' : '✗ Not passed'}
+          <div style={{
+            background: passed ? 'rgba(52,211,153,0.1)' : 'rgba(248,113,113,0.1)',
+            color: passed ? 'var(--color-success)' : 'var(--color-error)',
+            fontSize: '12px',
+            fontWeight: 700,
+            padding: '4px 14px',
+            borderRadius: '999px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em'
+          }}>
+            {passed ? '✓ Passed' : '✗ Not passed'}
+          </div>
+
+          {xpGained !== undefined && xpGained > 0 && (
+            <div style={{
+              background: 'rgba(167,139,250,0.15)',
+              color: 'var(--color-accent)',
+              border: '1px solid rgba(167,139,250,0.2)',
+              fontSize: '12px',
+              fontWeight: 700,
+              padding: '4px 14px',
+              borderRadius: '999px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em'
+            }}>
+              🧠 +{xpGained} XP
+            </div>
+          )}
         </div>
 
         <p style={{

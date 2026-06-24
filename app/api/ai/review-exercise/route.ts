@@ -130,7 +130,29 @@ Student submission:
     const clean = text.replace(/```json|```/g, '').trim()
     const feedback = JSON.parse(clean)
 
-    return NextResponse.json({ feedback })
+    // Award +100 XP
+    let xpData: any = null
+    try {
+      const { data: rpcData, error: rpcError } = await supabase.rpc('add_xp', {
+        user_id: user.id,
+        amount: 100
+      })
+      if (!rpcError && rpcData) {
+        xpData = rpcData
+      }
+    } catch (xpErr) {
+      console.error('[Review Exercise] Error calling add_xp RPC:', xpErr)
+    }
+
+    return NextResponse.json({ 
+      feedback,
+      xp: xpData ? {
+        xpGained: xpData.xp_gained,
+        newXp: xpData.xp,
+        newLevel: xpData.level,
+        leveledUp: xpData.leveled_up
+      } : null
+    })
   } catch (err) {
     console.error('[Review Exercise Error]', err)
     return NextResponse.json({ error: 'Review failed' }, { status: 500 })
