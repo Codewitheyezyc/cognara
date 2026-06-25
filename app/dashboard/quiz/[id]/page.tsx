@@ -91,6 +91,13 @@ export default function QuizPage() {
   const [timeSpentSecs, setTimeSpentSecs] = useState(0)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
 
+  // Save the lesson ID in sessionStorage to return to it when going back to the tree view
+  useEffect(() => {
+    if (typeof window !== 'undefined' && lessonId) {
+      sessionStorage.setItem('lastViewedLessonId', lessonId)
+    }
+  }, [lessonId])
+
   // Fetch quiz details on mount
   useEffect(() => {
     async function loadQuiz() {

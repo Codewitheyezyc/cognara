@@ -95,6 +95,13 @@ export default function LessonPage() {
     }
   }, [])
 
+  // Save the lesson ID in sessionStorage to return to it when going back to the tree view
+  useEffect(() => {
+    if (typeof window !== 'undefined' && lessonId) {
+      sessionStorage.setItem('lastViewedLessonId', lessonId)
+    }
+  }, [lessonId])
+
   useEffect(() => {
     async function loadLesson() {
       // ── Step 0: Check offline status first ──────────────────────────────────

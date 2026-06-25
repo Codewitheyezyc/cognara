@@ -427,6 +427,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [isNotificationsOpen])
 
+  // Clear last viewed lesson if we navigate away from path or lesson/quiz pages
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isPathOrLessonOrQuiz =
+        pathname === '/dashboard/path' ||
+        pathname.startsWith('/dashboard/lesson/') ||
+        pathname.startsWith('/dashboard/quiz/')
+      
+      if (!isPathOrLessonOrQuiz) {
+        sessionStorage.removeItem('lastViewedLessonId')
+      }
+    }
+  }, [pathname])
+
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     router.push('/login')

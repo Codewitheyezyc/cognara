@@ -159,34 +159,45 @@ export function SkillTree({
 
     let targetLessonId: string | null = null
 
-    // 1. Look for the first lesson with status 'in_progress'
-    for (const phase of phases) {
-      const lessons = lessonsByPhase[phase.id] || []
-      const active = lessons.find(l => l.status === 'in_progress')
-      if (active) {
-        targetLessonId = active.id
-        break
+    // Check if we came from a specific lesson in this session
+    if (typeof window !== 'undefined') {
+      const savedId = sessionStorage.getItem('lastViewedLessonId')
+      if (savedId) {
+        targetLessonId = savedId
+        sessionStorage.removeItem('lastViewedLessonId') // Consume it immediately
       }
     }
 
-    // 2. If no in_progress lesson, look for the first 'not_started' lesson
     if (!targetLessonId) {
+      // 1. Look for the first lesson with status 'in_progress'
       for (const phase of phases) {
         const lessons = lessonsByPhase[phase.id] || []
-        const firstNotStarted = lessons.find(l => l.status === 'not_started')
-        if (firstNotStarted) {
-          targetLessonId = firstNotStarted.id
+        const active = lessons.find(l => l.status === 'in_progress')
+        if (active) {
+          targetLessonId = active.id
           break
         }
       }
-    }
 
-    // 3. If all lessons are completed, target the last lesson of the last phase
-    if (!targetLessonId && phases.length > 0) {
-      const lastPhase = phases[phases.length - 1]
-      const lessons = lessonsByPhase[lastPhase.id] || []
-      if (lessons.length > 0) {
-        targetLessonId = lessons[lessons.length - 1].id
+      // 2. If no in_progress lesson, look for the first 'not_started' lesson
+      if (!targetLessonId) {
+        for (const phase of phases) {
+          const lessons = lessonsByPhase[phase.id] || []
+          const firstNotStarted = lessons.find(l => l.status === 'not_started')
+          if (firstNotStarted) {
+            targetLessonId = firstNotStarted.id
+            break
+          }
+        }
+      }
+
+      // 3. If all lessons are completed, target the last lesson of the last phase
+      if (!targetLessonId && phases.length > 0) {
+        const lastPhase = phases[phases.length - 1]
+        const lessons = lessonsByPhase[lastPhase.id] || []
+        if (lessons.length > 0) {
+          targetLessonId = lessons[lessons.length - 1].id
+        }
       }
     }
 

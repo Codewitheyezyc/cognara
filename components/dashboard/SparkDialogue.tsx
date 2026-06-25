@@ -65,7 +65,7 @@ export default function SparkDialogue({ userName, streak, level }: SparkDialogue
       emotion: 'thinking' as const
     })
     quotes.push({
-      text: `Check out your Cognitive Quests widget in the sidebar. Claim completed goals for massive XP boosts! 🎯`,
+      text: `Check out your Cognitive Quests widget on the dashboard. Claim completed goals for massive XP boosts! 🎯`,
       emotion: 'celebrate' as const
     })
     quotes.push({
