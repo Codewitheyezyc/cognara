@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     apple: "/favicon.png",
   },
   keywords: [
-    "Cognara", "Cognaralearn", "cognitive learning", "personalized roadmaps", 
+    "Cognara", "Cognaralearn", "cognitive learning", "personalized roadmaps",
     "adaptive learning", "cognitive education", "study planner", "learning operating system"
   ],
   authors: [{ name: "Cognara Team" }],
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     siteName: "Cognara",
     images: [
       {
-        url: "/images/dashboard-dark.png",
+        url: "cognara-logo.png",
         width: 1200,
         height: 675,
         alt: "Cognara — Cognitive Adaptive System Dashboard",
