@@ -556,10 +556,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="flex-1 flex flex-col min-w-0 pb-16 md:pb-0">
         {/* Unified Topbar/Navbar for mobile and desktop */}
         <header className="h-16 bg-surface border-b border-border flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
-          {/* Logo visible on mobile only */}
-          <div className="md:hidden flex items-center space-x-1.5">
+          {/* Logo visible on all viewports for consistent branding */}
+          <div className="flex items-center space-x-1.5 shrink-0">
             <Logo className="h-5 w-5" />
-            <span className="font-heading text-base font-bold tracking-tight text-text-1 hidden xs:inline-block">Cognara</span>
+            <span className="font-heading text-base font-bold tracking-tight text-text-1">Cognara</span>
           </div>
           
           {/* Command Search Box for desktop */}
@@ -575,91 +575,103 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </kbd>
           </button>
 
-          <div className="flex items-center space-x-1.5 sm:space-x-3">
-            {isFree && (
-              <button
-                onClick={() => setIsUpgradeModalOpen(true)}
-                className="flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-gradient-to-r from-primary to-accent hover:from-primary/95 hover:to-accent/95 text-white font-bold rounded-full text-[10px] sm:text-xs transition duration-150 cursor-pointer shadow-[0_0_10px_rgba(91,142,255,0.2)] hover:scale-[1.03] active:scale-[0.97] shrink-0"
-              >
-                <Sparkles className="h-3 w-3 fill-current text-white animate-pulse" />
-                <span>Go Pro</span>
-              </button>
-            )}
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Search trigger button visible on mobile only */}
+            <button 
+              onClick={() => setIsSearchOpen(true)}
+              className="md:hidden p-1.5 text-text-3 hover:text-text-1 hover:bg-surface-alt rounded-full transition cursor-pointer focus:outline-none shrink-0"
+              title="Search lessons"
+            >
+              <Search className="h-4 w-4" strokeWidth={2} />
+            </button>
 
-            {/* Streak Emblem */}
-            {isLoading ? (
-              <div className="w-12 h-6 bg-border/40 rounded-full animate-pulse" />
-            ) : (
-              <div className="flex items-center space-x-1 px-2 py-0.5 sm:px-3 sm:py-1 bg-accent-warm/10 text-accent-warm border border-accent-warm/20 rounded-full text-[10px] sm:text-xs font-mono shrink-0">
-                <Flame className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-current text-accent-warm animate-pulse-subtle" />
-                <span className="font-bold">{streak}d</span>
-              </div>
-            )}
+            {/* Desktop Stats Group (Hidden on mobile) */}
+            <div className="hidden md:flex items-center space-x-2 sm:space-x-3">
+              {isFree && (
+                <button
+                  onClick={() => setIsUpgradeModalOpen(true)}
+                  className="flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-gradient-to-r from-primary to-accent hover:from-primary/95 hover:to-accent/95 text-white font-bold rounded-full text-[10px] sm:text-xs transition duration-150 cursor-pointer shadow-[0_0_10px_rgba(91,142,255,0.2)] hover:scale-[1.03] active:scale-[0.97] shrink-0"
+                >
+                  <Sparkles className="h-3 w-3 fill-current text-white animate-pulse" />
+                  <span>Go Pro</span>
+                </button>
+              )}
 
-            {/* Hearts Indicator */}
-            {isLoading || !profile ? (
-              <div className="w-12 h-6 bg-border/40 rounded-full animate-pulse" />
-            ) : (() => {
-              const isProUser = profile.subscription_tier !== 'free'
-              const heartsCount = profile.hearts !== undefined ? profile.hearts : 3
-              
-              // Calculate time to next heart if free and < 3
-              let tooltipText = "Unlimited Hearts (Pro Access) 💖"
-              if (!isProUser) {
-                if (heartsCount >= 3) {
-                  tooltipText = "Hearts Full! (3/3) ❤️"
-                } else if (profile.last_heart_refill_at) {
-                  const lastRefill = new Date(profile.last_heart_refill_at).getTime()
-                  const nextRefill = lastRefill + 2 * 60 * 60 * 1000
-                  const minutesLeft = Math.max(0, Math.round((nextRefill - Date.now()) / 1000 / 60))
-                  const hrs = Math.floor(minutesLeft / 60)
-                  const mins = minutesLeft % 60
-                  tooltipText = `Next heart in ${hrs > 0 ? `${hrs}h ` : ''}${mins}m ❤️`
+              {/* Streak Emblem */}
+              {isLoading ? (
+                <div className="w-12 h-6 bg-border/40 rounded-full animate-pulse" />
+              ) : (
+                <div className="flex items-center space-x-1 px-2 py-0.5 sm:px-3 sm:py-1 bg-accent-warm/10 text-accent-warm border border-accent-warm/20 rounded-full text-[10px] sm:text-xs font-mono shrink-0">
+                  <Flame className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-current text-accent-warm animate-pulse-subtle" />
+                  <span className="font-bold">{streak}d</span>
+                </div>
+              )}
+
+              {/* Hearts Indicator */}
+              {isLoading || !profile ? (
+                <div className="w-12 h-6 bg-border/40 rounded-full animate-pulse" />
+              ) : (() => {
+                const isProUser = profile.subscription_tier !== 'free'
+                const heartsCount = profile.hearts !== undefined ? profile.hearts : 3
+                
+                // Calculate time to next heart if free and < 3
+                let tooltipText = "Unlimited Hearts (Pro Access) 💖"
+                if (!isProUser) {
+                  if (heartsCount >= 3) {
+                    tooltipText = "Hearts Full! (3/3) ❤️"
+                  } else if (profile.last_heart_refill_at) {
+                    const lastRefill = new Date(profile.last_heart_refill_at).getTime()
+                    const nextRefill = lastRefill + 2 * 60 * 60 * 1000
+                    const minutesLeft = Math.max(0, Math.round((nextRefill - Date.now()) / 1000 / 60))
+                    const hrs = Math.floor(minutesLeft / 60)
+                    const mins = minutesLeft % 60
+                    tooltipText = `Next heart in ${hrs > 0 ? `${hrs}h ` : ''}${mins}m ❤️`
+                  }
                 }
-              }
 
-              return (
-                <div 
-                  className={`flex items-center space-x-1 px-2.5 py-0.5 sm:px-3 sm:py-1 border rounded-full text-[10px] sm:text-xs font-mono select-none cursor-help shrink-0 ${
-                    !isProUser && heartsCount === 0
-                      ? 'bg-error/10 text-error border-error/25'
-                      : 'bg-red-500/10 text-red-500 border-red-500/20'
-                  }`}
-                  title={tooltipText}
-                >
-                  <Heart className={`h-3.5 w-3.5 fill-current ${!isProUser && heartsCount === 0 ? 'text-error animate-pulse' : 'text-red-500 animate-pulse-subtle'}`} />
-                  <span className="font-extrabold">{isProUser ? '∞' : heartsCount}</span>
-                </div>
-              )
-            })()}
-
-            {/* XP Level Indicator */}
-            {isLoading || !profile ? (
-              <div className="w-16 h-6 bg-border/40 rounded-full animate-pulse" />
-            ) : (() => {
-              const levelInfo = getLevelInfo(profile.xp || 0);
-              return (
-                <div 
-                  className="flex items-center space-x-1.5 px-2 py-0.5 sm:px-3 sm:py-1 bg-accent/10 text-accent border border-accent/20 rounded-full text-[10px] sm:text-xs font-mono select-none cursor-help shrink-0" 
-                  title={`${levelInfo.xpWithinLevel}/${levelInfo.xpNeededForLevelUp} XP to next level`}
-                >
-                  <span className="font-extrabold uppercase text-[9px] tracking-wider text-accent">Lvl {levelInfo.level}</span>
-                  <span className="text-[9px] font-bold opacity-90 hidden xs:inline">• {levelInfo.xpWithinLevel}/{levelInfo.xpNeededForLevelUp} XP</span>
-                  <div className="w-10 h-1 bg-border rounded-full overflow-hidden hidden md:block shrink-0">
-                    <div 
-                      className="h-full bg-accent rounded-full transition-all duration-300"
-                      style={{ width: `${levelInfo.progressPercentage}%` }}
-                    />
+                return (
+                  <div 
+                    className={`flex items-center space-x-1 px-2.5 py-0.5 sm:px-3 sm:py-1 border rounded-full text-[10px] sm:text-xs font-mono select-none cursor-help shrink-0 ${
+                      !isProUser && heartsCount === 0
+                        ? 'bg-error/10 text-error border-error/25'
+                        : 'bg-red-500/10 text-red-500 border-red-500/20'
+                    }`}
+                    title={tooltipText}
+                  >
+                    <Heart className={`h-3.5 w-3.5 fill-current ${!isProUser && heartsCount === 0 ? 'text-error animate-pulse' : 'text-red-500 animate-pulse-subtle'}`} />
+                    <span className="font-extrabold">{isProUser ? '∞' : heartsCount}</span>
                   </div>
-                </div>
-              );
-            })()}
+                )
+              })()}
+
+              {/* XP Level Indicator */}
+              {isLoading || !profile ? (
+                <div className="w-16 h-6 bg-border/40 rounded-full animate-pulse" />
+              ) : (() => {
+                const levelInfo = getLevelInfo(profile.xp || 0);
+                return (
+                  <div 
+                    className="flex items-center space-x-1.5 px-2 py-0.5 sm:px-3 sm:py-1 bg-accent/10 text-accent border border-accent/20 rounded-full text-[10px] sm:text-xs font-mono select-none cursor-help shrink-0" 
+                    title={`${levelInfo.xpWithinLevel}/${levelInfo.xpNeededForLevelUp} XP to next level`}
+                  >
+                    <span className="font-extrabold uppercase text-[9px] tracking-wider text-accent">Lvl {levelInfo.level}</span>
+                    <span className="text-[9px] font-bold opacity-90 hidden xs:inline">• {levelInfo.xpWithinLevel}/{levelInfo.xpNeededForLevelUp} XP</span>
+                    <div className="w-10 h-1 bg-border rounded-full overflow-hidden hidden md:block shrink-0">
+                      <div 
+                        className="h-full bg-accent rounded-full transition-all duration-300"
+                        style={{ width: `${levelInfo.progressPercentage}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
 
             {/* Notification Bell */}
             <div className="relative" ref={notificationsRef}>
               <button 
                 onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                className="relative p-1.5 text-text-3 hover:text-text-1 hover:bg-surface-alt rounded-full transition cursor-pointer focus:outline-none"
+                className="relative p-1.5 text-text-3 hover:text-text-1 hover:bg-surface-alt rounded-full transition cursor-pointer focus:outline-none shrink-0"
               >
                 <Bell className="h-4 w-4" strokeWidth={1.75} />
                 {/* Pulse alert badge if there are unread notifications */}
@@ -716,9 +728,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {/* Profile Dropdown */}
             {isLoading ? (
-              <div className="flex items-center space-x-2 select-none">
+              <div className="flex items-center space-x-2 select-none shrink-0">
                 <div className="w-7 h-7 rounded-full bg-border/40 animate-pulse shrink-0" />
-                <div className="hidden md:block h-3 bg-border/40 rounded-sm animate-pulse w-16" />
               </div>
             ) : (
               <ProfileDropdown 
@@ -731,8 +742,107 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
+        {/* Mobile Stats Ribbon (shown below header on mobile only, screen < md) */}
+        <div className="md:hidden h-11 bg-surface/85 backdrop-blur-md border-b border-border flex items-center justify-around px-4 sticky top-16 z-30 select-none">
+          {/* Streak Indicator */}
+          {isLoading ? (
+            <div className="w-10 h-5 bg-border/40 rounded-full animate-pulse" />
+          ) : (
+            <div className="flex items-center space-x-1.5 text-accent-warm text-xs font-mono font-bold">
+              <Flame className="h-3.5 w-3.5 fill-current text-accent-warm animate-pulse-subtle" />
+              <span>{streak}d</span>
+            </div>
+          )}
+
+          <div className="w-px h-4 bg-border/60" />
+
+          {/* Hearts Indicator */}
+          {isLoading || !profile ? (
+            <div className="w-10 h-5 bg-border/40 rounded-full animate-pulse" />
+          ) : (() => {
+            const isProUser = profile.subscription_tier !== 'free'
+            const heartsCount = profile.hearts !== undefined ? profile.hearts : 3
+            
+            let tooltipText = "Unlimited Hearts (Pro Access) 💖"
+            if (!isProUser) {
+              if (heartsCount >= 3) {
+                tooltipText = "Hearts Full! (3/3) ❤️"
+              } else if (profile.last_heart_refill_at) {
+                const lastRefill = new Date(profile.last_heart_refill_at).getTime()
+                const nextRefill = lastRefill + 2 * 60 * 60 * 1000
+                const minutesLeft = Math.max(0, Math.round((nextRefill - Date.now()) / 1000 / 60))
+                const hrs = Math.floor(minutesLeft / 60)
+                const mins = minutesLeft % 60
+                tooltipText = `Next heart in ${hrs > 0 ? `${hrs}h ` : ''}${mins}m ❤️`
+              }
+            }
+
+            return (
+              <div 
+                className={`flex items-center space-x-1.5 text-xs font-mono font-extrabold cursor-help shrink-0 ${
+                  !isProUser && heartsCount === 0 ? 'text-error' : 'text-red-500'
+                }`}
+                title={tooltipText}
+              >
+                <Heart className={`h-3.5 w-3.5 fill-current ${!isProUser && heartsCount === 0 ? 'text-error animate-pulse' : 'text-red-500 animate-pulse-subtle'}`} />
+                <span>{isProUser ? '∞' : heartsCount}</span>
+              </div>
+            )
+          })()}
+
+          <div className="w-px h-4 bg-border/60" />
+
+          {/* XP Level Indicator */}
+          {isLoading || !profile ? (
+            <div className="w-14 h-5 bg-border/40 rounded-full animate-pulse" />
+          ) : (() => {
+            const levelInfo = getLevelInfo(profile.xp || 0);
+            return (
+              <div 
+                className="flex items-center space-x-2 text-xs font-mono cursor-help shrink-0"
+                title={`${levelInfo.xpWithinLevel}/${levelInfo.xpNeededForLevelUp} XP to next level`}
+              >
+                <span className="font-extrabold uppercase text-[9px] tracking-wider text-accent">Lvl {levelInfo.level}</span>
+                <div className="w-12 h-1 bg-border rounded-full overflow-hidden shrink-0">
+                  <div 
+                    className="h-full bg-accent rounded-full transition-all duration-300"
+                    style={{ width: `${levelInfo.progressPercentage}%` }}
+                  />
+                </div>
+              </div>
+            )
+          })()}
+
+          <div className="w-px h-4 bg-border/60" />
+
+          {/* Go Pro Trigger / Pro Badge */}
+          {isLoading || !profile ? (
+            <div className="w-14 h-5 bg-border/40 rounded-full animate-pulse" />
+          ) : (() => {
+            const isProUser = profile.subscription_tier !== 'free'
+            if (!isProUser) {
+              return (
+                <button
+                  onClick={() => setIsUpgradeModalOpen(true)}
+                  className="flex items-center gap-0.5 px-2 py-0.5 bg-gradient-to-r from-primary to-accent hover:from-primary/95 hover:to-accent/95 text-white font-bold rounded-full text-[9px] uppercase tracking-wider transition duration-150 cursor-pointer shadow-sm hover:scale-105 active:scale-95 shrink-0"
+                >
+                  <Sparkles className="h-2.5 w-2.5 fill-current text-white animate-pulse" />
+                  <span>Go Pro</span>
+                </button>
+              )
+            } else {
+              return (
+                <div className="flex items-center gap-0.5 text-accent text-[9px] font-mono font-bold uppercase tracking-wider bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-full shrink-0">
+                  <Sparkles className="h-2.5 w-2.5 fill-current text-accent" />
+                  <span>Pro</span>
+                </div>
+              )
+            }
+          })()}
+        </div>
+
         {isOffline && (
-          <div className="bg-amber-500 text-black px-4 py-2.5 text-xs font-semibold text-center sticky top-16 z-30 flex items-center justify-center gap-1.5 animate-fadeIn shadow-md">
+          <div className="bg-amber-500 text-black px-4 py-2.5 text-xs font-semibold text-center sticky top-[108px] md:top-16 z-30 flex items-center justify-center gap-1.5 animate-fadeIn shadow-md">
             <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
             <span>You are offline. Downloaded lessons are still available. <Link href="/dashboard/downloads" className="underline font-bold hover:opacity-80">Navigate to your Downloads page.</Link></span>
           </div>
