@@ -462,7 +462,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-screen bg-bg text-text-1">
       {/* 1. Desktop Sidebar Navigation */}
-      <aside className="hidden md:flex flex-col w-[260px] bg-surface border-r border-border min-h-screen sticky top-0 animate-page-enter">
+      <aside className="hidden md:flex flex-col w-[260px] bg-surface border-r border-border h-screen sticky top-0 overflow-y-auto animate-page-enter">
         {/* Brand Banner */}
         <div className="h-16 flex items-center px-6 border-b border-border space-x-2">
           <Logo className="h-5 w-5" />
