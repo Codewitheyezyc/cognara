@@ -63,7 +63,7 @@ export async function POST(req: Request) {
         amount: plan === 'annual' ? 4500000 : 450000, // in kobo: ₦45,000 annual, ₦4,500 monthly
         plan: planCode,
         callback_url: callbackUrl,
-        channels: ["card", "bank_transfer"],
+        channels: ["card", "bank", "ussd", "bank_transfer"],
         metadata: {
           user_id: user.id,
           plan_type: plan,
