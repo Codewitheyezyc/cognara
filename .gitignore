@@ -50,3 +50,7 @@ next-env.d.ts
 /public/workbox-*.js.map
 /public/swe-worker-*.js
 /public/swe-worker-*.js.map
+
+# markdown folder
+/markdown/
+
