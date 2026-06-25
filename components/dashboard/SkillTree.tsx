@@ -75,6 +75,10 @@ export function SkillTree({
   // Refs to measure container sizes and positions
   const containerRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
+  // Floating Classic View button visibility state
+  const [showFloatingBtn, setShowFloatingBtn] = useState(false)
+  const hasScrolledRef = useRef(false)
+
   // Compute curved SVG path lines between nodes
   const computePaths = () => {
     const newPaths: Record<string, string> = {}
@@ -132,6 +136,70 @@ export function SkillTree({
     return () => {
       clearTimeout(timer)
       window.removeEventListener('resize', computePaths)
+    }
+  }, [phases, lessonsByPhase])
+
+  // Scroll listener to toggle floating button visibility
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setShowFloatingBtn(true)
+      } else {
+        setShowFloatingBtn(false)
+      }
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Auto-scroll to current active or first incomplete lesson on mount
+  useEffect(() => {
+    if (hasScrolledRef.current) return
+    if (phases.length === 0) return
+
+    let targetLessonId: string | null = null
+
+    // 1. Look for the first lesson with status 'in_progress'
+    for (const phase of phases) {
+      const lessons = lessonsByPhase[phase.id] || []
+      const active = lessons.find(l => l.status === 'in_progress')
+      if (active) {
+        targetLessonId = active.id
+        break
+      }
+    }
+
+    // 2. If no in_progress lesson, look for the first 'not_started' lesson
+    if (!targetLessonId) {
+      for (const phase of phases) {
+        const lessons = lessonsByPhase[phase.id] || []
+        const firstNotStarted = lessons.find(l => l.status === 'not_started')
+        if (firstNotStarted) {
+          targetLessonId = firstNotStarted.id
+          break
+        }
+      }
+    }
+
+    // 3. If all lessons are completed, target the last lesson of the last phase
+    if (!targetLessonId && phases.length > 0) {
+      const lastPhase = phases[phases.length - 1]
+      const lessons = lessonsByPhase[lastPhase.id] || []
+      if (lessons.length > 0) {
+        targetLessonId = lessons[lessons.length - 1].id
+      }
+    }
+
+    if (targetLessonId) {
+      hasScrolledRef.current = true
+      // Delay slightly to ensure layout and SVG elements are calculated and positioned
+      const scrollTimer = setTimeout(() => {
+        const element = document.querySelector(`[data-node-id="${targetLessonId}"]`)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }, 500)
+      return () => clearTimeout(scrollTimer)
     }
   }, [phases, lessonsByPhase])
 
@@ -474,6 +542,17 @@ export function SkillTree({
         lessonDescription={paywallLesson?.description}
         phaseNumber={paywallLesson?.phaseNumber}
       />
+
+      {/* Floating Classic View Switcher FAB */}
+      {showFloatingBtn && (
+        <button
+          onClick={onToggleView}
+          className="fixed bottom-20 right-6 md:bottom-8 md:right-8 z-40 h-11 px-4 bg-[#171c2a]/95 backdrop-blur-xs hover:bg-[#1f2638] border border-border border-b-[4px] border-b-[#0f131c] text-text-2 hover:text-text-1 rounded-full text-xs font-bold active:translate-y-[2px] active:border-b-[2px] transition-all shadow-lg flex items-center gap-1.5 cursor-pointer animate-fadeIn"
+        >
+          <ArrowLeft size={14} />
+          <span>Classic List View</span>
+        </button>
+      )}
     </div>
   )
 }
