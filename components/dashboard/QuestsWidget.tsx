@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Sparkles, Trophy, Check, Loader2 } from 'lucide-react'
 import { useToast } from '@/components/ui/toast'
 import { SoundEffects } from '@/lib/sound'
@@ -24,6 +25,7 @@ export default function QuestsWidget() {
   const [loading, setLoading] = useState(true)
   const [claimingKey, setClaimingKey] = useState<string | null>(null)
   const [celebratingQuest, setCelebratingQuest] = useState<QuestItem | null>(null)
+  const [mounted, setMounted] = useState(false)
 
   // Fetch quest statuses from the API
   const fetchQuests = async () => {
@@ -53,6 +55,7 @@ export default function QuestsWidget() {
   }
 
   useEffect(() => {
+    setMounted(true)
     fetchQuests()
   }, [])
 
@@ -262,7 +265,7 @@ export default function QuestsWidget() {
         )}
       </div>
       {/* Quest Celebration Modal Popup */}
-      {celebratingQuest && (
+      {celebratingQuest && mounted && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-fadeIn">
           <div className="relative max-w-sm w-full bg-[#181e2e] border-2 border-amber-500/50 rounded-2xl p-6 shadow-[0_0_50px_rgba(245,158,11,0.3)] text-center space-y-6 animate-scaleUp overflow-hidden">
             {/* Pulsing Golden Glow ring behind */}
@@ -313,7 +316,8 @@ export default function QuestsWidget() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
