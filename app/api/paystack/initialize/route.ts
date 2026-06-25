@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.cognaralearn.com'
-    
+
     // Determine the base success redirect path
     let redirectPath = '/dashboard/settings'
     if (redirectUrl) {
@@ -63,6 +63,7 @@ export async function POST(req: Request) {
         amount: plan === 'annual' ? 4500000 : 450000, // in kobo: ₦45,000 annual, ₦4,500 monthly
         plan: planCode,
         callback_url: callbackUrl,
+        channels: ["card", "bank_transfer"],
         metadata: {
           user_id: user.id,
           plan_type: plan,
