@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Lock, Play, Check, Award, HelpCircle, Layers, ArrowLeft } from 'lucide-react'
+import { Lock, BookOpen, Check, Award, HelpCircle, Layers, ArrowLeft } from 'lucide-react'
 import { LessonPreviewModal } from './LessonPreviewModal'
 import { useToast } from '@/components/ui/toast'
 
@@ -490,7 +490,7 @@ export function SkillTree({
                         {status === 'completed' ? (
                           <Check className="w-7 h-7 stroke-[3px]" />
                         ) : status === 'in_progress' ? (
-                          <Play className="w-7 h-7 fill-current translate-x-[2px]" />
+                          <BookOpen className="w-7 h-7" />
                         ) : (
                           <Lock className="w-5.5 h-5.5 text-text-3" />
                         )}

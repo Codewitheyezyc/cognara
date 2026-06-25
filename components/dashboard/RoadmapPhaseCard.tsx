@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, CheckCircle2, PlayCircle, Circle, Award, Lock } from 'lucide-react'
+import { ChevronDown, ChevronUp, CheckCircle2, BookOpen, Circle, Award, Lock } from 'lucide-react'
 import { LessonPreviewModal } from './LessonPreviewModal'
 
 interface Lesson {
@@ -203,7 +203,7 @@ export function RoadmapPhaseCard({
                       ) : lesson.status === 'completed' ? (
                         <CheckCircle2 size={16} style={{ color: 'var(--color-success)' }} />
                       ) : lesson.status === 'in_progress' ? (
-                        <PlayCircle size={16} style={{ color: 'var(--color-primary)' }} />
+                        <BookOpen size={16} style={{ color: 'var(--color-primary)' }} />
                       ) : (
                         <Circle size={16} style={{ color: 'var(--color-text-3)' }} />
                       )}
