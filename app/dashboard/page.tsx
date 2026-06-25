@@ -232,6 +232,9 @@ export default async function DashboardPage() {
               </Link>
             </div>
           </div>
+
+          {/* AI Coach Insight Banner placed in the left column to fill vertical space */}
+          <AICoachInsight isPro={isPro} />
         </div>
 
         {/* Sidebar Column: Learning Vitals + Daily & Weekly Quests */}
@@ -357,9 +360,6 @@ export default async function DashboardPage() {
           })}
         </div>
       </div>
-
-      {/* 4. AI Coach Insight Banner */}
-      <AICoachInsight isPro={isPro} />
     </div>
   )
 }
