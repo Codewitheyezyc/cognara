@@ -108,6 +108,12 @@ function getES6Lesson(depthLevel: number): GeneratedLesson {
         body: analogy,
       },
       {
+        type: 'spark_comment',
+        heading: 'Spark\'s Scope Secret! 🔐',
+        body: 'Always remember: `const` does NOT make arrays or objects themselves immutable! It only locks the variable reference itself. You can still push items into a `const` array. If you want to freeze the content, use `Object.freeze()`! Mind-blowing, right? 🤯',
+        spark_emotion: 'happy',
+      },
+      {
         type: 'code_comparison',
         heading: 'Variable Scope Comparison: Before vs After',
         comparison_label_left: '❌ Legacy Var (Hoisted & Function Scoped)',
@@ -681,6 +687,12 @@ function getDefaultLesson(lessonTitle: string, phaseTitle: string, subject: stri
           body: analogy,
         },
         {
+          type: 'spark_comment',
+          heading: 'Spark\'s Study Tip! 💡',
+          body: `When learning about ${lessonTitle}, try writing a quick 2-line summary in your own words. It boosts retention by over 40%! You got this!`,
+          spark_emotion: 'wave',
+        },
+        {
           type: 'code_comparison',
           heading: 'Refactoring Example',
           comparison_label_left: '❌ Legacy Approach (Messy / Coupled)',
@@ -781,6 +793,12 @@ function getDefaultLesson(lessonTitle: string, phaseTitle: string, subject: stri
           type: 'analogy',
           heading: 'Working Analogy',
           body: analogy,
+        },
+        {
+          type: 'spark_comment',
+          heading: 'Spark\'s Study Tip! 💡',
+          body: `When learning about ${lessonTitle}, try explaining it to a friend. If you can explain it simply, you've mastered it! Keep shining! ✨`,
+          spark_emotion: 'happy',
         },
         {
           type: 'diagram',

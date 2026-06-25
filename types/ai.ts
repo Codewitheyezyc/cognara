@@ -13,13 +13,17 @@ export type LessonSectionType =
   | 'use_case'
   | 'summary'
   | 'resource'
+  | 'spark_comment'
 
 export interface LessonSection {
   type: LessonSectionType
   heading: string
 
-  // For: explanation, analogy, use_case, summary
+  // For: explanation, analogy, use_case, summary, spark_comment
   body?: string
+
+  // For: spark_comment
+  spark_emotion?: 'idle' | 'happy' | 'celebrate' | 'thinking' | 'wave'
 
   // For: code
   code_language?: string

@@ -16,6 +16,7 @@ import { BookmarkButton } from './BookmarkButton'
 import { ConfusedButton } from './ConfusedButton'
 import { LessonPreviewModal } from '../dashboard/LessonPreviewModal'
 import { useToast } from '@/components/ui/toast'
+import { Spark } from '@/components/mascot/Spark'
 
 
 interface LessonContentProps {
@@ -673,6 +674,30 @@ export default function LessonContent({
                 </div>
               )
 
+            case 'spark_comment':
+              return (
+                <div key={idx} className="my-5 p-5 rounded-xl border border-primary/20 bg-primary/5 shadow-sm relative overflow-hidden flex gap-4 items-center animate-page-enter">
+                  <div className="absolute right-0 bottom-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
+                  <div className="shrink-0 relative group">
+                    <Spark emotion={section.spark_emotion || 'happy'} size={64} />
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 bg-black/20 rounded-full blur-xs" />
+                  </div>
+                  <div className="space-y-1.5 min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 text-primary text-[10px] font-bold font-mono uppercase tracking-wider">
+                      <span>Spark's Commentary ✨</span>
+                    </div>
+                    {section.heading && (
+                      <h4 className="font-heading text-sm font-bold text-text-1">
+                        {section.heading}
+                      </h4>
+                    )}
+                    <div className="text-text-2 text-xs md:text-sm leading-relaxed font-medium italic">
+                      {formatLessonText(section.body || '')}
+                    </div>
+                  </div>
+                </div>
+              )
+
             default:
               return null
           }
@@ -682,7 +707,7 @@ export default function LessonContent({
 
         // explanation/analogy/use_case sections embed the BookmarkButton inline inside
         // ConfusedButton's header row via bookmarkSlot — no need for the absolute overlay wrapper.
-        const hasInlineBookmark = ['explanation', 'analogy', 'use_case'].includes(section.type)
+        const hasInlineBookmark = ['explanation', 'analogy', 'use_case', 'spark_comment'].includes(section.type)
 
         if (hasInlineBookmark) {
           return <div key={idx}>{sectionEl}</div>
