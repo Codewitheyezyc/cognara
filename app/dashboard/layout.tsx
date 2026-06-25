@@ -602,7 +602,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {/* Desktop Stats Group (Hidden on mobile) */}
             <div className="hidden md:flex items-center space-x-2 sm:space-x-3">
-              {isFree && (
+              {isFree ? (
                 <button
                   onClick={() => setIsUpgradeModalOpen(true)}
                   className="flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-gradient-to-r from-primary to-accent hover:from-primary/95 hover:to-accent/95 text-white font-bold rounded-full text-[10px] sm:text-xs transition duration-150 cursor-pointer shadow-[0_0_10px_rgba(91,142,255,0.2)] hover:scale-[1.03] active:scale-[0.97] shrink-0"
@@ -610,6 +610,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <Sparkles className="h-3 w-3 fill-current text-white animate-pulse" />
                   <span>Go Pro</span>
                 </button>
+              ) : (
+                <div className="flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1 text-accent text-[10px] sm:text-xs font-mono font-extrabold uppercase tracking-wider bg-accent/10 border border-accent/20 rounded-full shrink-0">
+                  <Sparkles className="h-3 w-3 fill-current text-accent" />
+                  <span>Pro</span>
+                </div>
               )}
 
               {/* Streak Emblem */}
@@ -626,7 +631,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {isLoading || !profile ? (
                 <div className="w-12 h-6 bg-border/40 rounded-full animate-pulse" />
               ) : (() => {
-                const isProUser = profile.subscription_tier !== 'free'
+                const isProUser = profile.subscription_tier !== 'free' || isAdmin
                 const heartsCount = profile.hearts !== undefined ? profile.hearts : 3
                 
                 // Calculate time to next heart if free and < 3
@@ -776,7 +781,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {isLoading || !profile ? (
             <div className="w-10 h-5 bg-border/40 rounded-full animate-pulse" />
           ) : (() => {
-            const isProUser = profile.subscription_tier !== 'free'
+            const isProUser = profile.subscription_tier !== 'free' || isAdmin
             const heartsCount = profile.hearts !== undefined ? profile.hearts : 3
             
             let tooltipText = "Unlimited Hearts (Pro Access) 💖"
@@ -835,7 +840,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {isLoading || !profile ? (
             <div className="w-14 h-5 bg-border/40 rounded-full animate-pulse" />
           ) : (() => {
-            const isProUser = profile.subscription_tier !== 'free'
+            const isProUser = profile.subscription_tier !== 'free' || isAdmin
             if (!isProUser) {
               return (
                 <button
