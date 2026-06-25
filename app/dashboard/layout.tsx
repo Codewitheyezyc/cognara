@@ -555,12 +555,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* 2. Main content viewport */}
       <div className="flex-1 flex flex-col min-w-0 pb-16 md:pb-0">
         {/* Unified Topbar/Navbar for mobile and desktop */}
-        <header className="h-16 bg-surface border-b border-border flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
-          {/* Logo visible on all viewports for consistent branding */}
-          <div className="flex items-center space-x-1.5 shrink-0">
-            <Logo className="h-5 w-5" />
-            <span className="font-heading text-base font-bold tracking-tight text-text-1">Cognara</span>
-          </div>
+        <header className="h-16 bg-surface border-b border-border sticky top-0 z-40">
+          <div className="max-w-7xl w-full mx-auto px-4 md:px-8 flex items-center justify-between h-full">
+            {/* Logo visible on all viewports for consistent branding */}
+            <div className="flex items-center space-x-1.5 shrink-0 md:hidden">
+              <Logo className="h-5 w-5" />
+              <span className="font-heading text-base font-bold tracking-tight text-text-1">Cognara</span>
+            </div>
           
           {/* Command Search Box for desktop */}
           <button 
@@ -739,6 +740,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 onSignOut={handleSignOut}
               />
             )}
+          </div>
           </div>
         </header>
 

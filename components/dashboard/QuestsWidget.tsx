@@ -23,6 +23,7 @@ export default function QuestsWidget() {
   const [quests, setQuests] = useState<{ daily: QuestItem[]; weekly: QuestItem[] } | null>(null)
   const [loading, setLoading] = useState(true)
   const [claimingKey, setClaimingKey] = useState<string | null>(null)
+  const [celebratingQuest, setCelebratingQuest] = useState<QuestItem | null>(null)
 
   // Fetch quest statuses from the API
   const fetchQuests = async () => {
@@ -31,6 +32,18 @@ export default function QuestsWidget() {
       if (res.ok) {
         const data = await res.json()
         setQuests(data)
+
+        // Check for any completed but unclaimed quest to celebrate
+        const allQuests = [...(data.daily || []), ...(data.weekly || [])]
+        const unclaimedCompleted = allQuests.find(q => q.completed && !q.claimed)
+        if (unclaimedCompleted) {
+          const sessionKey = `quest_celebrated_${unclaimedCompleted.key}_${unclaimedCompleted.resetDate}`
+          const hasCelebrated = sessionStorage.getItem(sessionKey) === 'true'
+          if (!hasCelebrated) {
+            setCelebratingQuest(unclaimedCompleted)
+            sessionStorage.setItem(sessionKey, 'true')
+          }
+        }
       }
     } catch (err) {
       console.error('Error fetching quests:', err)
@@ -95,7 +108,7 @@ export default function QuestsWidget() {
   // Loading skeleton state
   if (loading) {
     return (
-      <div className="rounded-[10px] border border-border bg-surface p-6 shadow-md space-y-4 animate-pulse">
+      <div className="rounded-2xl border border-border bg-surface p-6 shadow-md space-y-4 animate-pulse">
         <div className="flex justify-between items-center">
           <div className="h-4 w-32 bg-border rounded" />
           <div className="h-6 w-24 bg-border rounded-full" />
@@ -115,7 +128,7 @@ export default function QuestsWidget() {
   const activeQuests = quests ? (activeTab === 'daily' ? quests.daily : quests.weekly) : []
 
   return (
-    <div className="rounded-[10px] border border-border bg-surface p-6 shadow-md flex flex-col gap-4">
+    <div className="rounded-2xl border border-border bg-surface p-6 shadow-md flex flex-col gap-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2 text-primary">
@@ -160,15 +173,16 @@ export default function QuestsWidget() {
         ) : (
           activeQuests.map((quest) => {
             const pct = Math.round((quest.progress / quest.target) * 100)
+            const isUnclaimedCompleted = quest.completed && !quest.claimed
 
             return (
               <div 
                 key={quest.key} 
-                className={`p-3 bg-surface-alt/45 border rounded-xl flex flex-col gap-3 transition-colors ${
+                className={`p-3 bg-surface-alt/45 border rounded-xl flex flex-col gap-3 transition-all duration-300 ${
                   quest.claimed 
                     ? 'border-border/40 opacity-70' 
-                    : quest.completed 
-                    ? 'border-emerald-500/35 bg-emerald-500/2' 
+                    : isUnclaimedCompleted 
+                    ? 'border-amber-500/50 bg-amber-500/5 shadow-[0_0_15px_rgba(245,158,11,0.15)] animate-pulse-subtle' 
                     : 'border-border/80'
                 }`}
               >
@@ -224,7 +238,7 @@ export default function QuestsWidget() {
                     <button
                       onClick={() => handleClaim(quest)}
                       disabled={claimingKey !== null}
-                      className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg text-[9.5px] font-extrabold cursor-pointer hover:scale-[1.03] active:scale-[0.97] transition-all shadow-[0_0_10px_rgba(16,185,129,0.3)] flex items-center gap-1"
+                      className="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-white rounded-lg text-[9.5px] font-extrabold cursor-pointer active:translate-y-[1px] active:border-b-[1px] border-b-[3px] border-amber-800 transition-all shadow-[0_4px_10px_rgba(245,158,11,0.2)] flex items-center gap-1 shrink-0"
                     >
                       {claimingKey === quest.key ? (
                         <Loader2 size={10} className="animate-spin" />
@@ -247,6 +261,60 @@ export default function QuestsWidget() {
           })
         )}
       </div>
+      {/* Quest Celebration Modal Popup */}
+      {celebratingQuest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-fadeIn">
+          <div className="relative max-w-sm w-full bg-[#181e2e] border-2 border-amber-500/50 rounded-2xl p-6 shadow-[0_0_50px_rgba(245,158,11,0.3)] text-center space-y-6 animate-scaleUp overflow-hidden">
+            {/* Pulsing Golden Glow ring behind */}
+            <div className="absolute inset-0 bg-gradient-to-b from-amber-500/10 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-40 h-40 bg-amber-500/20 rounded-full blur-3xl animate-pulse" />
+
+            {/* Glowing Quest Box Graphic */}
+            <div className="relative inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-amber-400 to-yellow-600 border border-amber-300 rounded-2xl shadow-[0_0_24px_rgba(245,158,11,0.5)] text-white text-3xl animate-float mb-2">
+              <Trophy className="h-10 w-10 text-white animate-bounce-subtle" strokeWidth={1.5} />
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-[10px] font-mono uppercase text-amber-400 font-extrabold tracking-widest block animate-pulse">
+                Quest Completed! 🏆
+              </span>
+              <h3 className="font-heading text-xl font-black text-text-1 leading-tight">
+                {celebratingQuest.title}
+              </h3>
+              <p className="text-text-2 text-xs leading-relaxed px-2">
+                {celebratingQuest.description}
+              </p>
+            </div>
+
+            {/* Reward Card */}
+            <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl">
+              <span className="text-[9px] font-mono uppercase tracking-wider text-amber-500/80 font-bold block mb-1">XP Reward</span>
+              <span className="text-2xl font-black text-amber-400 font-mono">+{celebratingQuest.xpReward} XP</span>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex flex-col gap-2.5">
+              <button
+                onClick={() => {
+                  handleClaim(celebratingQuest)
+                  setCelebratingQuest(null)
+                }}
+                className="w-full h-11 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-white font-extrabold text-xs rounded-xl shadow-[0_4px_16px_rgba(245,158,11,0.3)] active:translate-y-[2px] active:border-b-[2px] border-b-[4px] border-amber-800 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Sparkles size={13} className="animate-pulse" />
+                <span>Claim XP Reward!</span>
+              </button>
+
+              <button
+                onClick={() => setCelebratingQuest(null)}
+                className="w-full h-10 bg-transparent hover:bg-surface-alt/50 border border-border text-text-2 hover:text-text-1 font-semibold text-xs rounded-xl cursor-pointer transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

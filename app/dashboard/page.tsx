@@ -143,6 +143,14 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8 animate-page-enter">
+      {/* 1. Welcoming Header */}
+      <div>
+        <h1 className="font-heading text-3xl font-bold tracking-tight text-text-1">
+          {greeting}, {name}
+        </h1>
+        <p className="text-text-2 text-sm mt-1">Here is your customized focus summary for today.</p>
+      </div>
+
       {/* Mascot Welcome & Streak Milestone Manager */}
       <MascotWelcomeManager
         userName={name}
@@ -157,19 +165,11 @@ export default async function DashboardPage() {
         level={levelInfo.level}
       />
 
-      {/* 1. Welcoming Header */}
-      <div>
-        <h1 className="font-heading text-3xl font-bold tracking-tight text-text-1">
-          {greeting}, {name}
-        </h1>
-        <p className="text-text-2 text-sm mt-1">Here is your customized focus summary for today.</p>
-      </div>
-
       {/* 2. Top row: Active Lesson + Stats card */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           {/* Active Lesson Card (with Learning Pulse) */}
-          <div className="relative group overflow-hidden rounded-[10px] border border-border bg-surface p-6 shadow-md flex flex-col justify-between min-h-[200px]">
+          <div className="relative group overflow-hidden rounded-2xl border border-border bg-surface p-6 shadow-md flex flex-col justify-between min-h-[200px]">
             {/* Signature Learning Pulse background gradient element */}
             <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-gradient-to-br from-primary/10 to-accent/15 blur-[60px] opacity-75 pointer-events-none group-hover:scale-110 transition-transform duration-500 animate-learning-pulse" />
 
@@ -196,17 +196,17 @@ export default async function DashboardPage() {
               </span>
               {activeLesson && (
                 <Link href={`/dashboard/lesson/${activeLesson.id}`}>
-                  <Button className="bg-primary hover:bg-primary/90 text-white text-xs px-4 h-9 shadow-[0_0_12px_rgba(91,142,255,0.2)] rounded-sm">
+                  <button className="h-9 px-4 bg-primary hover:bg-primary/95 border border-primary border-b-[4px] border-b-blue-700 text-white rounded-xl text-xs font-bold active:translate-y-[2px] active:border-b-[2px] transition-all shadow-[0_4px_12px_rgba(91,142,255,0.2)] flex items-center gap-1 cursor-pointer">
                     <span>Continue Lesson</span>
-                    <ArrowRight className="ml-1 h-3.5 w-3.5" strokeWidth={2} />
-                  </Button>
+                    <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
+                  </button>
                 </Link>
               )}
             </div>
           </div>
 
           {/* Time-Attack Speed Run Banner */}
-          <div className="relative group overflow-hidden rounded-[10px] border border-border bg-gradient-to-r from-violet-600/10 via-primary/5 to-transparent p-6 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="relative group overflow-hidden rounded-2xl border border-border bg-gradient-to-r from-violet-600/10 via-primary/5 to-transparent p-6 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             {/* Glowing blur */}
             <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-violet-500/15 rounded-full blur-[50px] pointer-events-none group-hover:scale-110 transition-transform duration-500" />
             
@@ -225,10 +225,10 @@ export default async function DashboardPage() {
 
             <div className="relative shrink-0">
               <Link href="/dashboard/speedrun">
-                <Button className="bg-violet-600 hover:bg-violet-700 text-white text-xs px-5 h-10 shadow-[0_0_12px_rgba(139,92,246,0.25)] rounded-sm font-semibold flex items-center gap-1.5 transition-all hover:scale-[1.03] active:scale-[0.97]">
+                <button className="h-10 px-5 bg-violet-600 hover:bg-violet-500 border border-violet-600 border-b-[4px] border-b-violet-800 text-white text-xs rounded-xl font-bold active:translate-y-[2px] active:border-b-[2px] transition-all shadow-[0_4px_12px_rgba(139,92,246,0.2)] flex items-center gap-1.5 cursor-pointer">
                   <span>Play Speed Run</span>
                   <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
-                </Button>
+                </button>
               </Link>
             </div>
           </div>
@@ -237,7 +237,7 @@ export default async function DashboardPage() {
         {/* Sidebar Column: Learning Vitals + Daily & Weekly Quests */}
         <div className="space-y-6 flex flex-col lg:col-span-1">
           {/* Quick Stats Card */}
-          <div className="rounded-[10px] border border-border bg-surface p-6 shadow-md space-y-6">
+          <div className="rounded-2xl border border-border bg-surface p-6 shadow-md space-y-6">
             <h4 className="text-xs font-mono uppercase tracking-wider text-text-2">Learning Vitals</h4>
             
             <div className="flex flex-col gap-3">
@@ -327,7 +327,7 @@ export default async function DashboardPage() {
             return (
               <div
                 key={phase.id}
-                className={`p-5 rounded-[10px] border bg-surface flex flex-col justify-between space-y-4 transition-all duration-150 ${
+                className={`p-5 rounded-2xl border bg-surface flex flex-col justify-between space-y-4 transition-all duration-150 ${
                   isPhaseActive 
                     ? 'border-primary shadow-[0_0_12px_rgba(91,142,255,0.05)] bg-surface-alt' 
                     : 'border-border'

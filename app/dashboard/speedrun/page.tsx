@@ -54,6 +54,7 @@ export default function SpeedRunPage() {
   // Refs
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const xpEarnedRef = useRef(0)
 
   // Load questions
   const loadGameData = async () => {
@@ -98,6 +99,7 @@ export default function SpeedRunPage() {
     setTimeLeft(60.0)
     setScore(0)
     setXpEarned(0)
+    xpEarnedRef.current = 0
     setStreak(0)
     setMaxStreak(0)
     setCorrectCount(0)
@@ -151,24 +153,27 @@ export default function SpeedRunPage() {
     stopTimer()
     SoundEffects.play('achievement')
 
-    if (xpEarned > 0 && userId) {
+    const currentXp = xpEarnedRef.current
+
+    if (currentXp > 0 && userId) {
       setIsSavingXp(true)
       try {
         const { data: rpcData, error: rpcError } = await supabase.rpc('add_xp', {
           user_id: userId,
-          amount: xpEarned
+          amount: currentXp
         })
 
         if (!rpcError && rpcData) {
           // Dispatch global XP update event so topbar syncs
           window.dispatchEvent(new CustomEvent('cognara_xp_gained', {
             detail: {
-              xpGained: xpEarned,
+              xpGained: currentXp,
               newXp: rpcData.xp,
               newLevel: rpcData.level,
               leveledUp: rpcData.leveled_up
             }
           }))
+          router.refresh()
         }
       } catch (err) {
         console.error('[Speedrun] Error saving XP:', err)
@@ -208,7 +213,11 @@ export default function SpeedRunPage() {
 
       const multiplier = getMultiplier(newStreak)
       const points = 10 * multiplier
-      setXpEarned(prev => prev + points)
+      setXpEarned(prev => {
+        const next = prev + points
+        xpEarnedRef.current = next
+        return next
+      })
       setCorrectCount(prev => prev + 1)
       
       // Add +2s to the clock (cap at 99s to keep UI clean)
@@ -419,14 +428,16 @@ export default function SpeedRunPage() {
               <RotateCcw className="h-4.5 w-4.5" />
               <span>Challenge Again</span>
             </Button>
-            <Link href="/dashboard" className="w-full">
-              <Button
-                variant="ghost"
-                className="w-full h-11 border border-border text-text-2 hover:bg-surface-alt font-semibold text-xs rounded-xl cursor-pointer"
-              >
-                Back to Dashboard
-              </Button>
-            </Link>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                router.refresh()
+                router.push('/dashboard')
+              }}
+              className="w-full h-11 border border-border text-text-2 hover:bg-surface-alt font-semibold text-xs rounded-xl cursor-pointer"
+            >
+              Back to Dashboard
+            </Button>
           </div>
         </div>
       </div>

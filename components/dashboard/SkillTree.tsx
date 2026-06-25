@@ -206,7 +206,8 @@ export function SkillTree({
 
       {/* Interactive Path Tree */}
       <div className="space-y-12 relative">
-        {phases.map((phase, phaseIdx) => {
+        {[...phases].reverse().map((phase, reversedIdx) => {
+          const phaseIdx = phases.length - 1 - reversedIdx
           const phaseLessons = lessonsByPhase[phase.id] || []
           const eligibility = eligibilities[phaseIdx]
           
@@ -276,89 +277,6 @@ export function SkillTree({
                     className="opacity-75"
                   />
                 </svg>
-
-                {/* Lesson nodes rendering */}
-                {phaseLessons.map((lesson, index) => {
-                  const status = lesson.status
-                  const isAccessible = lesson.isAccessible
-
-                  // Calculate staggering coordinate offset
-                  // Alternating pattern: Center (0%) -> Left (-20%) -> Center (0%) -> Right (20%) -> Center (0%)
-                  const offset = index % 4 === 1 ? -22 : index % 4 === 3 ? 22 : 0
-
-                  return (
-                    <div 
-                      key={lesson.id} 
-                      className="w-full flex justify-center relative z-10"
-                    >
-                      {/* Interactive circular 3D node button */}
-                      <button
-                        data-node-id={lesson.id}
-                        onClick={() => handleNodeClick(lesson, phase.phase_number)}
-                        style={{ left: `${offset}%`, position: 'relative' }}
-                        className={`
-                          w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0 cursor-pointer
-                          btn-3d-node shadow-md select-none outline-none border-b-[6px]
-                          ${status === 'completed'
-                            ? 'bg-emerald-500 hover:bg-emerald-400 border-emerald-700 text-white btn-3d-node-completed shadow-[0_4px_16px_rgba(16,185,129,0.25)] hover:scale-105 active:scale-95'
-                            : status === 'in_progress'
-                              ? 'bg-primary hover:bg-primary/95 border-blue-700 text-white btn-3d-node-active animate-node-pulse shadow-[0_4px_18px_rgba(91,142,255,0.35)] hover:scale-105 active:scale-95'
-                              : 'bg-[#2c3344] border-[#1c212c] text-text-3 btn-3d-node-locked opacity-75'
-                          }
-                        `}
-                      >
-                        {status === 'completed' ? (
-                          <Check className="w-7 h-7 stroke-[3px]" />
-                        ) : status === 'in_progress' ? (
-                          <Play className="w-7 h-7 fill-current translate-x-[2px]" />
-                        ) : (
-                          <Lock className="w-5.5 h-5.5 text-text-3" />
-                        )}
-                      </button>
-
-                      {/* Detail Popover Speech Bubble Tooltip */}
-                      {activeNodeId === lesson.id && (
-                        <div 
-                          data-popover-container
-                          style={{ left: `calc(50% + ${offset}%)`, transform: 'translateX(-50%)' }}
-                          className="absolute z-50 w-72 bg-[#171c2a] border border-border p-4.5 rounded-2xl shadow-[0_10px_25px_rgba(0,0,0,0.5)] text-left bottom-[108%] select-none animate-slideDown flex flex-col gap-3"
-                        >
-                          {/* Triangle speech pointer */}
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 border-[8px] border-transparent border-t-[#171c2a]" />
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 border-[8px] border-transparent border-t-border -z-10 translate-y-[1px]" />
-                          
-                          {/* Tooltip Content */}
-                          <div className="space-y-1">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[9px] font-mono uppercase bg-primary/15 border border-primary/20 text-primary px-2 py-0.5 rounded font-bold">
-                                Lesson {lesson.order_index}
-                              </span>
-                              <span className={`text-[9px] font-bold uppercase ${status === 'completed' ? 'text-success' : 'text-primary'}`}>
-                                {status === 'completed' ? 'Completed' : status === 'in_progress' ? 'Active' : 'Locked'}
-                              </span>
-                            </div>
-                            <h4 className="font-heading text-sm font-bold text-text-1 leading-tight">{lesson.title}</h4>
-                            {lesson.description && (
-                              <p className="text-text-3 text-[11px] leading-relaxed line-clamp-2">{lesson.description}</p>
-                            )}
-                          </div>
-
-                          <div className="flex items-center justify-between border-t border-border/40 pt-2.5 mt-0.5">
-                            <span className="text-[10px] text-text-2 font-semibold font-mono flex items-center gap-1">
-                              🧠 {status === 'completed' ? '+50 XP (Review)' : '+100 XP (Mastery)'}
-                            </span>
-                            <button
-                              onClick={() => startLesson(lesson.id)}
-                              className="px-3.5 py-1.5 bg-primary hover:bg-primary/95 text-white text-[10px] font-bold rounded-lg cursor-pointer transition-colors shadow-[0_0_8px_rgba(91,142,255,0.2)]"
-                            >
-                              {status === 'completed' ? 'Review Concept' : status === 'in_progress' ? 'Continue Study' : 'Start Lesson'}
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
 
                 {/* Certificate Milestone Gate (Treasure Chest Node) */}
                 {phaseLessons.length > 0 && (
@@ -459,6 +377,89 @@ export function SkillTree({
                     )}
                   </div>
                 )}
+
+                {/* Lesson nodes rendering */}
+                {[...phaseLessons].reverse().map((lesson, index) => {
+                  const status = lesson.status
+                  const isAccessible = lesson.isAccessible
+
+                  // Calculate staggering coordinate offset
+                  // Alternating pattern: Center (0%) -> Left (-20%) -> Center (0%) -> Right (20%) -> Center (0%)
+                  const offset = index % 4 === 1 ? -22 : index % 4 === 3 ? 22 : 0
+
+                  return (
+                    <div 
+                      key={lesson.id} 
+                      className="w-full flex justify-center relative z-10"
+                    >
+                      {/* Interactive circular 3D node button */}
+                      <button
+                        data-node-id={lesson.id}
+                        onClick={() => handleNodeClick(lesson, phase.phase_number)}
+                        style={{ left: `${offset}%`, position: 'relative' }}
+                        className={`
+                          w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0 cursor-pointer
+                          btn-3d-node shadow-md select-none outline-none border-b-[6px]
+                          ${status === 'completed'
+                            ? 'bg-emerald-500 hover:bg-emerald-400 border-emerald-700 text-white btn-3d-node-completed shadow-[0_4px_16px_rgba(16,185,129,0.25)] hover:scale-105 active:scale-95'
+                            : status === 'in_progress'
+                              ? 'bg-primary hover:bg-primary/95 border-blue-700 text-white btn-3d-node-active animate-node-pulse shadow-[0_4px_18px_rgba(91,142,255,0.35)] hover:scale-105 active:scale-95'
+                              : 'bg-[#2c3344] border-[#1c212c] text-text-3 btn-3d-node-locked opacity-75'
+                          }
+                        `}
+                      >
+                        {status === 'completed' ? (
+                          <Check className="w-7 h-7 stroke-[3px]" />
+                        ) : status === 'in_progress' ? (
+                          <Play className="w-7 h-7 fill-current translate-x-[2px]" />
+                        ) : (
+                          <Lock className="w-5.5 h-5.5 text-text-3" />
+                        )}
+                      </button>
+
+                      {/* Detail Popover Speech Bubble Tooltip */}
+                      {activeNodeId === lesson.id && (
+                        <div 
+                          data-popover-container
+                          style={{ left: `calc(50% + ${offset}%)`, transform: 'translateX(-50%)' }}
+                          className="absolute z-50 w-72 bg-[#171c2a] border border-border p-4.5 rounded-2xl shadow-[0_10px_25px_rgba(0,0,0,0.5)] text-left bottom-[108%] select-none animate-slideDown flex flex-col gap-3"
+                        >
+                          {/* Triangle speech pointer */}
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 border-[8px] border-transparent border-t-[#171c2a]" />
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 border-[8px] border-transparent border-t-border -z-10 translate-y-[1px]" />
+                          
+                          {/* Tooltip Content */}
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[9px] font-mono uppercase bg-primary/15 border border-primary/20 text-primary px-2 py-0.5 rounded font-bold">
+                                Lesson {lesson.order_index}
+                              </span>
+                              <span className={`text-[9px] font-bold uppercase ${status === 'completed' ? 'text-success' : 'text-primary'}`}>
+                                {status === 'completed' ? 'Completed' : status === 'in_progress' ? 'Active' : 'Locked'}
+                              </span>
+                            </div>
+                            <h4 className="font-heading text-sm font-bold text-text-1 leading-tight">{lesson.title}</h4>
+                            {lesson.description && (
+                              <p className="text-text-3 text-[11px] leading-relaxed line-clamp-2">{lesson.description}</p>
+                            )}
+                          </div>
+
+                          <div className="flex items-center justify-between border-t border-border/40 pt-2.5 mt-0.5">
+                            <span className="text-[10px] text-text-2 font-semibold font-mono flex items-center gap-1">
+                              🧠 {status === 'completed' ? '+50 XP (Review)' : '+100 XP (Mastery)'}
+                            </span>
+                            <button
+                              onClick={() => startLesson(lesson.id)}
+                              className="px-3.5 py-1.5 bg-primary hover:bg-primary/95 text-white text-[10px] font-bold rounded-lg cursor-pointer transition-colors shadow-[0_0_8px_rgba(91,142,255,0.2)]"
+                            >
+                              {status === 'completed' ? 'Review Concept' : status === 'in_progress' ? 'Continue Study' : 'Start Lesson'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )

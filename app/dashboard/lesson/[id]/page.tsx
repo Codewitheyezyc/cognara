@@ -700,9 +700,9 @@ export default function LessonPage() {
         <div className="max-w-[720px] mx-auto">
           <Link
             href="/dashboard/path"
-            className="inline-flex items-center space-x-2 text-xs text-text-2 hover:text-text-1 mb-6 transition-colors"
+            className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 bg-surface-alt/40 border border-border/80 hover:bg-surface-alt/75 text-xs font-semibold text-text-2 hover:text-text-1 rounded-full transition-all duration-200 mb-6 shadow-sm group hover:scale-[1.02]"
           >
-            <ArrowLeft className="h-3.5 w-3.5" />
+            <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
             <span>Back to Path</span>
           </Link>
         </div>
@@ -725,9 +725,9 @@ export default function LessonPage() {
       <div className="max-w-[720px] mx-auto mb-2">
         <Link
           href="/dashboard/path"
-          className="inline-flex items-center space-x-2 text-xs text-text-2 hover:text-text-1 transition-colors"
+          className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 bg-surface-alt/40 border border-border/80 hover:bg-surface-alt/75 text-xs font-semibold text-text-2 hover:text-text-1 rounded-full transition-all duration-200 shadow-sm group hover:scale-[1.02]"
         >
-          <ArrowLeft className="h-3.5 w-3.5" />
+          <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
           <span>Back to Path</span>
         </Link>
       </div>
@@ -769,7 +769,7 @@ export default function LessonPage() {
               onClick={handleMarkComplete}
               disabled={isCompleting || isOffline}
               title={isOffline ? "Cannot complete lessons offline" : undefined}
-              className="h-10 px-5 bg-transparent border border-border hover:bg-surface-alt text-text-1 rounded-sm text-xs font-semibold disabled:opacity-50"
+              className="h-10 px-5 bg-surface hover:bg-surface-alt border border-border border-b-[4px] border-b-[#1c212c] text-text-1 rounded-xl text-xs font-bold active:translate-y-[2px] active:border-b-[2px] transition-all disabled:opacity-50"
             >
               {isCompleting ? 'Saving...' : isOffline ? 'Offline' : 'Mark as Complete'}
             </Button>
@@ -777,14 +777,14 @@ export default function LessonPage() {
             <Button
               onClick={handleRefillHeartReview}
               disabled={isCompleting || hasRefilledThisSession || isOffline}
-              className="h-10 px-5 bg-red-500 hover:bg-red-600 text-white rounded-sm text-xs font-semibold animate-pulse-subtle"
+              className="h-10 px-5 bg-red-500 hover:bg-red-400 border border-red-500 border-b-[4px] border-b-red-700 text-white rounded-xl text-xs font-bold active:translate-y-[2px] active:border-b-[2px] transition-all"
             >
               {isCompleting ? 'Saving...' : hasRefilledThisSession ? 'Heart Refilled ❤️' : 'Refill Heart (+1 ❤️)'}
             </Button>
           ) : (
             <Button
               disabled
-              className="h-10 px-5 bg-success/10 border border-success/20 text-success rounded-sm text-xs font-semibold opacity-75"
+              className="h-10 px-5 bg-emerald-500/10 border border-emerald-500/25 border-b-[4px] border-b-emerald-500/15 text-emerald-500 rounded-xl text-xs font-bold opacity-75 cursor-not-allowed"
             >
               Completed
             </Button>
@@ -795,7 +795,7 @@ export default function LessonPage() {
             onClick={handleTakeQuiz}
             disabled={isOffline}
             title={isOffline ? "Quizzes require an internet connection" : undefined}
-            className="h-10 px-5 bg-primary hover:bg-primary/90 text-white rounded-sm text-xs font-semibold shadow-[0_0_12px_rgba(91,142,255,0.2)] disabled:opacity-50 disabled:pointer-events-none"
+            className="h-10 px-5 bg-primary hover:bg-primary/95 border border-primary border-b-[4px] border-b-blue-700 text-white rounded-xl text-xs font-bold active:translate-y-[2px] active:border-b-[2px] transition-all shadow-[0_4px_12px_rgba(91,142,255,0.2)] disabled:opacity-50 disabled:pointer-events-none"
           >
             <span>{isOffline ? 'Quiz Offline' : 'Take Quiz'}</span>
             <HelpCircle className="ml-1.5 h-4 w-4" />

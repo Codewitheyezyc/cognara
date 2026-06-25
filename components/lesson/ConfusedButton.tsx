@@ -243,7 +243,7 @@ export function ConfusedButton({
           <button
             type="button"
             onClick={handleGotItClick}
-            className="text-xs font-bold text-primary border border-primary/20 bg-primary/10 hover:bg-primary/20 transition-colors duration-150 px-3 py-1.5 rounded-[6px] cursor-pointer"
+            className="h-8 px-4 bg-primary hover:bg-primary/95 border border-primary border-b-[3px] border-b-blue-700 text-white rounded-lg text-xs font-bold active:translate-y-[1.5px] active:border-b-[1.5px] transition-all cursor-pointer shadow-sm select-none"
           >
             Got it! ✓
           </button>

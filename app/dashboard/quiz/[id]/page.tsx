@@ -405,6 +405,7 @@ export default function QuizPage() {
           lessonTitle={lessonTitle}
           xpGained={quizResult.xp?.xpGained}
           onContinue={() => {
+            router.refresh()
             if (quizResult.roadmapCompleted && quizResult.roadmapId) {
               router.push(`/dashboard/roadmap-complete/${quizResult.roadmapId}`)
             } else if (quizResult.passed) {

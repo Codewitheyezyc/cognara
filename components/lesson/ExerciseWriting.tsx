@@ -158,17 +158,7 @@ export function ExerciseWriting({
           </div>
           <button
             onClick={() => onUpgradePrompt ? onUpgradePrompt() : window.location.href = '/dashboard/settings'}
-            style={{
-              background: 'var(--color-primary)',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '8px 18px',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              boxShadow: '0 0 12px rgba(91,142,255,0.2)'
-            }}
+            className="flex items-center gap-1.5 px-6 h-10 bg-primary hover:bg-primary/95 border border-primary border-b-[4px] border-b-blue-700 text-white rounded-xl text-xs font-bold active:translate-y-[2px] active:border-b-[2px] transition-all cursor-pointer shadow-md"
           >
             Upgrade to Pro
           </button>
@@ -209,23 +199,15 @@ export function ExerciseWriting({
               <button
                 onClick={submitForReview}
                 disabled={loading || wordCount < 10}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: wordCount >= 10 ? 'var(--color-primary)' : 'var(--color-border)',
-                  color: wordCount >= 10 ? '#FFFFFF' : 'var(--color-text-3)',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '10px 20px',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  cursor: wordCount >= 10 ? 'pointer' : 'not-allowed'
-                }}
+                className={`flex items-center gap-2 px-5 h-10 rounded-xl text-xs font-bold transition-all duration-150 select-none ${
+                  wordCount >= 10
+                    ? 'bg-primary hover:bg-primary/95 border border-primary border-b-[4px] border-b-blue-700 text-white active:translate-y-[2px] active:border-b-[2px] cursor-pointer shadow-sm'
+                    : 'bg-[#2c3344] border border-[#1c212c] border-b-[4px] border-b-[#141820] text-text-3 opacity-60 cursor-not-allowed'
+                }`}
               >
                 {loading
-                  ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Reviewing...</>
-                  : <><Send size={14} /> Submit for Cognitive Review</>
+                  ? <><Loader2 size={13} className="animate-spin" /> <span>Reviewing...</span></>
+                  : <><Send size={13} /> <span>Submit for Cognitive Review</span></>
                 }
               </button>
             </div>

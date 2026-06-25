@@ -135,17 +135,7 @@ export function ExerciseCode({
           </div>
           <button
             onClick={() => onUpgradePrompt ? onUpgradePrompt() : window.location.href = '/dashboard/settings'}
-            style={{
-              background: 'var(--color-primary)',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '8px 18px',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              boxShadow: '0 0 12px rgba(91,142,255,0.2)'
-            }}
+            className="flex items-center gap-1.5 px-6 h-10 bg-primary hover:bg-primary/95 border border-primary border-b-[4px] border-b-blue-700 text-white rounded-xl text-xs font-bold active:translate-y-[2px] active:border-b-[2px] transition-all cursor-pointer shadow-md"
           >
             Upgrade to Pro
           </button>
@@ -220,64 +210,29 @@ export function ExerciseCode({
             {/* Run button */}
             <button
               onClick={runCode}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: 'var(--color-primary)',
-                color: '#FFFFFF',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '8px 16px',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
+              className="flex items-center gap-1.5 px-4 h-9 bg-primary hover:bg-primary/95 border border-primary border-b-[4px] border-b-blue-700 text-white rounded-xl text-xs font-bold active:translate-y-[2px] active:border-b-[2px] transition-all cursor-pointer shadow-sm select-none"
             >
-              <Play size={13} />
-              Run Code
+              <Play size={13} className="fill-current" />
+              <span>Run Code</span>
             </button>
 
             {/* Reset button */}
             <button
               onClick={reset}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: 'transparent',
-                color: 'var(--color-text-2)',
-                border: '1px solid var(--color-border)',
-                borderRadius: '8px',
-                padding: '8px 14px',
-                fontSize: '13px',
-                cursor: 'pointer'
-              }}
+              className="flex items-center gap-1.5 px-4.5 h-9 bg-surface hover:bg-surface-alt border border-border border-b-[4px] border-b-[#1c212c] text-text-2 hover:text-text-1 rounded-xl text-xs font-bold active:translate-y-[2px] active:border-b-[2px] transition-all cursor-pointer"
             >
               <RotateCcw size={13} />
-              Reset
+              <span>Reset</span>
             </button>
 
             {/* Show expected output */}
             {expectedOutput && hasRun && (
               <button
                 onClick={() => setShowExpected(!showExpected)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  background: 'transparent',
-                  color: 'var(--color-success)',
-                  border: '1px solid var(--color-success)',
-                  borderRadius: '8px',
-                  padding: '8px 14px',
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  marginLeft: 'auto'
-                }}
+                className="flex items-center gap-1.5 px-4.5 h-9 bg-emerald-500/10 border border-emerald-500/25 border-b-[4px] border-b-emerald-500/15 text-emerald-500 rounded-xl text-xs font-bold active:translate-y-[2px] active:border-b-[2px] transition-all cursor-pointer ml-auto"
               >
                 <CheckCircle size={13} />
-                {showExpected ? 'Hide answer' : 'Show expected output'}
+                <span>{showExpected ? 'Hide answer' : 'Show expected output'}</span>
               </button>
             )}
           </div>

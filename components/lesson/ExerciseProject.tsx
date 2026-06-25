@@ -223,30 +223,17 @@ export function ExerciseProject({
           <button
             onClick={() => saveProgress()}
             disabled={saving}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: 'var(--color-primary)',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '8px 16px',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              flexShrink: 0
-            }}
+            className="flex items-center gap-1.5 px-4 h-9 bg-primary hover:bg-primary/95 border border-primary border-b-[4px] border-b-blue-700 text-white rounded-xl text-xs font-bold active:translate-y-[2px] active:border-b-[2px] transition-all cursor-pointer shadow-sm select-none shrink-0"
           >
             {saving ? (
               <>
-                <RefreshCw size={13} style={{ animation: 'spin 1s linear infinite' }} />
-                Saving...
+                <RefreshCw size={13} className="animate-spin" />
+                <span>Saving...</span>
               </>
             ) : (
               <>
                 <Save size={13} />
-                Save Progress
+                <span>Save Progress</span>
               </>
             )}
           </button>
@@ -286,17 +273,7 @@ export function ExerciseProject({
           </div>
           <button
             onClick={() => onUpgradePrompt ? onUpgradePrompt() : window.location.href = '/dashboard/settings'}
-            style={{
-              background: 'var(--color-primary)',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '8px 18px',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              boxShadow: '0 0 12px rgba(91,142,255,0.2)'
-            }}
+            className="flex items-center gap-1.5 px-6 h-10 bg-primary hover:bg-primary/95 border border-primary border-b-[4px] border-b-blue-700 text-white rounded-xl text-xs font-bold active:translate-y-[2px] active:border-b-[2px] transition-all cursor-pointer shadow-md"
           >
             Upgrade to Pro
           </button>

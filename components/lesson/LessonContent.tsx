@@ -268,7 +268,7 @@ export default function LessonContent({
           </div>
           
           <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2 sm:gap-3 flex-nowrap">
-            <span className="inline-flex items-center px-2 py-0.5 border border-primary/20 bg-primary/10 text-primary text-[10px] font-mono font-bold uppercase tracking-widest rounded-sm shrink-0">
+            <span className="inline-flex items-center px-2.5 py-1 border border-primary/25 bg-primary/10 text-primary text-[10px] font-mono font-extrabold uppercase tracking-widest rounded-full shrink-0 select-none">
               {depthLabels[depthLevel] || 'Beginner'}
             </span>
             
@@ -276,9 +276,9 @@ export default function LessonContent({
             <button
               type="button"
               onClick={handleDownload}
-              className="text-[10px] text-primary hover:underline font-bold uppercase tracking-wide focus:outline-none flex items-center space-x-1 cursor-pointer"
+              className="px-2.5 py-1 bg-surface-alt hover:bg-surface border border-border/80 text-[10px] text-primary font-bold uppercase tracking-wide rounded-full flex items-center space-x-1.5 transition-all duration-150 shadow-sm shrink-0 cursor-pointer hover:border-primary/50"
             >
-              <Download className="h-3.5 w-3.5" />
+              <Download className="h-3 w-3 text-primary" />
               <span>
                 {!isPro && phaseNumber > 1 
                   ? 'Download 🔒' 
@@ -293,7 +293,7 @@ export default function LessonContent({
                 type="button"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 disabled={isChangingDepth}
-                className="text-[10px] text-primary hover:underline font-bold uppercase tracking-wide focus:outline-none flex items-center space-x-0.5 cursor-pointer disabled:opacity-50"
+                className="px-2.5 py-1 bg-surface-alt hover:bg-surface border border-border/80 text-[10px] text-primary font-bold uppercase tracking-wide rounded-full flex items-center space-x-1 transition-all duration-150 shadow-sm shrink-0 cursor-pointer disabled:opacity-50 hover:border-primary/50"
               >
                 <span>Change depth</span>
                 <ChevronDown className="h-3 w-3" />
