@@ -46,6 +46,13 @@ export default function DashboardPage() {
   const [isClaiming, setIsClaiming] = useState(false)
   const [isRefillingHearts, setIsRefillingHearts] = useState(false)
 
+  // Streak Insurance states
+  const [isRestoringStreak, setIsRestoringStreak] = useState(false)
+  const [monthlyRestoresCount, setMonthlyRestoresCount] = useState<number>(0)
+  const [confirmInsuranceOpen, setConfirmInsuranceOpen] = useState(false)
+  const [insuranceSuccessOpen, setInsuranceSuccessOpen] = useState(false)
+  const [insuranceError, setInsuranceError] = useState<string | null>(null)
+
   const handleCxpRefillHearts = async () => {
     if (isRefillingHearts || !userId || !profile) return
     if ((profile.xp || 0) < 150) {
@@ -266,9 +273,63 @@ export default function DashboardPage() {
           current_streak: 0,
           longest_streak: 0,
           last_activity_at: null,
-          shields_available: 0
+          shields_available: 0,
+          broke_at: null,
+          days_before_break: 0
+        }
+
+        // Check if streak broke since last activity
+        const lastAct = streakDataVal.last_activity_at
+        let calculatedBroken = false
+        if (lastAct && streakDataVal.current_streak > 0 && !streakDataVal.broke_at) {
+          const today = new Date()
+          today.setHours(0, 0, 0, 0)
+          const lastDate = new Date(lastAct)
+          lastDate.setHours(0, 0, 0, 0)
+          const diff = Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24))
+          if (diff > 1) {
+            const hasShield = (diff === 2 && (streakDataVal.shields_available || 0) > 0)
+            if (!hasShield) {
+              calculatedBroken = true
+            }
+          }
+        }
+
+        if (calculatedBroken) {
+          // Record the break in the DB
+          const brokeAtStr = new Date().toISOString()
+          const prevStreak = streakDataVal.current_streak
+          
+          await supabase
+            .from('streaks')
+            .update({
+              is_active: false,
+              broke_at: brokeAtStr,
+              days_before_break: prevStreak,
+              current_streak: 0
+            })
+            .eq('user_id', user.id)
+            
+          // Update local streakData object values
+          streakDataVal.broke_at = brokeAtStr
+          streakDataVal.days_before_break = prevStreak
+          streakDataVal.current_streak = 0
+          streakDataVal.is_active = false
         }
         setStreakData(streakDataVal)
+
+        // Fetch monthly restores count
+        const thisMonth = new Date()
+        thisMonth.setDate(1)
+        thisMonth.setHours(0, 0, 0, 0)
+        
+        const { count: monthlyRestores } = await supabase
+          .from('cognara_streak_restores')
+          .select('id', { count: 'exact' })
+          .eq('user_id', user.id)
+          .gte('created_at', thisMonth.toISOString())
+          
+        setMonthlyRestoresCount(monthlyRestores || 0)
 
         // Sort lessons sequentially: by phase_number first, then by order_index
         const sortedPhases = [...(phasesRes.data || [])].sort((a, b) => a.phase_number - b.phase_number)
@@ -356,22 +417,15 @@ export default function DashboardPage() {
   }
 
   // 1. Check if streak broke since last login
+  const isStreakBroken = !!streakData?.broke_at
   const lastActivity = streakData?.last_activity_at
-  let isStreakBroken = false
   let diffDays = 0
-  if (lastActivity && streakData?.current_streak > 0) {
+  if (lastActivity) {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const lastDate = new Date(lastActivity)
     lastDate.setHours(0, 0, 0, 0)
     diffDays = Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24))
-    
-    if (diffDays > 1) {
-      const hasShield = (diffDays === 2 && (streakData.shields_available || 0) > 0)
-      if (!hasShield) {
-        isStreakBroken = true
-      }
-    }
   }
 
   useEffect(() => {
@@ -389,6 +443,16 @@ export default function DashboardPage() {
       }
     }
   }, [isLoading, diffDays, isStreakBroken])
+
+  useEffect(() => {
+    if (insuranceSuccessOpen) {
+      const timer = setTimeout(() => {
+        setInsuranceSuccessOpen(false)
+        setShowStreakBreak(false)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [insuranceSuccessOpen])
 
   if (isLoading) {
     return (
@@ -486,19 +550,22 @@ export default function DashboardPage() {
           user_id: userId,
           event_type: 'streak_break',
           event_data: {
-            previous_streak: streakData.current_streak,
+            previous_streak: streakData.days_before_break || streakData.current_streak,
             last_activity_at: streakData.last_activity_at,
             action: 'jump_back_in'
           }
         })
 
-      // Reset streak to Day 1 in streaks table
+      // Reset streak to Day 1 in streaks table and clear break state
       await supabase
         .from('streaks')
         .update({
           current_streak: 1,
           last_activity_at: todayStr,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          broke_at: null,
+          days_before_break: 0,
+          is_active: true
         })
         .eq('user_id', userId)
 
@@ -506,7 +573,10 @@ export default function DashboardPage() {
       setStreakData((prev: any) => ({
         ...prev,
         current_streak: 1,
-        last_activity_at: todayStr
+        last_activity_at: todayStr,
+        broke_at: null,
+        days_before_break: 0,
+        is_active: true
       }))
 
       // Hide streak break screen
@@ -523,25 +593,139 @@ export default function DashboardPage() {
     }
   }
 
-  const handleStreakBreakRemindLater = async () => {
-    if (userId && streakData) {
-      try {
-        await supabase
-          .from('cognara_engagement_events')
-          .insert({
-            user_id: userId,
-            event_type: 'streak_break',
-            event_data: {
-              previous_streak: streakData.current_streak,
-              last_activity_at: streakData.last_activity_at,
-              action: 'remind_later'
-            }
-          })
-      } catch (err) {
-        console.error('Error logging remind later event:', err)
+  const handleRestoreStreak = async () => {
+    if (!userId || !streakData || !profile) return
+    setIsRestoringStreak(true)
+    setConfirmInsuranceOpen(false)
+    try {
+      // 1. Check eligibility
+      // Check CXP balance
+      const currentCxp = profile.xp || 0
+      if (currentCxp < 150) {
+        setInsuranceError('insufficient_cxp')
+        setIsRestoringStreak(false)
+        return
       }
+
+      // Check monthly usage
+      const thisMonth = new Date()
+      thisMonth.setDate(1)
+      thisMonth.setHours(0, 0, 0, 0)
+
+      const { count: monthlyRestores } = await supabase
+        .from('cognara_streak_restores')
+        .select('id', { count: 'exact' })
+        .eq('user_id', userId)
+        .gte('created_at', thisMonth.toISOString())
+
+      if (monthlyRestores && monthlyRestores >= 1) {
+        setInsuranceError('monthly_limit_reached')
+        setIsRestoringStreak(false)
+        return
+      }
+
+      // Check 24 hour window
+      if (!streakData.broke_at) {
+        setInsuranceError('no_streak_to_restore')
+        setIsRestoringStreak(false)
+        return
+      }
+      const streakBrokeAt = new Date(streakData.broke_at)
+      const hoursSinceBroke = (new Date().getTime() - streakBrokeAt.getTime()) / (1000 * 60 * 60)
+
+      if (hoursSinceBroke > 24) {
+        setInsuranceError('offer_expired')
+        setIsRestoringStreak(false)
+        return
+      }
+
+      // Check streak was active before breaking
+      const daysRestored = streakData.days_before_break || 0
+      if (daysRestored < 1) {
+        setInsuranceError('no_streak_to_restore')
+        setIsRestoringStreak(false)
+        return
+      }
+
+      // 2. All checks passed — restore streak in database
+      // Deduct 150 CXP using RPC
+      const { error: decError } = await supabase.rpc('decrement_user_cxp', {
+        user_id_input: userId,
+        amount_input: 150
+      })
+      if (decError) throw decError
+
+      // Log CXP spend event
+      await supabase.from('cognara_cxp_events').insert({
+        user_id: userId,
+        amount: -150,
+        source: 'streak_insurance',
+        description: `Streak insurance — restored ${daysRestored} day streak`,
+        created_at: new Date().toISOString()
+      })
+
+      // Restore streak in database
+      await supabase.from('streaks')
+        .update({
+          current_streak: daysRestored,
+          broke_at: null,
+          last_active: new Date().toISOString(),
+          is_active: true
+        })
+        .eq('user_id', userId)
+
+      // Log restore event
+      await supabase.from('cognara_streak_restores').insert({
+        user_id: userId,
+        streak_days_restored: daysRestored,
+        cxp_spent: 150,
+        created_at: new Date().toISOString()
+      })
+
+      // 3. Update local state
+      const nextXp = Math.max(currentCxp - 150, 0)
+      const nextLevel = getLevelInfo(nextXp).level
+
+      setProfile((prev: any) => ({
+        ...prev,
+        xp: nextXp,
+        level: nextLevel
+      }))
+
+      setStreakData((prev: any) => ({
+        ...prev,
+        current_streak: daysRestored,
+        broke_at: null,
+        days_before_break: 0,
+        is_active: true
+      }))
+
+      setMonthlyRestoresCount(prev => prev + 1)
+      
+      // Dispatch global custom event so Layout top bar updates instantly
+      window.dispatchEvent(new CustomEvent('cognara_xp_gained', {
+        detail: {
+          newXp: nextXp,
+          newLevel: nextLevel,
+          leveledUp: false
+        }
+      }))
+
+      SoundEffects.play('success')
+
+      // Trigger success screen
+      setInsuranceSuccessOpen(true)
+
+    } catch (err: any) {
+      console.error('Streak restore error:', err)
+      toast('Failed to restore streak. Please try again.', 'error')
+    } finally {
+      setIsRestoringStreak(false)
     }
-    sessionStorage.setItem('dismissed_streak_break', 'true')
+  }
+
+  const handleDismissSuccessScreen = () => {
+    setInsuranceSuccessOpen(false)
     setShowStreakBreak(false)
   }
 
@@ -722,21 +906,38 @@ export default function DashboardPage() {
   const minsSpent = Math.floor((totalSeconds % 3600) / 60)
 
   if (showStreakBreak) {
+    const daysRestored = streakData?.days_before_break || 0
+    const currentCxp = profile?.xp || 0
+    const isCxpEnough = currentCxp >= 150
+    const brokeAtStr = streakData?.broke_at
+
+    let hoursSinceBroke = 0
+    if (brokeAtStr) {
+      hoursSinceBroke = (new Date().getTime() - new Date(brokeAtStr).getTime()) / (1000 * 60 * 60)
+    }
+
+    const isExpired = hoursSinceBroke > 24
+    const isUsedThisMonth = monthlyRestoresCount >= 1
+    const isStreakValid = daysRestored >= 1
+    const canRestore = isCxpEnough && !isExpired && !isUsedThisMonth && isStreakValid
+
     return (
-      <div className="min-h-screen bg-[#0A0C14] text-[#F0F4FF] flex items-center justify-center p-4">
-        <div className="flex flex-col items-center justify-center text-center p-6 space-y-6 max-w-sm mx-auto min-h-[85vh] animate-page-enter">
-          <div className="p-4 bg-[#1A203C] rounded-2xl border border-[#2E3750] shadow-inner mb-2 animate-pulse-subtle">
+      <div className="min-h-screen bg-[#0A0C14] text-[#F0F4FF] flex items-center justify-center p-4 py-8">
+        <div className="flex flex-col items-center justify-center text-center p-6 space-y-5 max-w-2xl mx-auto animate-page-enter">
+          
+          {/* Spark Mascot - Centered */}
+          <div className="p-4 bg-[#1A203C] rounded-2xl border border-[#2E3750] shadow-inner mb-1 animate-pulse-subtle">
             <Spark emotion="thinking" size={80} />
           </div>
           
           <h2 className="text-2xl font-extrabold text-white">Hey {profile?.name || 'there'}.</h2>
           
-          <div className="space-y-4 text-sm text-[#C8D0E8] leading-relaxed">
+          <div className="space-y-3 text-sm text-[#C8D0E8] leading-relaxed max-w-md">
             <p>
               &ldquo;Your streak broke. That happens — life gets busy and that is okay.&rdquo;
             </p>
             
-            <div className="bg-[#111424] border border-[#1E2540]/60 rounded-2xl p-4 text-left space-y-2 mt-4 select-none">
+            <div className="bg-[#111424] border border-[#1E2540]/60 rounded-2xl p-4 text-left space-y-2 select-none">
               <h4 className="text-[10px] font-mono uppercase tracking-widest text-[#5B8EFF] font-bold">Here is what you have already built:</h4>
               <div className="flex items-center gap-2 text-xs">
                 <span className="text-emerald-400 font-bold">✓</span>
@@ -755,27 +956,95 @@ export default function DashboardPage() {
             <p>
               &ldquo;That progress is still here. Every lesson you completed still counts.&rdquo;
             </p>
-            
-            <p className="font-semibold text-white">
-              Ready to start a new streak?
-            </p>
           </div>
 
-          <div className="w-full space-y-3 pt-4">
-            <Button
-              onClick={handleStreakBreakJumpIn}
-              className="w-full h-12 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-xl shadow-[0_0_20px_rgba(91,142,255,0.25)] cursor-pointer"
-            >
-              Jump back in — 10 minutes
-            </Button>
-            <button
-              onClick={handleStreakBreakRemindLater}
-              className="text-xs text-[#8B95B3] hover:text-white transition font-bold block mx-auto py-2 cursor-pointer"
-              type="button"
-            >
-              Remind me later
-            </button>
+          {/* DIVIDER LINE */}
+          <div className="w-full max-w-md h-px bg-[#1E2540]/60 my-2" />
+
+          {/* TWO OPTIONS — side by side on desktop, stacked on mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 w-full max-w-lg mt-2">
+            
+            {/* OPTION 1 — RESTORE STREAK */}
+            <div className="bg-[#111424] border border-[#1E2540]/60 rounded-2xl p-5 flex flex-col justify-between items-center text-center space-y-4 shadow-sm relative">
+              <div className="flex flex-col items-center space-y-2">
+                <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0">
+                  <Flame className="h-5 w-5 fill-current" />
+                </div>
+                <h3 className="font-heading text-sm font-bold text-white">Restore my streak</h3>
+                <p className="text-[11px] text-[#8B95B3] leading-relaxed">
+                  Spend 150 CXP to keep your {daysRestored} day streak alive
+                </p>
+              </div>
+
+              <div className="w-full space-y-3">
+                <span className="text-[10px] font-mono text-[#5B8EFF] font-bold block">
+                  Your balance: {currentCxp} CXP
+                </span>
+
+                {canRestore ? (
+                  <Button
+                    onClick={() => setConfirmInsuranceOpen(true)}
+                    className="w-full h-11 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-bold rounded-xl text-xs cursor-pointer shadow-md transition"
+                  >
+                    Restore Streak — 150 CXP
+                  </Button>
+                ) : (
+                  <div className="space-y-1 w-full">
+                    <button
+                      disabled
+                      className="w-full h-11 bg-[#1A203C]/80 border border-[#2E3750]/50 text-[#4A5272] font-bold rounded-xl text-[11px] cursor-not-allowed select-none"
+                    >
+                      {isUsedThisMonth 
+                        ? "Used this month" 
+                        : isExpired 
+                          ? "Offer expired (24h exceeded)" 
+                          : !isStreakValid 
+                            ? "No streak to restore" 
+                            : "Not enough CXP (need 150)"}
+                    </button>
+                    <span className="text-[9px] text-[#8B95B3] block leading-tight">
+                      {isUsedThisMonth 
+                        ? "Resets on the first of next month" 
+                        : isExpired 
+                          ? "Insurance must be used within 24 hours" 
+                          : !isStreakValid 
+                            ? "Start a new streak to build momentum" 
+                            : "Complete lessons to earn more CXP"}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* OPTION 2 — START FRESH */}
+            <div className="bg-[#111424] border border-[#1E2540]/60 rounded-2xl p-5 flex flex-col justify-between items-center text-center space-y-4 shadow-sm relative">
+              <div className="flex flex-col items-center space-y-2">
+                <div className="w-10 h-10 rounded-full bg-[#5B8EFF]/10 border border-[#5B8EFF]/20 flex items-center justify-center text-[#5B8EFF] shrink-0">
+                  <Flame className="h-5 w-5 fill-current text-[#5B8EFF]" />
+                </div>
+                <h3 className="font-heading text-sm font-bold text-white">Start a new streak</h3>
+                <p className="text-[11px] text-[#8B95B3] leading-relaxed">
+                  Jump back in and build an even stronger streak
+                </p>
+              </div>
+
+              <div className="w-full pt-4">
+                <Button
+                  onClick={handleStreakBreakJumpIn}
+                  className="w-full h-11 bg-gradient-to-r from-primary to-accent hover:from-primary-hover hover:to-accent text-white font-bold rounded-xl text-xs cursor-pointer shadow-md transition"
+                >
+                  Jump back in — 10 minutes
+                </Button>
+              </div>
+            </div>
+
           </div>
+
+          {/* SMALL TEXT BENEATH BOTH OPTIONS */}
+          <p className="text-[10px] text-[#8B95B3] tracking-wide pt-4 select-none">
+            Streak insurance is available once per month.
+          </p>
+
         </div>
       </div>
     )
@@ -1275,6 +1544,164 @@ export default function DashboardPage() {
                 )}
               </div>
             )}
+          </div>
+        </div>,
+        document.body
+      )}
+      {/* CONFIRMATION MODAL (PORTALED) */}
+      {confirmInsuranceOpen && mounted && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
+          <div className="bg-[#111424] border border-[#1E2540] rounded-2xl max-w-sm w-full p-6 space-y-6 shadow-2xl relative text-center animate-scaleIn">
+            
+            {/* Pulsing Golden Flame Icon */}
+            <div className="flex justify-center">
+              <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500">
+                <Flame className="h-9 w-9 fill-current animate-pulse-subtle" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="font-heading text-sm font-extrabold text-white">
+                Restore your {streakData?.days_before_break || 0} day streak?
+              </h3>
+              <p className="text-xs text-[#8B95B3] leading-relaxed">
+                150 CXP will be deducted from your balance.
+              </p>
+            </div>
+
+            {/* Balance Card */}
+            <div className="bg-[#0A0C14] border border-[#1E2540]/60 rounded-xl p-3.5 space-y-1.5 text-xs text-left font-mono">
+              <div className="flex justify-between text-[#8B95B3]">
+                <span>Current balance:</span>
+                <span className="text-white font-bold">{profile?.xp || 0} CXP</span>
+              </div>
+              <div className="flex justify-between text-amber-400 font-bold border-t border-[#1E2540]/40 pt-1.5">
+                <span>Balance after restore:</span>
+                <span>{Math.max((profile?.xp || 0) - 150, 0)} CXP</span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-2 pt-2">
+              <button
+                onClick={handleRestoreStreak}
+                disabled={isRestoringStreak}
+                className="w-full h-11 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-bold rounded-xl text-xs cursor-pointer shadow-md transition"
+              >
+                {isRestoringStreak ? "Restoring..." : "Yes — restore my streak"}
+              </button>
+              <button
+                onClick={() => setConfirmInsuranceOpen(false)}
+                disabled={isRestoringStreak}
+                className="text-xs text-[#8B95B3] hover:text-white transition font-bold py-2.5 cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* SUCCESS SCREEN (PORTALED) */}
+      {insuranceSuccessOpen && mounted && createPortal(
+        <div 
+          className="fixed inset-0 z-[101] bg-[#0A0C14] text-[#F0F4FF] flex flex-col items-center justify-center p-6 text-center select-none cursor-pointer animate-fadeIn"
+          onClick={handleDismissSuccessScreen}
+        >
+          <div className="space-y-6 max-w-sm w-full">
+            <div className="flex justify-center">
+              <div className="w-24 h-24 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 shadow-[0_0_40px_rgba(245,158,11,0.2)] animate-float">
+                <Flame className="h-14 w-14 fill-current animate-bounce-subtle" />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h2 className="text-3xl font-black text-white">
+                Streak restored. 🔥
+              </h2>
+              <p className="text-sm text-amber-400 font-bold font-mono">
+                Your {streakData?.days_before_break || 0} day streak is back.
+              </p>
+              <p className="text-xs text-[#8B95B3]">
+                150 CXP spent &bull; Balance: {profile?.xp || 0} CXP remaining
+              </p>
+            </div>
+
+            <div className="w-12 h-px bg-border/40 mx-auto" />
+
+            <p className="text-xs text-[#A78BFA] font-bold tracking-wide italic">
+              &ldquo;Do not let it break again — your roadmap is waiting.&rdquo;
+            </p>
+            
+            <p className="text-[10px] text-[#4A5272] uppercase tracking-widest pt-4">
+              Tap anywhere to continue
+            </p>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* ERROR MESSAGE MODAL (PORTALED) */}
+      {insuranceError && mounted && createPortal(
+        <div className="fixed inset-0 z-[102] flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
+          <div className="bg-[#111424] border border-[#1E2540] rounded-2xl max-w-sm w-full p-6 space-y-5 shadow-2xl text-center relative animate-scaleIn">
+            
+            <div className="flex justify-center">
+              <div className="w-14 h-14 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-500">
+                <ShieldAlert className="h-7 w-7" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="font-heading text-lg font-black text-white">
+                {insuranceError === 'insufficient_cxp' && "Not enough CXP"}
+                {insuranceError === 'monthly_limit_reached' && "Already used this month"}
+                {insuranceError === 'offer_expired' && "Offer expired"}
+                {insuranceError === 'no_streak_to_restore' && "No streak to restore"}
+              </h3>
+              <p className="text-xs text-[#8B95B3] leading-relaxed px-2">
+                {insuranceError === 'insufficient_cxp' && "You need 150 CXP to restore your streak. Complete lessons and quizzes to earn more."}
+                {insuranceError === 'monthly_limit_reached' && `Streak insurance is available once per month. Your next insurance resets on ${new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}.`}
+                {insuranceError === 'offer_expired' && "Streak insurance must be used within 24 hours of your streak breaking. Start a new streak today."}
+                {insuranceError === 'no_streak_to_restore' && "Complete your first lesson to start building a streak."}
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-2">
+              <button
+                onClick={() => {
+                  setInsuranceError(null)
+                  if (insuranceError === 'insufficient_cxp') {
+                    setShowStreakBreak(false)
+                    if (activeLesson) router.push(`/dashboard/lesson/${activeLesson.id}`)
+                    else router.push('/dashboard/path')
+                  } else if (insuranceError === 'monthly_limit_reached') {
+                    handleStreakBreakJumpIn()
+                  } else if (insuranceError === 'offer_expired') {
+                    handleStreakBreakJumpIn()
+                  } else if (insuranceError === 'no_streak_to_restore') {
+                    setShowStreakBreak(false)
+                    if (activeLesson) router.push(`/dashboard/lesson/${activeLesson.id}`)
+                    else router.push('/dashboard/path')
+                  }
+                }}
+                className="w-full h-11 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl text-xs cursor-pointer shadow-md transition"
+              >
+                {insuranceError === 'insufficient_cxp' && "Start earning CXP →"}
+                {insuranceError === 'monthly_limit_reached' && "Start a new streak →"}
+                {insuranceError === 'offer_expired' && "Jump back in →"}
+                {insuranceError === 'no_streak_to_restore' && "Start learning →"}
+              </button>
+              <button
+                onClick={() => setInsuranceError(null)}
+                className="text-xs text-[#8B95B3] hover:text-white transition font-bold py-2 cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+
           </div>
         </div>,
         document.body

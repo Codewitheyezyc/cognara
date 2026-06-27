@@ -997,6 +997,14 @@ export default function ProfilePage() {
                 <span className="text-[#A78BFA]">{levelInfo.rankName}</span>
               </div>
 
+              {/* CXP AVAILABLE BADGE */}
+              <Link 
+                href="/dashboard/progress" 
+                className="block mt-2 text-[11px] font-bold text-[#A78BFA] hover:text-[#A78BFA]/85 hover:underline transition-all cursor-pointer"
+              >
+                {profile?.xp || 0} CXP available
+              </Link>
+
               {/* MEMBER SINCE */}
               <p className="mt-3 text-xs text-[#8B95B3]">
                 Learning with Cognara since {memberDate}

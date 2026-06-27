@@ -17,6 +17,38 @@ export async function GET(req: Request) {
     // Grant monthly streak shields for Pro users
     await supabase.rpc('grant_monthly_shields')
 
+    // Handle Monthly Streak Insurance Reset Notification
+    const today = new Date()
+    if (today.getDate() === 1) {
+      const startOfPrevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1)
+      const endOfPrevMonth = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59, 999)
+
+      // Query all user IDs who used streak insurance last month
+      const { data: recentRestores } = await supabase
+        .from('cognara_streak_restores')
+        .select('user_id')
+        .gte('created_at', startOfPrevMonth.toISOString())
+        .lte('created_at', endOfPrevMonth.toISOString())
+
+      if (recentRestores && recentRestores.length > 0) {
+        const uniqueUserIds = Array.from(new Set(recentRestores.map(r => r.user_id)))
+
+        // Insert notification for each user
+        const notificationsToInsert = uniqueUserIds.map(userId => ({
+          user_id: userId,
+          type: 'streak_insurance_reset',
+          title: 'Your streak insurance is back 🛡️',
+          message: 'Your monthly streak insurance has reset. 150 CXP keeps your streak alive if life gets in the way.',
+          is_read: false,
+          created_at: new Date().toISOString()
+        }))
+
+        await supabase
+          .from('cognara_notifications')
+          .insert(notificationsToInsert)
+      }
+    }
+
     // 2. Fetch all profiles with reminders enabled
     const { data: users, error: usersError } = await supabase
       .from('profiles')

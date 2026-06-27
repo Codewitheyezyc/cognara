@@ -453,9 +453,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           read: true
         }
       ]
-      setNotifications(items)
+
+      async function fetchAndMergeDbNotifications() {
+        try {
+          const { data: dbNotifs } = await supabase
+            .from('cognara_notifications')
+            .select('*')
+            .eq('user_id', profile.id)
+            .order('created_at', { ascending: false })
+            
+          if (dbNotifs && dbNotifs.length > 0) {
+            const dbItems = dbNotifs.map((n: any) => ({
+              id: n.id,
+              title: n.title,
+              body: n.message,
+              time: new Date(n.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+              read: n.is_read
+            }))
+            setNotifications([...items, ...dbItems])
+          } else {
+            setNotifications(items)
+          }
+        } catch (err) {
+          console.error('Error fetching db notifications:', err)
+          setNotifications(items)
+        }
+      }
+
+      fetchAndMergeDbNotifications()
     }
-  }, [profile, streak, roadmapProgress?.title])
+  }, [profile, streak, roadmapProgress?.title, supabase])
 
   // Click outside listener for notifications dropdown
   useEffect(() => {
@@ -736,6 +763,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   </div>
                 );
               })()}
+
+              {/* CXP Balance Indicator */}
+              {isLoading || !profile ? (
+                <div className="w-12 h-6 bg-border/40 rounded-full animate-pulse" />
+              ) : (
+                <div className="flex items-center space-x-1 px-2.5 py-0.5 sm:px-3 sm:py-1 bg-[#5B8EFF]/10 text-[#5B8EFF] border border-[#5B8EFF]/20 rounded-full text-[10px] sm:text-xs font-mono shrink-0">
+                  <Sparkles className="h-3.5 w-3.5 fill-current text-[#5B8EFF] animate-pulse-subtle" />
+                  <span className="font-bold">{profile.xp || 0} CXP</span>
+                </div>
+              )}
             </div>
 
             {/* Notification Bell */}
@@ -770,7 +807,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <div className="flex items-center justify-between px-3 py-1.5 border-b border-border/60">
                     <span className="text-[10px] font-bold text-text-1 uppercase tracking-wider">Notifications</span>
                     <button 
-                      onClick={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
+                      onClick={async () => {
+                        setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+                        try {
+                          await supabase
+                            .from('cognara_notifications')
+                            .update({ is_read: true })
+                            .eq('user_id', profile.id)
+                            .eq('is_read', false)
+                        } catch (err) {
+                          console.error('Error marking notifications read:', err)
+                        }
+                      }}
                       className="text-[9px] font-semibold text-primary hover:underline bg-transparent border-none cursor-pointer"
                     >
                       Mark all read
@@ -886,6 +934,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             )
           })()}
+
+          <div className="w-px h-4 bg-border/60" />
+
+          {/* CXP Balance Indicator */}
+          {isLoading || !profile ? (
+            <div className="w-10 h-5 bg-border/40 rounded-full animate-pulse animate-pulse-subtle shrink-0" />
+          ) : (
+            <div className="flex items-center space-x-1 text-xs font-mono text-[#5B8EFF] font-bold shrink-0">
+              <Sparkles className="h-3.5 w-3.5 fill-current text-[#5B8EFF]" />
+              <span>{profile.xp || 0} CXP</span>
+            </div>
+          )}
 
           <div className="w-px h-4 bg-border/60" />
 
