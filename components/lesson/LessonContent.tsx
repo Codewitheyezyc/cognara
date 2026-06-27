@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { GeneratedLesson } from '@/types/ai'
-import { BookOpen, ArrowRight, ChevronDown, Lock, Download, Compass, Terminal, Activity, CheckCircle2 } from 'lucide-react'
+import { BookOpen, ArrowRight, ChevronDown, Lock, Download, Compass, Terminal, Activity, CheckCircle2, Sparkles } from 'lucide-react'
 import { CodeBlock } from './CodeBlock'
 import { Callout } from './Callout'
 import { LessonTable } from './LessonTable'
@@ -30,6 +30,7 @@ interface LessonContentProps {
   userId: string
   isPro: boolean
   phaseNumber: number
+  isReentry?: boolean
 }
 
 const depthLevels = [
@@ -183,7 +184,8 @@ export default function LessonContent({
   lessonId,
   userId,
   isPro,
-  phaseNumber
+  phaseNumber,
+  isReentry = false
 }: LessonContentProps) {
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false)
   const [isModalOpen, setIsModalOpen] = React.useState(false)
@@ -344,13 +346,30 @@ export default function LessonContent({
           {lesson.title}
         </h1>
         <p className="text-xs font-mono text-text-2">
-          Estimated reading time: <span className="text-primary font-bold">{lesson.estimated_minutes} minutes</span>
+          Estimated reading time: <span className="text-primary font-bold">{isReentry ? Math.max(2, Math.round(lesson.estimated_minutes * 0.4)) : lesson.estimated_minutes} minutes</span>
         </p>
       </div>
+
+      {isReentry && (
+        <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 flex items-start gap-3 my-4 animate-page-enter">
+          <div className="p-2 rounded-lg bg-surface border border-border/80 text-primary shrink-0 shadow-sm mt-0.5">
+            <Sparkles size={16} className="text-primary animate-pulse" />
+          </div>
+          <div className="space-y-1">
+            <span className="text-[10px] font-bold font-mono uppercase tracking-wider text-primary">Re-entry Mode Active</span>
+            <p className="text-xs md:text-sm text-text-2 leading-relaxed font-medium">
+              Welcome back! I've shortened this lesson into a quick 5-minute win to help you get your momentum back.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Structured Sections Loop */}
       <div className="space-y-8">
         {(lesson.sections || []).map((section, idx) => {
+          const isEssential = ['explanation', 'analogy', 'summary', 'exercise_code', 'exercise_writing', 'exercise_task', 'exercise_project'].includes(section.type)
+          if (isReentry && !isEssential) return null
+
           const sectionBookmark = bookmarks.find(b => b.section_index === idx)
           const sectionEl = (() => {
             switch (section.type) {

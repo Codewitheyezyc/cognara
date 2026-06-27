@@ -40,6 +40,45 @@ export default function AdminOverview() {
   const [refreshing, setRefreshing] = useState(false)
   const [mounted, setMounted] = useState(false)
 
+  // Testimonial approvals states
+  const [adminTestimonials, setAdminTestimonials] = useState<any[]>([])
+  const [loadingTestimonials, setLoadingTestimonials] = useState(true)
+
+  const fetchTestimonials = async () => {
+    try {
+      const res = await fetch('/api/admin/testimonials')
+      if (res.ok) {
+        const data = await res.json()
+        setAdminTestimonials(data.testimonials || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch testimonials', err)
+    } finally {
+      setLoadingTestimonials(false)
+    }
+  }
+
+  const handleTestimonialAction = async (id: string, action: 'approve' | 'reject') => {
+    try {
+      const res = await fetch('/api/admin/testimonials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action })
+      })
+      if (res.ok) {
+        if (action === 'approve') {
+          setAdminTestimonials(prev =>
+            prev.map(t => t.id === id ? { ...t, is_approved: true } : t)
+          )
+        } else {
+          setAdminTestimonials(prev => prev.filter(t => t.id !== id))
+        }
+      }
+    } catch (err) {
+      console.error('Failed to update testimonial', err)
+    }
+  }
+
   const fetchData = async (showRefreshIndicator = false) => {
     if (showRefreshIndicator) setRefreshing(true)
     try {
@@ -62,10 +101,12 @@ export default function AdminOverview() {
   useEffect(() => {
     setMounted(true)
     fetchData()
+    fetchTestimonials()
 
     // Auto-refresh every 60 seconds
     const interval = setInterval(() => {
       fetchData(true)
+      fetchTestimonials()
     }, 60000)
 
     return () => clearInterval(interval)
@@ -337,6 +378,71 @@ export default function AdminOverview() {
             ))
           ) : (
             <div className="p-8 text-center text-xs text-text-3">No recent activities logged</div>
+          )}
+        </div>
+      </div>
+
+      {/* TESTIMONIAL REVIEW CENTER */}
+      <div className="bg-surface rounded-2xl border border-border">
+        <div className="p-6 border-b border-border flex justify-between items-center">
+          <div>
+            <h3 className="text-sm font-bold text-text-1">Testimonial Review Center</h3>
+            <p className="text-[11px] text-text-2">Review, approve, or reject user testimonials submitted across the platform</p>
+          </div>
+          <button 
+            onClick={fetchTestimonials}
+            className="text-[10px] font-bold text-primary hover:underline bg-transparent border-none cursor-pointer"
+            type="button"
+          >
+            Reload
+          </button>
+        </div>
+        <div className="divide-y divide-border/60">
+          {loadingTestimonials ? (
+            <div className="p-8 text-center text-xs text-text-3">Loading testimonials...</div>
+          ) : adminTestimonials.length > 0 ? (
+            adminTestimonials.map((t) => (
+              <div key={t.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-surface-alt/20 transition">
+                <div className="space-y-2 flex-1">
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold text-text-1 text-xs">{t.first_name} {t.last_initial}.</span>
+                    <span className="text-[10px] text-text-3 font-mono">Goal: {t.learning_goal}</span>
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-amber-500/10 text-amber-500">
+                      {'★'.repeat(t.star_rating)}
+                    </span>
+                    {t.is_approved ? (
+                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-emerald-500/10 text-emerald-400">Approved</span>
+                    ) : (
+                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-yellow-500/10 text-yellow-400">Pending Review</span>
+                    )}
+                  </div>
+                  <p className="text-text-2 text-xs leading-relaxed italic">&ldquo;{t.testimonial_text}&rdquo;</p>
+                  <span className="text-[9px] text-text-3 font-mono block">Submitted: {new Date(t.created_at).toLocaleDateString()}</span>
+                </div>
+                
+                {/* One click approve/reject buttons */}
+                <div className="flex items-center gap-2 self-end md:self-center shrink-0">
+                  {!t.is_approved && (
+                    <button
+                      onClick={() => handleTestimonialAction(t.id, 'approve')}
+                      className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-[10px] font-bold shadow-sm transition cursor-pointer"
+                      type="button"
+                    >
+                      Approve
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleTestimonialAction(t.id, 'reject')}
+                    className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-lg text-[10px] font-bold border border-rose-500/20 transition cursor-pointer"
+                    type="button"
+                  >
+                    {t.is_approved ? 'Delete' : 'Reject'}
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="p-8 text-center text-xs text-text-3">No testimonials submitted yet</div>
           )}
         </div>
       </div>

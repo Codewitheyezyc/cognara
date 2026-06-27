@@ -1,12 +1,13 @@
 'use client'
 
-import { useParams, useRouter } from 'next/navigation'
-import React, { useEffect, useState } from 'react'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import React, { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import LessonSkeleton from '@/components/lesson/LessonSkeleton'
 import LessonContent from '@/components/lesson/LessonContent'
+import { SparkDrawer } from '@/components/lesson/SparkDrawer'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, CheckCircle2, ChevronRight, HelpCircle, Lock } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Lock, Sparkles, HelpCircle } from 'lucide-react'
 import Link from 'next/link'
 import { GeneratedLesson } from '@/types/ai'
 import { LessonCompleteModal } from '@/components/mascot/LessonCompleteModal'
@@ -31,6 +32,8 @@ const BADGE_DESCRIPTIONS: Record<string, string> = {
 export default function LessonPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const isReentry = searchParams.get('reentry') === 'true'
   const lessonId = params.id as string
   const supabase = createClient()
   const { toast } = useToast()
@@ -69,6 +72,15 @@ export default function LessonPage() {
   const [phaseId, setPhaseId] = useState('')
   const [phaseTitle, setPhaseTitle] = useState('')
   const [phaseNumber, setPhaseNumber] = useState<number>(1)
+
+  // Focus-mode lesson UX state
+  const [hasReachedBottom, setHasReachedBottom] = useState(false)
+  const [isSparkOpen, setIsSparkOpen] = useState(false)
+  const [userName, setUserName] = useState<string | null>(null)
+
+  const handleProgressChange = useCallback((pct: number) => {
+    if (pct >= 98) setHasReachedBottom(true)
+  }, [])
 
   useEffect(() => {
     const handleHeartsChanged = (e: Event) => {
@@ -167,7 +179,7 @@ export default function LessonPage() {
           ? supabase.from('roadmap_phases').select('id, phase_number').eq('roadmap_id', lesson.roadmap_id)
           : Promise.resolve({ data: null, error: null }),
         supabase.from('lesson_progress').select('status').eq('user_id', user.id).eq('lesson_id', lessonId).maybeSingle(),
-        supabase.from('profiles').select('learning_depth, subscription_tier, subscription_status, subscription_end_date, hearts').eq('id', user.id).maybeSingle(),
+        supabase.from('profiles').select('name, learning_depth, subscription_tier, subscription_status, subscription_end_date, hearts').eq('id', user.id).maybeSingle(),
         lesson.roadmap_id
           ? supabase.from('roadmaps').select('goal_id').eq('id', lesson.roadmap_id).maybeSingle()
           : Promise.resolve({ data: null, error: null }),
@@ -212,6 +224,7 @@ export default function LessonPage() {
       const prof = profileRes.data as any
       if (prof) {
         setHeartsCount(prof.hearts ?? 3)
+        if (prof.name) setUserName(prof.name)
       }
       const tier = prof?.subscription_tier || 'free'
       const statusVal = prof?.subscription_status || 'inactive'
@@ -515,7 +528,31 @@ export default function LessonPage() {
     }
   }
 
-  const handleTakeQuiz = () => {
+  const handleTakeQuiz = async () => {
+    // Mark as complete if not already done
+    if (status !== 'completed') {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          await supabase.from('lesson_progress').upsert({
+            user_id: user.id,
+            lesson_id: lessonId,
+            status: 'completed',
+            completed_at: new Date().toISOString(),
+          }, { onConflict: 'user_id,lesson_id' })
+          setStatus('completed')
+          // Award XP silently
+          try {
+            const { data: xpData } = await supabase.rpc('add_xp', { user_id: user.id, amount: 100 })
+            if (xpData) {
+              window.dispatchEvent(new CustomEvent('cognara_xp_gained', {
+                detail: { xpGained: 100, newXp: xpData.xp, newLevel: xpData.level, leveledUp: xpData.leveled_up }
+              }))
+            }
+          } catch { /* XP error non-critical */ }
+        }
+      } catch { /* completion error non-critical — proceed to quiz */ }
+    }
     router.push(`/dashboard/quiz/${lessonId}`)
   }
 
@@ -724,92 +761,153 @@ export default function LessonPage() {
 
   const isCompleted = status === 'completed'
 
+  // Serialise lesson content as plain text for Spark context
+  const sparkLessonContext = content
+    ? content.sections
+        .map(s => [s.heading, s.body || s.callout_body || s.code_snippet || ''].filter(Boolean).join('\n'))
+        .join('\n\n')
+    : ''
+
+  const displayEstimatedMinutes = isReentry
+    ? Math.max(2, Math.round((content.estimated_minutes || 5) * 0.4))
+    : (content.estimated_minutes || 5)
+
   return (
     <>
-      <ReadingProgressBar estimatedMinutes={content.estimated_minutes || 5} />
-      <div className="py-4 space-y-6">
-      {/* Back button container */}
-      <div className="max-w-[720px] mx-auto mb-2">
-        <Link
-          href="/dashboard/path"
-          className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 bg-surface-alt/40 border border-border/80 hover:bg-surface-alt/75 text-xs font-semibold text-text-2 hover:text-text-1 rounded-full transition-all duration-200 shadow-sm group hover:scale-[1.02]"
-        >
-          <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
-          <span>Back to Path</span>
-        </Link>
-      </div>
-
-      {/* Main Lesson Content */}
-      <LessonContent 
-        lesson={content} 
-        depthLevel={depthLevel}
-        isChangingDepth={isChangingDepth}
-        onDepthChange={handleDepthChange}
-        lessonTitle={lessonTitle}
-        subject={subject}
-        lessonId={lessonId}
-        userId={userId}
-        isPro={isPro}
-        phaseNumber={phaseNumber}
+      <ReadingProgressBar
+        estimatedMinutes={displayEstimatedMinutes}
+        onProgressChange={handleProgressChange}
       />
 
-      {/* Bottom controls panel */}
-      <div className="max-w-[720px] mx-auto pt-6 border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-12">
-        <div className="flex items-center space-x-2">
-          {isCompleted ? (
-            <div className="flex items-center space-x-1.5 text-xs text-success bg-success/10 border border-success/15 px-3 py-1.5 rounded-full font-semibold">
-              <CheckCircle2 className="h-4 w-4" />
-              <span>You have completed this lesson!</span>
+      {/* Full-screen focus container */}
+      <div className="min-h-screen bg-[#0A0C14] pb-40">
+
+        {/* Minimal lesson header */}
+        <div className="sticky top-0 z-30 bg-[#0A0C14]/95 backdrop-blur-md border-b border-[#1E2540]/60">
+          <div className="max-w-[720px] mx-auto px-4 h-14 flex items-center justify-between">
+            {/* Back arrow */}
+            <Link
+              href="/dashboard/path"
+              className="inline-flex items-center gap-1.5 text-[#8B95B3] hover:text-[#F0F4FF] transition-colors text-xs font-semibold group"
+            >
+              <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
+              <span className="hidden sm:inline">My Path</span>
+            </Link>
+
+            {/* Phase · Module breadcrumb */}
+            <div className="flex flex-col items-center">
+              <p className="text-[10px] font-mono uppercase tracking-widest text-[#4A5272] font-bold">
+                Phase {phaseNumber}{phaseTitle ? ` · ${phaseTitle}` : ''}
+              </p>
+              <p className="text-[11px] font-semibold text-[#8B95B3] truncate max-w-[160px] sm:max-w-[280px] mt-0.5">
+                {lessonTitle}
+              </p>
             </div>
-          ) : (
-            <div className="flex items-center space-x-1.5 text-xs text-text-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              <span>Currently in progress</span>
+
+            {/* Reading time */}
+            <div className="text-[10px] text-[#4A5272] font-medium">
+              {displayEstimatedMinutes} min read
             </div>
-          )}
+          </div>
         </div>
 
-        <div className="flex items-center space-x-3">
-          {/* Mark Complete button */}
-          {!isCompleted ? (
-            <Button
-              onClick={handleMarkComplete}
-              disabled={isCompleting || isOffline}
-              title={isOffline ? "Cannot complete lessons offline" : undefined}
-              className="h-10 px-5 bg-surface hover:bg-surface-alt border border-border border-b-[4px] border-b-[#1c212c] text-text-1 rounded-xl text-xs font-bold active:translate-y-[2px] active:border-b-[2px] transition-all disabled:opacity-50"
-            >
-              {isCompleting ? 'Saving...' : isOffline ? 'Offline' : 'Mark as Complete'}
-            </Button>
-          ) : !isPro && heartsCount < 3 ? (
-            <Button
-              onClick={handleRefillHeartReview}
-              disabled={isCompleting || hasRefilledThisSession || isOffline}
-              className="h-10 px-5 bg-red-500 hover:bg-red-400 border border-red-500 border-b-[4px] border-b-red-700 text-white rounded-xl text-xs font-bold active:translate-y-[2px] active:border-b-[2px] transition-all"
-            >
-              {isCompleting ? 'Saving...' : hasRefilledThisSession ? 'Heart Refilled ❤️' : 'Refill Heart (+1 ❤️)'}
-            </Button>
-          ) : (
-            <Button
-              disabled
-              className="h-10 px-5 bg-emerald-500/10 border border-emerald-500/25 border-b-[4px] border-b-emerald-500/15 text-emerald-500 rounded-xl text-xs font-bold opacity-75 cursor-not-allowed"
-            >
-              Completed
-            </Button>
-          )}
+        {/* Lesson content */}
+        <div className="max-w-[720px] mx-auto px-4 pt-8">
+          <LessonContent
+            lesson={content}
+            depthLevel={depthLevel}
+            isChangingDepth={isChangingDepth}
+            onDepthChange={handleDepthChange}
+            lessonTitle={lessonTitle}
+            subject={subject}
+            lessonId={lessonId}
+            userId={userId}
+            isPro={isPro}
+            phaseNumber={phaseNumber}
+            isReentry={isReentry}
+          />
 
-          {/* Take Quiz button */}
-          <Button
-            onClick={handleTakeQuiz}
-            disabled={isOffline}
-            title={isOffline ? "Quizzes require an internet connection" : undefined}
-            className="h-10 px-5 bg-primary hover:bg-primary/95 border border-primary border-b-[4px] border-b-blue-700 text-white rounded-xl text-xs font-bold active:translate-y-[2px] active:border-b-[2px] transition-all shadow-[0_4px_12px_rgba(91,142,255,0.2)] disabled:opacity-50 disabled:pointer-events-none"
+          {/* End-of-lesson block — only shown after scrolling to bottom */}
+          <div
+            className="mt-12 border-t border-[#1E2540] pt-8 space-y-6"
+            style={{
+              opacity: hasReachedBottom ? 1 : 0,
+              transform: hasReachedBottom ? 'translateY(0)' : 'translateY(20px)',
+              transition: 'opacity 0.5s ease, transform 0.5s ease',
+              pointerEvents: hasReachedBottom ? 'auto' : 'none',
+            }}
           >
-            <span>{isOffline ? 'Quiz Offline' : 'Take Quiz'}</span>
-            <HelpCircle className="ml-1.5 h-4 w-4" />
-          </Button>
+            {/* Completion message */}
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-[#34D399]/10 border border-[#34D399]/25 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="h-4 w-4 text-[#34D399]" />
+              </div>
+              <div>
+                <p className="text-[13px] font-bold text-[#F0F4FF]">You have reached the end of this lesson</p>
+                <p className="text-[11px] text-[#8B95B3] mt-0.5">Great work — here is what you just learned:</p>
+              </div>
+            </div>
+
+            {/* Key takeaways */}
+            {content.key_takeaways && content.key_takeaways.length > 0 && (
+              <ul className="space-y-2 pl-2">
+                {content.key_takeaways.slice(0, 3).map((takeaway, idx) => (
+                  <li key={idx} className="flex items-start gap-2.5 text-[13px] text-[#C8D0E8] leading-relaxed">
+                    <div className="w-5 h-5 rounded-full bg-[#5B8EFF]/15 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="text-[10px] font-bold text-[#5B8EFF]">{idx + 1}</span>
+                    </div>
+                    {takeaway}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {/* Primary CTA — Take the Quiz */}
+            <Button
+              onClick={handleTakeQuiz}
+              disabled={isOffline}
+              className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.3)] transition-all duration-200 flex items-center justify-center gap-2 text-[15px] disabled:opacity-50"
+            >
+              <span>Take the Quiz →</span>
+            </Button>
+
+            {/* Secondary — Ask Spark */}
+            <button
+              type="button"
+              onClick={() => setIsSparkOpen(true)}
+              className="w-full text-[12px] text-[#8B95B3] hover:text-[#A78BFA] transition-colors font-medium flex items-center justify-center gap-1.5"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Ask Spark before I continue
+            </button>
+          </div>
         </div>
       </div>
 
+      {/* Spark FAB — fixed bottom-right */}
+      {!isSparkOpen && (
+        <button
+          type="button"
+          onClick={() => setIsSparkOpen(true)}
+          className="fixed bottom-6 right-5 z-30 flex items-center gap-2 px-4 py-2.5 bg-gradient-to-br from-[#5B8EFF] to-[#A78BFA] rounded-full shadow-[0_0_20px_rgba(91,142,255,0.4)] text-white text-[12px] font-bold hover:shadow-[0_0_28px_rgba(91,142,255,0.6)] hover:scale-105 active:scale-95 transition-all duration-200"
+        >
+          <Sparkles className="h-3.5 w-3.5" />
+          <span>Ask Spark</span>
+        </button>
+      )}
+
+      {/* Spark Chat Drawer */}
+      <SparkDrawer
+        isOpen={isSparkOpen}
+        onClose={() => setIsSparkOpen(false)}
+        lessonId={lessonId}
+        lessonTitle={lessonTitle}
+        lessonContent={sparkLessonContext}
+        userName={userName}
+        subject={subject}
+      />
+
+      {/* Lesson complete modal (unchanged) */}
       {showCelebration && (
         <LessonCompleteModal
           lessonTitle={lessonTitle}
@@ -835,7 +933,7 @@ export default function LessonPage() {
         (() => {
           const badge = newBadges[currentBadgeIndex]
           const isPhaseBadge = badge.badge_key.startsWith('phase')
-          
+
           return (
             <MascotOverlay
               emotion="celebrate"
@@ -853,11 +951,17 @@ export default function LessonPage() {
                     ]
               }
               ctaLabel={isPhaseBadge ? "Download Certificate" : "Keep going!"}
+              onCtaClick={isPhaseBadge ? () => {
+                window.open(`/api/certificate/generate?phaseId=${phaseId}`, '_blank')
+              } : undefined}
+              showTestimonial={isPhaseBadge}
+              learningGoal={subject || 'My Learning Goal'}
               onDismiss={() => {
-                if (isPhaseBadge) {
-                  window.open(`/api/certificate/generate?phaseId=${phaseId}`, '_blank')
+                if (!isPhaseBadge) {
+                  // If not a phase badge, the cta download generates on dismiss
+                  // wait, isPhaseBadge is false, so no certificate generate needed
                 }
-                
+
                 if (currentBadgeIndex + 1 < newBadges.length) {
                   setCurrentBadgeIndex(currentBadgeIndex + 1)
                 } else {
@@ -870,7 +974,6 @@ export default function LessonPage() {
           )
         })()
       )}
-      </div>
     </>
   )
 }

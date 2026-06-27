@@ -1,24 +1,33 @@
 'use client'
-import { useState, useEffect } from 'react'
+
+import React, { useState, useEffect } from 'react'
 import { Spark } from './Spark'
-import { Check } from 'lucide-react'
+import { Check, Download } from 'lucide-react'
+import { TestimonialForm } from '@/components/marketing/TestimonialForm'
 
 interface MascotOverlayProps {
   emotion?: 'idle' | 'happy' | 'celebrate' | 'thinking' | 'wave'
   messages: string[]
   ctaLabel?: string
   onDismiss: () => void
+  onCtaClick?: () => void
+  showTestimonial?: boolean
+  learningGoal?: string
 }
 
 export function MascotOverlay({
   emotion = 'celebrate',
   messages,
   ctaLabel = 'Keep going!',
-  onDismiss
+  onDismiss,
+  onCtaClick,
+  showTestimonial = false,
+  learningGoal = 'My Goal'
 }: MascotOverlayProps) {
   const [visible, setVisible] = useState(false)
   const [showContent, setShowContent] = useState(false)
   const [confetti, setConfetti] = useState<Array<{x: number, y: number, color: string, delay: number}>>([])
+  const [ctaClicked, setCtaClicked] = useState(false)
 
   useEffect(() => {
     setTimeout(() => setVisible(true), 100)
@@ -35,6 +44,15 @@ export function MascotOverlay({
       setConfetti(pieces)
     }
   }, [emotion])
+
+  const handleCtaClick = () => {
+    if (onCtaClick) {
+      onCtaClick()
+      setCtaClicked(true)
+    } else if (!showTestimonial) {
+      onDismiss()
+    }
+  }
 
   return (
     <>
@@ -71,28 +89,33 @@ export function MascotOverlay({
       )}
 
       {/* Modal Dialog */}
-      <div style={{
-        position: 'fixed',
-        top: '50%',
-        left: '50%',
-        transform: visible
-          ? 'translate(-50%, -50%) scale(1)'
-          : 'translate(-50%, -50%) scale(0.8)',
-        opacity: visible ? 1 : 0,
-        transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
-        width: '90%',
-        maxWidth: '380px',
-        background: 'var(--color-surface)',
-        border: '1px solid var(--color-border)',
-        borderRadius: '20px',
-        padding: '32px 24px',
-        zIndex: 1001,
-        textAlign: 'center',
-        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.3), 0 10px 10px -5px rgba(0,0,0,0.04)'
-      }}>
+      <div 
+        className="scrollbar-none"
+        style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: visible
+            ? 'translate(-50%, -50%) scale(1)'
+            : 'translate(-50%, -50%) scale(0.8)',
+          opacity: visible ? 1 : 0,
+          transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          width: '90%',
+          maxWidth: showTestimonial ? '410px' : '380px',
+          maxHeight: '92vh',
+          overflowY: 'auto',
+          background: 'var(--color-surface)',
+          border: '1px solid var(--color-border)',
+          borderRadius: '20px',
+          padding: showTestimonial ? '24px 20px' : '32px 24px',
+          zIndex: 1001,
+          textAlign: 'center',
+          boxShadow: '0 20px 25px -5px rgba(0,0,0,0.3), 0 10px 10px -5px rgba(0,0,0,0.04)'
+        }}
+      >
         {/* Spark character */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-          <Spark emotion={emotion} size={90} />
+        <div style={{ display: 'flex', justifyItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+          <Spark emotion={emotion} size={showTestimonial ? 75 : 90} />
         </div>
 
         {showContent && (
@@ -108,7 +131,7 @@ export function MascotOverlay({
               borderRadius: '999px',
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
-              marginBottom: '4px'
+              marginBottom: '2px'
             }}>
               Spark Celebrates! ✨
             </div>
@@ -118,13 +141,13 @@ export function MascotOverlay({
               {messages.map((msg, i) => {
                 if (i === 0) {
                   return (
-                    <h2 key={i} className="font-heading text-lg font-bold text-text-1 leading-snug">
+                    <h2 key={i} className="font-heading text-base sm:text-lg font-bold text-text-1 leading-snug">
                       {msg}
                     </h2>
                   )
                 }
                 return (
-                  <p key={i} className={`${i === 1 ? 'text-primary font-semibold text-sm' : 'text-text-2 text-xs'}`}>
+                  <p key={i} className={`${i === 1 ? 'text-primary font-semibold text-xs sm:text-sm' : 'text-text-2 text-xs font-semibold'}`}>
                     {msg}
                   </p>
                 )
@@ -133,28 +156,41 @@ export function MascotOverlay({
 
             {/* CTA Button */}
             <button
-              onClick={onDismiss}
+              onClick={handleCtaClick}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
                 width: '100%',
-                background: 'var(--color-primary)',
+                background: ctaClicked && showTestimonial ? 'var(--color-success)' : 'var(--color-primary)',
                 color: '#FFFFFF',
                 border: 'none',
                 borderRadius: '10px',
-                padding: '12px',
+                padding: '11px',
                 fontSize: '13px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                marginTop: '16px',
-                boxShadow: '0 4px 6px -1px rgba(91, 142, 255, 0.2)'
+                marginTop: '12px',
+                boxShadow: '0 4px 6px -1px rgba(91, 142, 255, 0.2)',
+                transition: 'all 0.2s ease'
               }}
             >
-              <Check size={14} />
-              {ctaLabel}
+              {ctaLabel === "Download Certificate" ? <Download size={14} /> : <Check size={14} />}
+              {ctaClicked && showTestimonial ? "Downloaded ✓" : ctaLabel}
             </button>
+
+            {/* Testimonial Form for Phase Complete */}
+            {showTestimonial && (
+              <div className="pt-2 border-t border-border/40 mt-4">
+                <TestimonialForm
+                  moment="phase_complete"
+                  learningGoal={learningGoal}
+                  onComplete={onDismiss}
+                  onDismiss={onDismiss}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -172,4 +208,5 @@ export function MascotOverlay({
     </>
   )
 }
+
 export default MascotOverlay

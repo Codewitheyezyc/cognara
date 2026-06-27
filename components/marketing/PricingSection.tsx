@@ -1,159 +1,161 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import Link from 'next/link'
-import { Check, Sparkles } from 'lucide-react'
+import { Check, X, Sparkles } from 'lucide-react'
 
 export function PricingSection() {
-  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly')
+  const freeFeatures = [
+    { label: '1 active learning goal', included: true },
+    { label: 'Beginner depth level', included: true },
+    { label: 'Quizzes and streak tracking', included: true },
+    { label: 'Priority Spark (AI mentor)', included: false },
+    { label: 'Unlimited learning goals', included: false },
+    { label: 'All depth levels', included: false },
+    { label: 'Phase completion certificates', included: false },
+    { label: 'Offline access', included: false }
+  ]
+
+  const proFeatures = [
+    'Everything in the Free plan',
+    'Unlimited learning goals',
+    'All depth levels',
+    'Phase completion certificates',
+    'Offline access',
+    'Priority Spark (AI mentor)',
+    'Projects and assignments',
+    'Speed run mode',
+    'Advanced quests'
+  ]
 
   return (
-    <section id="pricing" className="py-20 md:py-28 animate-page-enter scroll-mt-24">
-      <div className="text-center max-w-2xl mx-auto space-y-3 mb-10">
-        <span className="inline-flex items-center px-3 py-1 border border-accent/20 bg-accent/5 text-accent text-xs font-mono font-bold uppercase tracking-widest rounded-full">
-          Flexible Plans
-        </span>
-        <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-text-1">
-          Simple, Transparent Pricing
+    <section id="pricing" className="py-16 md:py-24 max-w-6xl mx-auto px-4 border-t border-border/40 scroll-mt-24">
+      {/* Headline & Subheadline */}
+      <div className="text-center space-y-3 max-w-2xl mx-auto">
+        <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-text-1 tracking-tight">
+          Start free. Upgrade when you are ready.
         </h2>
-        <p className="text-text-2 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
-          Start learning for free and upgrade to Pro whenever you need unlimited goals, academic-grade depth levels, and offline reading.
+        <p className="text-text-2 text-xs sm:text-sm font-semibold">
+          No payment required to start.
         </p>
-
-        {/* Monthly / Annual Toggle */}
-        <div className="flex items-center justify-center pt-4">
-          <div className="bg-surface border border-border p-1 rounded-lg flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setBillingPeriod('monthly')}
-              className={`px-4 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                billingPeriod === 'monthly'
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-text-2 hover:text-text-1'
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              type="button"
-              onClick={() => setBillingPeriod('annual')}
-              className={`px-4 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer ${
-                billingPeriod === 'annual'
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-text-2 hover:text-text-1'
-              }`}
-            >
-              <span>Annual</span>
-              <span className="text-[9px] bg-accent-warm text-black font-mono font-bold px-1 rounded-sm uppercase tracking-wide">Save 16%</span>
-            </button>
-          </div>
-        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto items-stretch">
-        {/* Card 1: Free Tier */}
-        <div className="bg-surface border border-border rounded-2xl p-6 md:p-8 flex flex-col justify-between space-y-8 relative overflow-hidden transition-all hover:border-border-hover">
+      {/* Three Pricing Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 items-stretch max-w-5xl mx-auto">
+        
+        {/* CARD 1 — FREE */}
+        <div className="bg-surface border border-border rounded-2xl p-6 md:p-8 flex flex-col justify-between space-y-6 shadow-sm hover:border-primary/10 transition-all duration-200">
           <div className="space-y-6">
             <div>
-              <h3 className="font-heading text-lg font-bold text-text-1">Free Tier</h3>
-              <p className="text-text-2 text-xs mt-1">Perfect for trying out Cognara's personalized roadmaps.</p>
+              <span className="text-[10px] font-mono font-bold text-text-3 uppercase tracking-wider">Plan</span>
+              <h3 className="font-heading text-lg font-bold text-text-1 mt-0.5">Free</h3>
             </div>
+            
             <div className="flex items-baseline">
-              <span className="font-heading text-3xl font-extrabold text-text-1">₦0</span>
-              <span className="text-text-2 text-xs ml-1.5 font-semibold">/ forever</span>
+              <span className="font-heading text-3xl font-black text-text-1">₦0</span>
+              <span className="text-text-2 text-xs font-semibold ml-1.5">forever</span>
             </div>
+            
             <div className="w-full h-px bg-border/60" />
-            <ul className="space-y-3.5 text-xs text-text-2">
-              <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-success shrink-0" strokeWidth={2.5} />
-                <span>1 Active Learning Goal</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-success shrink-0" strokeWidth={2.5} />
-                <span>Beginner Depth Level Only (Level 2)</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-success shrink-0" strokeWidth={2.5} />
-                <span>Standard Cognitive Lesson Generation</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-success shrink-0" strokeWidth={2.5} />
-                <span>Interactive Practice Quizzes</span>
-              </li>
+            
+            <ul className="space-y-3 text-left">
+              {freeFeatures.map((f, idx) => (
+                <li key={idx} className="flex items-start gap-2.5 text-xs font-semibold">
+                  {f.included ? (
+                    <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" strokeWidth={3} />
+                  ) : (
+                    <X className="h-4 w-4 text-text-3 shrink-0 mt-0.5" strokeWidth={3} />
+                  )}
+                  <span className={f.included ? 'text-text-2' : 'text-text-3 line-through'}>
+                    {f.label}
+                  </span>
+                </li>
+              ))}
             </ul>
           </div>
-          <Link href="/signup" className="w-full">
-            <button className="w-full py-3 border border-border hover:bg-surface-alt font-bold rounded-lg text-xs transition duration-150 cursor-pointer text-text-1">
-              Get Started For Free
+
+          <Link href="/signup" className="w-full pt-4">
+            <button className="w-full h-11 border border-border bg-surface-alt hover:bg-surface text-text-1 font-bold rounded-xl text-xs transition duration-150 cursor-pointer">
+              Start Free →
             </button>
           </Link>
         </div>
 
-        {/* Card 2: Pro Tier */}
-        <div className="bg-gradient-to-br from-surface via-surface to-primary/5 border-2 border-primary rounded-2xl p-6 md:p-8 flex flex-col justify-between space-y-8 relative overflow-hidden shadow-[0_0_24px_rgba(91,142,255,0.08)]">
-          <div className="absolute top-0 right-0 h-4 bg-primary text-white font-mono font-bold text-[9px] px-3 flex items-center rounded-bl-lg uppercase tracking-wider">
-            Most Popular
+        {/* CARD 2 — PRO MONTHLY */}
+        <div className="bg-surface border-2 border-primary rounded-2xl p-6 md:p-8 flex flex-col justify-between space-y-6 shadow-[0_0_24px_rgba(91,142,255,0.12)] relative overflow-hidden transition-all duration-200 transform md:-translate-y-2 md:scale-[1.02]">
+          {/* Most Popular Badge */}
+          <div className="absolute top-0 right-0 bg-primary text-white font-mono font-extrabold text-[8px] px-3.5 py-1 rounded-bl-xl uppercase tracking-wider shadow-sm flex items-center gap-1 z-10">
+            <Sparkles className="h-2.5 w-2.5 fill-current" />
+            <span>Most Popular</span>
           </div>
+
           <div className="space-y-6">
-            <div className="flex items-center gap-1.5">
-              <Sparkles className="h-5 w-5 text-primary fill-current" />
-              <h3 className="font-heading text-lg font-bold text-text-1">Pro Access</h3>
+            <div>
+              <span className="text-[10px] font-mono font-bold text-primary uppercase tracking-wider">Plan</span>
+              <h3 className="font-heading text-lg font-bold text-text-1 mt-0.5">Pro</h3>
             </div>
-            <p className="text-text-2 text-xs mt-1">Unlock the full power of adaptive, offline cognitive learning.</p>
+            
             <div className="flex items-baseline">
-              <span className="font-heading text-3xl font-extrabold text-text-1">
-                {billingPeriod === 'monthly' ? '₦4,500' : '₦45,000'}
-              </span>
-              <span className="text-text-2 text-xs ml-1.5 font-semibold">
-                {billingPeriod === 'monthly' ? '/ month' : '/ year'}
-              </span>
+              <span className="font-heading text-3xl font-black text-text-1">₦4,500</span>
+              <span className="text-text-2 text-xs font-semibold ml-1.5">/ month</span>
             </div>
+            
             <div className="w-full h-px bg-border/60" />
-            <ul className="space-y-3.5 text-xs text-text-2">
-              <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
-                <span className="font-bold text-text-1">Everything in Free Tier</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
-                <span className="font-semibold text-text-1">Unlimited Active Learning Goals</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
-                <span>All 5 Cognitive Depths (from Lvl 1 to Expert)</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
-                <span>Cognitive Explanations ("Confused?" Study Helper)</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
-                <span className="font-semibold text-text-1">Full PWA Offline Downloads Shelf</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
-                <span>Monaco Code Playground & Cognitive Writing Workspaces</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
-                <span>Milestone Badge Certificates Download</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
-                <span>Cognitive Coach Insights Trajectory & Study Vitals</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
-                <span>Streak Activity Calendar Heatmap</span>
-              </li>
+            
+            <ul className="space-y-3 text-left">
+              {proFeatures.map((feat, idx) => (
+                <li key={idx} className="flex items-start gap-2.5 text-xs font-bold text-text-1">
+                  <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" strokeWidth={3} />
+                  <span>{feat}</span>
+                </li>
+              ))}
             </ul>
           </div>
-          <Link href="/signup" className="w-full">
-            <button className="w-full py-3 bg-primary hover:bg-primary/95 text-white font-bold rounded-lg text-xs transition duration-150 cursor-pointer shadow-[0_0_12px_rgba(91,142,255,0.25)] hover:scale-[1.02] active:scale-[0.98]">
-              Start 7-Day Free Trial
+
+          <Link href="/signup" className="w-full pt-4">
+            <button className="w-full h-12 bg-gradient-to-r from-primary to-accent hover:from-primary-hover hover:to-accent text-white font-extrabold rounded-xl text-xs shadow-[0_0_16px_rgba(91,142,255,0.3)] transition duration-150 hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+              Start Pro →
             </button>
           </Link>
         </div>
+
+        {/* CARD 3 — PRO ANNUAL */}
+        <div className="bg-surface border border-border rounded-2xl p-6 md:p-8 flex flex-col justify-between space-y-6 shadow-sm hover:border-primary/10 transition-all duration-200">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-mono font-bold text-text-3 uppercase tracking-wider">Plan</span>
+                <h3 className="font-heading text-lg font-bold text-text-1 mt-0.5">Pro Annual</h3>
+              </div>
+              <span className="text-[9px] bg-amber-500/10 text-amber-500 font-mono font-bold px-2 py-0.5 rounded-full border border-amber-500/25 uppercase tracking-wider animate-pulse-subtle">
+                Save 16%
+              </span>
+            </div>
+            
+            <div className="flex items-baseline">
+              <span className="font-heading text-3xl font-black text-text-1">₦45,000</span>
+              <span className="text-text-2 text-xs font-semibold ml-1.5">/ year</span>
+            </div>
+            
+            <div className="w-full h-px bg-border/60" />
+            
+            <ul className="space-y-3 text-left">
+              {proFeatures.map((feat, idx) => (
+                <li key={idx} className="flex items-start gap-2.5 text-xs font-bold text-text-2">
+                  <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" strokeWidth={3} />
+                  <span>{feat}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <Link href="/signup" className="w-full pt-4">
+            <button className="w-full h-11 border border-border bg-surface-alt hover:bg-surface text-text-1 font-bold rounded-xl text-xs transition duration-150 cursor-pointer">
+              Get Annual →
+            </button>
+          </Link>
+        </div>
+
       </div>
     </section>
   )

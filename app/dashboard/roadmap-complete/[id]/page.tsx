@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Spark } from '@/components/mascot/Spark'
 import { Award, ArrowRight, ArrowLeft, BookOpen, GraduationCap, ChevronRight, Loader2, Download } from 'lucide-react'
+import { TestimonialForm } from '@/components/marketing/TestimonialForm'
 
 interface Recommendation {
   title: string
@@ -28,6 +29,7 @@ export default function RoadmapCompletePage() {
   const [errorMsg, setErrorMsg] = useState('')
   const [grandEligible, setGrandEligible] = useState(false)
   const [grandEligData, setGrandEligData] = useState<any>(null)
+  const [showTestimonial, setShowTestimonial] = useState(true)
 
   useEffect(() => {
     async function loadRoadmapDetails() {
@@ -206,6 +208,17 @@ export default function RoadmapCompletePage() {
               <Award size={15} />
             </button>
             <p className="text-[10px] text-text-3">Full course · All phases · Verified by Cognara</p>
+          </div>
+        )}
+
+        {showTestimonial && (
+          <div className="max-w-md mx-auto pt-2">
+            <TestimonialForm
+              moment="goal_complete"
+              learningGoal={roadmapTitle || subject || 'My Learning Goal'}
+              onComplete={() => setShowTestimonial(false)}
+              onDismiss={() => setShowTestimonial(false)}
+            />
           </div>
         )}
 

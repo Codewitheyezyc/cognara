@@ -215,14 +215,14 @@ export async function POST(request: Request) {
       }
     }
 
-    // 7. Award XP dynamically based on performance
-    let xpAward = 50 // Baseline attempt XP
-    if (passed) {
-      xpAward = 150
-      if (score === 100) {
-        xpAward += 50 // Perfect score bonus
-      }
-    }
+    // 7. Award XP dynamically based on performance mapping
+    const normalizedCorrect = questions.length > 0 ? Math.round((correctCount / questions.length) * 5) : 0
+    let xpAward = 10
+    if (normalizedCorrect === 5) xpAward = 100
+    else if (normalizedCorrect === 4) xpAward = 80
+    else if (normalizedCorrect === 3) xpAward = 60
+    else if (normalizedCorrect === 2) xpAward = 40
+    else if (normalizedCorrect === 1) xpAward = 20
 
     let xpData: any = null
     try {

@@ -31,16 +31,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check user's subscription tier
-    const { data: profile } = await supabase
+    // 2. Fetch onboarding context from Supabase profile
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('subscription_tier, subscription_status, subscription_end_date')
+      .select('name, main_goal, experience_level, occupation, daily_study_minutes, subscription_tier, subscription_status, subscription_end_date')
       .eq('id', user.id)
       .maybeSingle()
 
-    const tier = profile?.subscription_tier || 'free'
-    const statusVal = profile?.subscription_status || 'inactive'
-    const endDate = profile?.subscription_end_date || null
+    if (profileError || !profile) {
+      console.error('Error fetching onboarding profile context:', profileError)
+      return NextResponse.json({ error: 'User profile not found. Please complete Steps 1 & 2.' }, { status: 404 })
+    }
+
+    const goalText = profile.main_goal
+    if (!goalText || !goalText.trim()) {
+      return NextResponse.json({ error: 'Learning goal not found. Please complete Step 1 first.' }, { status: 400 })
+    }
+
+    const level = profile.experience_level || 'beginner'
+    const background = profile.occupation || 'Self-taught learner'
+    const dailyMinutes = Number(profile.daily_study_minutes || 30)
+
+    // 3. Enforce roadmap rate limits
+    const tier = profile.subscription_tier || 'free'
+    const statusVal = profile.subscription_status || 'inactive'
+    const endDate = profile.subscription_end_date || null
     const isPro = (tier === 'pro_monthly' || tier === 'pro_yearly') && 
       (statusVal === 'active' || statusVal === 'trialing' || statusVal === 'trailing') && 
       (!endDate || new Date(endDate) > new Date())
@@ -77,54 +92,34 @@ export async function POST(request: Request) {
       }
     }
 
-    // 2. Parse request payload
-    const body = await request.json()
-    const { goalText, subject, level, dailyMinutes, name, learningDepth, learningStyleDetail } = body
-
-    if (!goalText || !subject || !level || !dailyMinutes) {
-      return NextResponse.json(
-        { error: 'Missing required onboarding parameters' },
-        { status: 400 }
-      )
-    }
-
-    // Standardize subject name via Claude Haiku
-    let standardizedSubject = subject
+    // 4. Standardize subject name from the goal text via Claude Haiku
+    let standardizedSubject = goalText
     try {
       const mappingResult = await callClaudeJSON<StandardizeResult>(
-        "You are an expert curriculum intent classifier. Map the user's input subject into a clean, standard, concise 2-4 word subject title representing the primary educational category (e.g. 'React Frontend Development', 'WAEC Mathematics', 'Beginning Acoustic Guitar', 'Baking Basics'). Return JSON ONLY: { \"standardizedSubject\": \"title\" }",
-        `Input subject: "${subject}"`,
-        async () => ({ standardizedSubject: subject }),
+        "You are an expert curriculum intent classifier. Map the user's input learning goal into a clean, standard, concise 2-4 word subject title representing the primary educational category (e.g. 'React Frontend Development', 'WAEC Mathematics', 'Beginning Acoustic Guitar', 'Baking Basics'). Return JSON ONLY: { \"standardizedSubject\": \"title\" }",
+        `Goal: "${goalText}"`,
+        async () => ({ standardizedSubject: goalText }),
         'claude-haiku-4-5-20251001'
       )
       if (mappingResult.standardizedSubject) {
         standardizedSubject = mappingResult.standardizedSubject
-        console.log(`[Intent Mapping] Standardized "${subject}" to "${standardizedSubject}"`)
+        console.log(`[Intent Mapping] Mapped goal to standardized subject: "${standardizedSubject}"`)
       }
     } catch (err) {
-      console.warn('[Intent Mapping] Failed to standardize subject, falling back to original:', err)
+      console.warn('[Intent Mapping] Failed to standardize subject, falling back to goal text:', err)
     }
 
-    const resolvedDepth = (!isPro && !isAdmin) ? 2 : Number(learningDepth || 2);
+    const resolvedDepth = 2 // Default calibration depth
 
-    // 3. Update Profile Name, Learning Depth, & Learning Style if provided
-    if (name || learningDepth || learningStyleDetail) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          ...(name ? { name } : {}),
-          ...(learningDepth ? { learning_depth: resolvedDepth } : {}),
-          ...(learningStyleDetail ? { learning_style_detail: learningStyleDetail } : {})
-        })
-        .eq('id', user.id)
-
-      if (profileError) {
-        console.error('Error updating profile:', profileError)
-      }
-    }
-
-    // 4. Generate the curriculum roadmap (simulated AI)
-    const generatedRoadmap = await generateRoadmap(goalText, standardizedSubject, level, Number(dailyMinutes), resolvedDepth)
+    // 5. Generate the curriculum roadmap
+    const generatedRoadmap = await generateRoadmap(
+      goalText,
+      standardizedSubject,
+      level,
+      dailyMinutes,
+      resolvedDepth,
+      background
+    )
 
     const usage = (generatedRoadmap as any)._usage
     if (usage) {
@@ -137,13 +132,27 @@ export async function POST(request: Request) {
       )
     }
 
-    // 5. Deactivate prior learning goals for this user
+    // 6. Save the generated roadmap JSON directly to profiles table
+    const { error: profileUpdateError } = await supabase
+      .from('profiles')
+      .update({
+        main_roadmap: generatedRoadmap
+      })
+      .eq('id', user.id)
+
+    if (profileUpdateError) {
+      console.error('Failed to save main_roadmap JSON to profile:', profileUpdateError)
+    }
+
+    // 7. Sync with relational tables for backward compatibility (dashboard rendering)
+    
+    // Deactivate prior learning goals
     await supabase
       .from('learning_goals')
       .update({ is_active: false })
       .eq('user_id', user.id)
 
-    // 6. Insert new learning goal
+    // Insert new learning goal
     const { data: goalData, error: goalError } = await supabase
       .from('learning_goals')
       .insert({
@@ -151,7 +160,7 @@ export async function POST(request: Request) {
         goal_text: goalText,
         subject: standardizedSubject,
         level,
-        daily_minutes: Number(dailyMinutes),
+        daily_minutes: dailyMinutes,
         depth_level: resolvedDepth,
         is_active: true,
       })
@@ -160,17 +169,17 @@ export async function POST(request: Request) {
 
     if (goalError || !goalData) {
       console.error('Error inserting goal:', goalError)
-      return NextResponse.json({ error: 'Failed to create learning goal' }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to sync learning goal' }, { status: 500 })
     }
 
-    // 7. Insert roadmap
+    // Insert roadmap
     const { data: roadmapData, error: roadmapError } = await supabase
       .from('roadmaps')
       .insert({
         goal_id: goalData.id,
         user_id: user.id,
-        title: generatedRoadmap.title,
-        description: generatedRoadmap.description,
+        title: standardizedSubject,
+        description: `Your custom roadmap to ${goalText}`,
         ai_generated: true,
       })
       .select('id')
@@ -178,19 +187,19 @@ export async function POST(request: Request) {
 
     if (roadmapError || !roadmapData) {
       console.error('Error inserting roadmap:', roadmapError)
-      return NextResponse.json({ error: 'Failed to create roadmap' }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to sync roadmap record' }, { status: 500 })
     }
 
-    // 8. Insert phases and lessons
+    // Insert phases and lessons (topics)
     for (const phase of generatedRoadmap.phases) {
       const { data: phaseData, error: phaseError } = await supabase
         .from('roadmap_phases')
         .insert({
           roadmap_id: roadmapData.id,
           phase_number: phase.phase_number,
-          title: phase.title,
-          description: phase.description,
-          duration_days: phase.duration_weeks * 7,
+          title: phase.phase_name,
+          description: `Phase ${phase.phase_number} of your learning path.`,
+          duration_days: phase.estimated_weeks * 7,
           order_index: phase.phase_number,
         })
         .select('id')
@@ -198,32 +207,43 @@ export async function POST(request: Request) {
 
       if (phaseError || !phaseData) {
         console.error('Error inserting phase:', phaseError)
-        return NextResponse.json({ error: 'Failed to create roadmap phases' }, { status: 500 })
+        return NextResponse.json({ error: 'Failed to sync roadmap phases' }, { status: 500 })
       }
 
-      // Insert lesson stubs inside this phase
-      const lessonInserts = phase.lessons.map((lesson) => ({
-        phase_id: phaseData.id,
-        roadmap_id: roadmapData.id,
-        user_id: user.id,
-        title: lesson.title,
-        slug: slugify(lesson.title),
-        order_index: lesson.order_index,
-        content: null, // content is generated lazily on first open (Phase 3)
-        ai_generated: true,
-      }))
+      // Map topics from modules sequentially inside the phase
+      const lessonInserts = []
+      let orderIndex = 1
 
-      const { error: lessonsError } = await supabase.from('lessons').insert(lessonInserts)
+      for (const mod of phase.modules) {
+        for (const topic of mod.topics) {
+          lessonInserts.push({
+            phase_id: phaseData.id,
+            roadmap_id: roadmapData.id,
+            user_id: user.id,
+            title: topic,
+            slug: slugify(topic),
+            order_index: orderIndex++,
+            content: null, // content is generated lazily on first open (cached)
+            ai_generated: true,
+          })
+        }
+      }
 
-      if (lessonsError) {
-        console.error('Error inserting lessons stubs:', lessonsError)
-        return NextResponse.json({ error: 'Failed to create lesson stubs' }, { status: 500 })
+      if (lessonInserts.length > 0) {
+        const { error: lessonsError } = await supabase
+          .from('lessons')
+          .insert(lessonInserts)
+
+        if (lessonsError) {
+          console.error('Error inserting synced lessons stubs:', lessonsError)
+          return NextResponse.json({ error: 'Failed to sync lesson stubs' }, { status: 500 })
+        }
       }
     }
 
     return NextResponse.json({ success: true, roadmapId: roadmapData.id })
-  } catch (err) {
+  } catch (err: any) {
     console.error('[API Roadmap Error]', err)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 })
   }
 }

@@ -11,6 +11,9 @@ interface DailyNudgeEmailProps {
   streakDays: number
   subject: string
   appUrl: string
+  type?: 'daily' | '2-day' | '14-day'
+  completedLessonsCount?: number
+  roadmapProgressPercent?: number
 }
 
 export function DailyNudgeEmail({
@@ -19,13 +22,20 @@ export function DailyNudgeEmail({
   nextLessonId,
   streakDays,
   subject,
-  appUrl
+  appUrl,
+  type = 'daily',
+  completedLessonsCount = 0,
+  roadmapProgressPercent = 0
 }: DailyNudgeEmailProps) {
   return (
     <Html>
       <Head />
       <Preview>
-        {streakDays > 0
+        {type === '2-day'
+          ? `Your ${subject} roadmap is waiting, ${userName}`
+          : type === '14-day'
+          ? `Your ${subject} roadmap is still here, ${userName}`
+          : streakDays > 0
           ? `🔥 ${streakDays} day streak — keep it going, ${userName}`
           : `Your next lesson is waiting, ${userName}`
         }
@@ -68,7 +78,7 @@ export function DailyNudgeEmail({
           </Section>
 
           {/* Streak */}
-          {streakDays > 0 && (
+          {type === 'daily' && streakDays > 0 && (
             <Section style={{ padding: '16px 32px 0', textAlign: 'center' }}>
               <Text style={{
                 display: 'inline-block',
@@ -87,15 +97,27 @@ export function DailyNudgeEmail({
 
           {/* Main content */}
           <Section style={{ padding: '24px 32px' }}>
-            <Text style={{
-              color: '#F0F4FF',
-              fontSize: '20px',
-              fontWeight: '600',
-              margin: '0 0 8px',
-              lineHeight: '1.3'
-            }}>
-              Good {getTimeOfDay()}, {userName} 👋
-            </Text>
+            {type === '14-day' ? (
+              <Text style={{
+                color: '#F0F4FF',
+                fontSize: '20px',
+                fontWeight: '600',
+                margin: '0 0 8px',
+                lineHeight: '1.3'
+              }}>
+                Your roadmap is waiting, {userName} ✨
+              </Text>
+            ) : (
+              <Text style={{
+                color: '#F0F4FF',
+                fontSize: '20px',
+                fontWeight: '600',
+                margin: '0 0 8px',
+                lineHeight: '1.3'
+              }}>
+                {type === '2-day' ? `Hey ${userName} 👋` : `Good ${getTimeOfDay()}, ${userName} 👋`}
+              </Text>
+            )}
 
             <Text style={{
               color: '#8B95B3',
@@ -103,7 +125,19 @@ export function DailyNudgeEmail({
               lineHeight: '1.65',
               margin: '0 0 24px'
             }}>
-              Your next lesson in <strong style={{ color: '#F0F4FF' }}>{subject}</strong> is ready for you.
+              {type === '2-day' ? (
+                <span>
+                  Your <strong style={{ color: '#F0F4FF' }}>{subject}</strong> roadmap is waiting. Pick up where you left off — 15 minutes today keeps your momentum alive. 🔥
+                </span>
+              ) : type === '14-day' ? (
+                <span>
+                  You started something real. <strong style={{ color: '#F0F4FF' }}>{completedLessonsCount}</strong> lessons completed (<strong style={{ color: '#F0F4FF' }}>{roadmapProgressPercent}%</strong> of your roadmap done). That progress is still here, waiting for you. I&apos;ve built you a quick re-entry plan — just 3 sessions to get your momentum back.
+                </span>
+              ) : (
+                <span>
+                  Your next lesson in <strong style={{ color: '#F0F4FF' }}>{subject}</strong> is ready for you.
+                </span>
+              )}
             </Text>
 
             {/* Lesson card */}
@@ -137,7 +171,13 @@ export function DailyNudgeEmail({
             </div>
 
             <Button
-              href={`${appUrl}/dashboard/lesson/${nextLessonId}`}
+              href={
+                type === '14-day'
+                  ? `${appUrl}/dashboard?reentry=true`
+                  : type === '2-day'
+                  ? `${appUrl}/dashboard/lesson/${nextLessonId}?reentry=true`
+                  : `${appUrl}/dashboard/lesson/${nextLessonId}`
+              }
               style={{
                 backgroundColor: '#5B8EFF',
                 color: '#FFFFFF',
@@ -150,7 +190,7 @@ export function DailyNudgeEmail({
                 textAlign: 'center'
               }}
             >
-              Continue Learning →
+              {type === '14-day' ? 'Pick up where I left off →' : 'Continue Learning →'}
             </Button>
           </Section>
 

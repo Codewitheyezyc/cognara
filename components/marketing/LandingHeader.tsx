@@ -17,89 +17,107 @@ export function LandingHeader({
   setMobileMenuOpen,
   handleScrollToSection
 }: LandingHeaderProps) {
+  const [isScrolled, setIsScrolled] = React.useState(false)
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20)
+    }
+    window.addEventListener('scroll', handleScroll)
+    handleScroll()
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
   return (
     <>
       {/* 1. Header Navigation */}
-      <header className="relative z-20 max-w-7xl w-full mx-auto px-6 h-20 flex items-center justify-between border-b border-border/40 bg-bg/50 backdrop-blur-md sticky top-0">
-        <a 
-          href="#home" 
-          onClick={(e) => handleScrollToSection(e, 'home')}
-          className="flex items-center space-x-1.5 sm:space-x-2 text-primary text-text-1 hover:opacity-90 transition-opacity cursor-pointer"
-        >
-          <Logo className="h-5 w-5 sm:h-6 sm:w-6" />
-          <span className="font-heading text-lg sm:text-xl font-bold tracking-tight text-text-1">Cognara</span>
-        </a>
+      <header 
+        className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${
+          isScrolled 
+            ? 'h-20 bg-bg border-b border-border shadow-md' 
+            : 'h-24 bg-transparent border-b border-transparent'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
+          <a 
+            href="#home" 
+            onClick={(e) => handleScrollToSection(e, 'home')}
+            className="flex items-center space-x-1.5 sm:space-x-2 text-text-1 hover:opacity-90 transition-opacity cursor-pointer z-10"
+          >
+            <Logo className="h-5 w-5 sm:h-6 sm:w-6" />
+            <span className="font-heading text-lg sm:text-xl font-bold tracking-tight text-text-1">Cognara</span>
+          </a>
 
-        {/* Marketing Anchor Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
-          <a 
-            href="#how-it-works" 
-            onClick={(e) => handleScrollToSection(e, 'how-it-works')}
-            className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150"
-          >
-            How It Works
-          </a>
-          <a 
-            href="#features" 
-            onClick={(e) => handleScrollToSection(e, 'features')}
-            className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150"
-          >
-            Features
-          </a>
-          <a 
-            href="#offline-pwa" 
-            onClick={(e) => handleScrollToSection(e, 'offline-pwa')}
-            className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150"
-          >
-            Offline App
-          </a>
-          <a 
-            href="#pricing" 
-            onClick={(e) => handleScrollToSection(e, 'pricing')}
-            className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150"
-          >
-            Pricing
-          </a>
-          <a 
-            href="#faq" 
-            onClick={(e) => handleScrollToSection(e, 'faq')}
-            className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150"
-          >
-            FAQ
-          </a>
-          <a 
-            href="#contact" 
-            onClick={(e) => handleScrollToSection(e, 'contact')}
-            className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150"
-          >
-            Contact
-          </a>
-        </nav>
-
-        <div className="flex items-center space-x-3">
-          <nav className="hidden sm:flex items-center space-x-3 sm:space-x-6">
-            <Link href="/login" className="text-xs text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
-              Sign In
-            </Link>
-            <Link
-              href="/signup"
-              className="h-8 sm:h-9 px-3 sm:px-4 inline-flex items-center justify-center rounded-md font-semibold text-[11px] sm:text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-colors shadow-[0_0_12px_rgba(91,142,255,0.2)]"
+          {/* Marketing Anchor Navigation - Only shown when scrolled (below the fold) */}
+          <nav className={`hidden md:flex items-center space-x-6 transition-all duration-300 ${
+            isScrolled ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
+          }`}>
+            <a 
+              href="#how-it-works" 
+              onClick={(e) => handleScrollToSection(e, 'how-it-works')}
+              className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150"
             >
-              Sign Up
+              How It Works
+            </a>
+            <a 
+              href="#pricing" 
+              onClick={(e) => handleScrollToSection(e, 'pricing')}
+              className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150"
+            >
+              Pricing
+            </a>
+            <Link href="/login" className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
+              Log In
             </Link>
           </nav>
-          
-          <ThemeToggle />
 
-          {/* Hamburger Menu Trigger for Mobile */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            type="button"
-            className="md:hidden p-2 rounded-md hover:bg-surface-alt transition-colors text-text-1 cursor-pointer"
-            aria-label="Toggle Menu"
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          <div className="flex items-center space-x-4">
+            <ThemeToggle />
+
+            {/* Desktop Action Area */}
+            <div className="hidden md:flex items-center space-x-4">
+              {!isScrolled ? (
+                // Only show Log In link above the fold
+                <Link 
+                  href="/login" 
+                  className="text-xs text-text-2 hover:text-text-1 font-bold uppercase tracking-wider transition-all"
+                >
+                  Log In
+                </Link>
+              ) : (
+                // Show Start Free button when scrolled
+                <Link
+                  href="/signup"
+                  className="h-9 px-4 inline-flex items-center justify-center rounded-md font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)]"
+                >
+                  Start Free
+                </Link>
+              )}
+            </div>
+
+            {/* Mobile Action/Menu Area */}
+            <div className="md:hidden flex items-center space-x-2">
+              {!isScrolled ? (
+                // Only show Log In above the fold on mobile
+                <Link 
+                  href="/login" 
+                  className="text-xs text-text-2 hover:text-text-1 font-bold uppercase tracking-wider px-2 py-1"
+                >
+                  Log In
+                </Link>
+              ) : (
+                // Show hamburger menu trigger when scrolled
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  type="button"
+                  className="p-2 rounded-md hover:bg-surface-alt transition-colors text-text-1 cursor-pointer"
+                  aria-label="Toggle Menu"
+                >
+                  {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </header>
 

@@ -117,11 +117,37 @@ export async function GET(req: Request) {
         // Fetch streak info
         const { data: streakRow } = await supabase
           .from('streaks')
-          .select('current_streak')
+          .select('current_streak, last_activity_at')
           .eq('user_id', user.id)
           .maybeSingle()
 
         const streakDays = streakRow?.current_streak || 0
+        const lastActivity = streakRow?.last_activity_at
+
+        // Calculate diffDays since last activity
+        let diffDays = 0
+        if (lastActivity) {
+          const today = new Date()
+          today.setHours(0, 0, 0, 0)
+          const lastDate = new Date(lastActivity)
+          lastDate.setHours(0, 0, 0, 0)
+          diffDays = Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24))
+        }
+
+        // Determine nudge type
+        let nudgeType: 'daily' | '2-day' | '14-day' = 'daily'
+        if (diffDays === 2) {
+          nudgeType = '2-day'
+        } else if (diffDays === 14) {
+          nudgeType = '14-day'
+        }
+
+        // Calculate metrics for 14-day nudge
+        const completedLessonsCount = completedSet.size
+        const totalLessonsCount = lessons.length
+        const roadmapProgressPercent = totalLessonsCount > 0
+          ? Math.round((completedLessonsCount / totalLessonsCount) * 100)
+          : 0
 
         // Send nudge email
         await sendDailyNudge({
@@ -130,7 +156,10 @@ export async function GET(req: Request) {
           nextLessonTitle: nextLesson.title,
           nextLessonId: nextLesson.id,
           streakDays,
-          subject: activeGoal.subject
+          subject: activeGoal.subject,
+          type: nudgeType,
+          completedLessonsCount,
+          roadmapProgressPercent
         })
 
         sentCount++

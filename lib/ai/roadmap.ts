@@ -1,26 +1,58 @@
 import { callClaudeJSON } from './client'
 import { ROADMAP_SYSTEM_PROMPT, buildRoadmapUserMessage } from './prompts'
 import { detectSubject } from '@/lib/contentSafety/subjectDetector'
+import { getDomainFromSubject } from './lessonCache'
 
-export interface LessonStub {
-  order_index: number
-  title: string
-  description: string
+export interface ModuleStub {
+  module_number: number
+  module_name: string
+  topics: string[]
 }
 
 export interface PhaseStub {
   phase_number: number
-  title: string
-  description: string
-  duration_weeks: number
-  lessons: LessonStub[]
+  phase_name: string
+  estimated_weeks: number
+  modules: ModuleStub[]
 }
 
 export interface GeneratedRoadmap {
-  title: string
-  description: string
+  goal: string
   estimated_weeks: number
   phases: PhaseStub[]
+}
+
+function convertOldRoadmapToNew(old: any, goalText: string): GeneratedRoadmap {
+  return {
+    goal: goalText,
+    estimated_weeks: old.estimated_weeks || 12,
+    phases: (old.phases || []).map((phase: any) => {
+      const modules: ModuleStub[] = []
+      let currentModule: ModuleStub | null = null
+      let moduleNum = 1
+
+      const lessons = phase.lessons || []
+      lessons.forEach((lesson: any, idx: number) => {
+        if (idx % 2 === 0 || !currentModule) {
+          const lessonPrefix = lesson.title.split(':')[0] || 'Core Concepts'
+          currentModule = {
+            module_number: moduleNum++,
+            module_name: lessonPrefix.length > 35 ? lessonPrefix.slice(0, 35) + '...' : lessonPrefix,
+            topics: []
+          }
+          modules.push(currentModule)
+        }
+        currentModule.topics.push(lesson.title)
+      })
+
+      return {
+        phase_number: phase.phase_number,
+        phase_name: phase.title || `Phase ${phase.phase_number}`,
+        estimated_weeks: phase.duration_weeks || 3,
+        modules: modules
+      }
+    })
+  }
 }
 
 export async function generateRoadmap(
@@ -28,7 +60,8 @@ export async function generateRoadmap(
   subject: string,
   level: string,
   dailyMinutes: number,
-  depthLevel: number
+  depthLevel: number,
+  userBackground?: string
 ): Promise<GeneratedRoadmap> {
   const mockFallback = async () => {
     // Simulate network processing latency (3 seconds)
@@ -75,7 +108,21 @@ Structure the roadmap around:
 `
   }
 
-  const userPrompt = buildRoadmapUserMessage({
+  const domain = getDomainFromSubject(subject)
+  const metadataBlock = `
+DOMAIN METADATA:
+DOMAIN: ${domain}
+SUBJECT: ${subject}
+MODULE: N/A (Roadmap Generation)
+TOPIC: N/A (Roadmap Generation)
+USER_LEVEL: ${level}
+USER_BACKGROUND: ${userBackground || 'Self-taught learner'}
+DEPTH_PREFERENCE: Balanced
+LEARNING_GOAL: ${goalText}
+CURRENT_PHASE: N/A
+`.trim()
+
+  const userPrompt = `${metadataBlock}\n\n` + buildRoadmapUserMessage({
     goalText,
     subject,
     level,
@@ -83,15 +130,29 @@ Structure the roadmap around:
     depthLevel
   }) + (additionalContext ? `\n${additionalContext}` : '')
 
-  return callClaudeJSON<GeneratedRoadmap>(
+  const rawResult = await callClaudeJSON<any>(
     ROADMAP_SYSTEM_PROMPT,
     userPrompt,
     mockFallback,
     'claude-haiku-4-5-20251001'
   )
+
+  // Dynamically convert old roadmap schema from mock fallbacks to the new schema
+  if (rawResult && Array.isArray(rawResult.phases) && rawResult.phases.length > 0) {
+    const firstPhase = rawResult.phases[0]
+    if (Array.isArray(firstPhase.lessons)) {
+      return convertOldRoadmapToNew(rawResult, goalText)
+    }
+  }
+
+  if (rawResult && !rawResult.goal) {
+    rawResult.goal = goalText
+  }
+
+  return rawResult as GeneratedRoadmap
 }
 
-function getReactRoadmap(level: string, dailyMinutes: number, depthLevel: number): GeneratedRoadmap {
+function getReactRoadmap(level: string, dailyMinutes: number, depthLevel: number): any {
   const weeksMultiplier = dailyMinutes < 30 ? 1.5 : dailyMinutes > 60 ? 0.75 : 1
   const isDetailed = depthLevel === 3
 
@@ -239,7 +300,7 @@ function getReactRoadmap(level: string, dailyMinutes: number, depthLevel: number
   }
 }
 
-function getPythonRoadmap(level: string, dailyMinutes: number, depthLevel: number): GeneratedRoadmap {
+function getPythonRoadmap(level: string, dailyMinutes: number, depthLevel: number): any {
   const weeksMultiplier = dailyMinutes < 30 ? 1.5 : dailyMinutes > 60 ? 0.75 : 1
   const isDetailed = depthLevel === 3
 
@@ -387,7 +448,7 @@ function getPythonRoadmap(level: string, dailyMinutes: number, depthLevel: numbe
   }
 }
 
-function getUXRoadmap(level: string, dailyMinutes: number, depthLevel: number): GeneratedRoadmap {
+function getUXRoadmap(level: string, dailyMinutes: number, depthLevel: number): any {
   const weeksMultiplier = dailyMinutes < 30 ? 1.5 : dailyMinutes > 60 ? 0.75 : 1
   const isDetailed = depthLevel === 3
 
@@ -535,7 +596,7 @@ function getUXRoadmap(level: string, dailyMinutes: number, depthLevel: number): 
   }
 }
 
-function getDefaultRoadmap(goalText: string, subject: string, level: string, dailyMinutes: number, depthLevel: number): GeneratedRoadmap {
+function getDefaultRoadmap(goalText: string, subject: string, level: string, dailyMinutes: number, depthLevel: number): any {
   const weeksMultiplier = dailyMinutes < 30 ? 1.5 : dailyMinutes > 60 ? 0.75 : 1
   const topic = subject || goalText || "Selected Subject"
   const isDetailed = depthLevel === 3
@@ -684,7 +745,7 @@ function getDefaultRoadmap(goalText: string, subject: string, level: string, dai
   }
 }
 
-function getWebDevelopmentRoadmap(level: string, dailyMinutes: number, depthLevel: number): GeneratedRoadmap {
+function getWebDevelopmentRoadmap(level: string, dailyMinutes: number, depthLevel: number): any {
   const weeksMultiplier = dailyMinutes < 30 ? 1.5 : dailyMinutes > 60 ? 0.75 : 1
   const isDetailed = depthLevel === 3
   

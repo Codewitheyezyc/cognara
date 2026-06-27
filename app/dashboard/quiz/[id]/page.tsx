@@ -4,26 +4,16 @@ import { useParams, useRouter } from 'next/navigation'
 import React, { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, CheckCircle2, XCircle, Flame, Clock, Award, RotateCcw, AlertTriangle, Heart } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, XCircle, Flame, Heart, Sparkles, Check, X, Bell } from 'lucide-react'
 import Link from 'next/link'
 import { QuizQuestion } from '@/types/ai'
 import AIBadge from '@/components/lesson/AIBadge'
-import { QuizResultModal } from '@/components/mascot/QuizResultModal'
-import MascotOverlay from '@/components/mascot/MascotOverlay'
 import { Spark } from '@/components/mascot/Spark'
 import { SoundEffects } from '@/lib/sound'
-
-const BADGE_DESCRIPTIONS: Record<string, string> = {
-  phase_1: 'Completed Phase 1',
-  phase_2: 'Completed Phase 2',
-  phase_3: 'Completed Phase 3',
-  phase_4: 'Completed Phase 4',
-  phase_5: 'Completed full roadmap',
-  streak_7: '7 day streak',
-  streak_30: '30 day streak',
-  perfect_quiz: '100% on a quiz',
-  speed_learner: '3 lessons in one day'
-}
+import { useToast } from '@/components/ui/toast'
+import { TestimonialForm } from '@/components/marketing/TestimonialForm'
+import { PhaseCelebration } from '@/components/celebration/PhaseCelebration'
+import { CertificateTemplate } from '@/components/celebration/CertificateTemplate'
 
 function shuffleArray<T>(array: T[]): T[] {
   const arr = [...array]
@@ -52,6 +42,7 @@ export default function QuizPage() {
   const router = useRouter()
   const lessonId = params.id as string
   const supabase = createClient()
+  const { toast } = useToast()
 
   // States
   const [lessonTitle, setLessonTitle] = useState('')
@@ -62,6 +53,10 @@ export default function QuizPage() {
   const [isAnswerChecked, setIsAnswerChecked] = useState(false)
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({})
   
+  // Hearts state
+  const [hearts, setHearts] = useState(3)
+  const [isHeartAnimating, setIsHeartAnimating] = useState(false)
+
   // Scoring / Submission
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [quizResult, setQuizResult] = useState<{
@@ -75,17 +70,37 @@ export default function QuizPage() {
     xp?: { xpGained: number; newXp: number; newLevel: number; leveledUp: boolean } | null
   } | null>(null)
 
+  // Onboarding screens progression
+  const [isEndSession, setIsEndSession] = useState(false)
+  const [reminderSet, setReminderSet] = useState(false)
+  const [showXpAnim, setShowXpAnim] = useState(false)
+
+  // Quiz testimonial popups
+  const [showQuizTestimonialPrompt, setShowQuizTestimonialPrompt] = useState(false)
+  const [showQuizTestimonialForm, setShowQuizTestimonialForm] = useState(false)
+
+  // Sibling next lesson context
+  const [nextLessonId, setNextLessonId] = useState<string | null>(null)
+  const [nextLessonTitle, setNextLessonTitle] = useState<string | null>(null)
+  const [nextLessonTime, setNextLessonTime] = useState<number>(5)
+
   // Loading / Error
   const [isLoading, setIsLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState('')
 
-  // Badge celebration states
-  const [newBadges, setNewBadges] = useState<any[]>([])
-  const [currentBadgeIndex, setCurrentBadgeIndex] = useState(0)
-  const [phaseId, setPhaseId] = useState('')
+  // Profile context
   const [userId, setUserId] = useState<string | null>(null)
   const [profile, setProfile] = useState<any>(null)
-  const [phaseTitle, setPhaseTitle] = useState('')
+
+  // Phase completion states
+  const [activeLesson, setActiveLesson] = useState<any>(null)
+  const [showPhaseCompleteScreen, setShowPhaseCompleteScreen] = useState(false)
+  const [phaseCompleteData, setPhaseCompleteData] = useState<any>(null)
+
+  // Certificate Generation States
+  const [isGeneratingCert, setIsGeneratingCert] = useState(false)
+  const [showFriendlyError, setShowFriendlyError] = useState(false)
+  const [currentGeneratedId, setCurrentGeneratedId] = useState<string | null>(null)
 
   // Timer
   const [timeSpentSecs, setTimeSpentSecs] = useState(0)
@@ -113,14 +128,17 @@ export default function QuizPage() {
         }
         setUserId(user.id)
 
-        // Fetch profile to check hearts
+        // Fetch profile with main_goal and name
         const { data: profRow } = await supabase
           .from('profiles')
-          .select('subscription_tier, hearts')
+          .select('name, subscription_tier, hearts, main_goal')
           .eq('id', user.id)
           .maybeSingle()
           
         setProfile(profRow)
+        if (profRow) {
+          setHearts(profRow.hearts ?? 3)
+        }
 
         if (profRow && profRow.subscription_tier === 'free' && (profRow.hearts ?? 3) <= 0) {
           setErrorMsg('OUT_OF_HEARTS')
@@ -128,10 +146,10 @@ export default function QuizPage() {
           return
         }
 
-        // 2. Fetch lesson details
+        // 2. Fetch active lesson details
         const { data: lesson, error: lessonErr } = await supabase
           .from('lessons')
-          .select('title, phase_id')
+          .select('title, phase_id, roadmap_id')
           .eq('id', lessonId)
           .maybeSingle()
  
@@ -140,15 +158,58 @@ export default function QuizPage() {
           return
         }
         setLessonTitle(lesson.title)
-        if (lesson.phase_id) {
-          setPhaseId(lesson.phase_id)
-          const { data: phaseRow } = await supabase
-            .from('roadmap_phases')
-            .select('title')
-            .eq('id', lesson.phase_id)
-            .maybeSingle()
-          if (phaseRow) {
-            setPhaseTitle(phaseRow.title)
+        setActiveLesson(lesson)
+
+        // Resolve next lesson sibling details
+        if (lesson.roadmap_id) {
+          const [lessonsRes, phasesRes] = await Promise.all([
+            supabase.from('lessons').select('id, phase_id, order_index').eq('roadmap_id', lesson.roadmap_id),
+            supabase.from('roadmap_phases').select('id, phase_number').eq('roadmap_id', lesson.roadmap_id)
+          ])
+
+          if (lessonsRes.data && phasesRes.data) {
+            const lessonsList = lessonsRes.data
+            const phasesList = phasesRes.data
+
+            const lessonsByPhase: Record<string, any[]> = {}
+            lessonsList.forEach((l: any) => {
+              if (!lessonsByPhase[l.phase_id]) {
+                lessonsByPhase[l.phase_id] = []
+              }
+              lessonsByPhase[l.phase_id].push(l)
+            })
+
+            const sortedPhases = [...phasesList].sort((a: any, b: any) => a.phase_number - b.phase_number)
+
+            const orderedLessons: any[] = []
+            sortedPhases.forEach((phase: any) => {
+              const phaseLessons = lessonsByPhase[phase.id] || []
+              phaseLessons.sort((a: any, b: any) => a.order_index - b.order_index)
+              orderedLessons.push(...phaseLessons)
+            })
+
+            const currIdx = orderedLessons.findIndex((l: any) => l.id === lessonId)
+            if (currIdx !== -1 && currIdx < orderedLessons.length - 1) {
+              const nextL = orderedLessons[currIdx + 1]
+              setNextLessonId(nextL.id)
+              
+              // Fetch next lesson's title and content details
+              const { data: nextLessonDetails } = await supabase
+                .from('lessons')
+                .select('title, content')
+                .eq('id', nextL.id)
+                .maybeSingle()
+
+              if (nextLessonDetails) {
+                setNextLessonTitle(nextLessonDetails.title)
+                const contentMap = nextLessonDetails.content as any
+                const nextLessonContent = (contentMap && typeof contentMap === 'object')
+                  ? (contentMap[2] || Object.values(contentMap)[0])
+                  : contentMap
+                const estMin = (nextLessonContent as any)?.estimated_minutes || 5
+                setNextLessonTime(estMin)
+              }
+            }
           }
         }
 
@@ -200,29 +261,35 @@ export default function QuizPage() {
     }))
     setIsAnswerChecked(true)
 
-    // Play feedback sound
     const isCorrect = selectedAnswer.trim().toLowerCase() === currentQuestion.correct_answer.trim().toLowerCase()
     SoundEffects.play(isCorrect ? 'success' : 'failure')
 
     // Decrement heart if incorrect and user is free
     if (!isCorrect && profile?.subscription_tier === 'free') {
+      setIsHeartAnimating(true)
+      setTimeout(() => setIsHeartAnimating(false), 800)
+      
+      const newHeartsVal = Math.max(0, hearts - 1)
+      setHearts(newHeartsVal)
+
       supabase.rpc('decrement_heart', { user_id: userId })
         .then(({ data, error }: any) => {
           if (!error && data && data.length > 0) {
-            const newHearts = data[0].new_hearts
+            const dbHearts = data[0].new_hearts
             const isGameOver = data[0].is_game_over
             
-            setProfile((prev: any) => prev ? { ...prev, hearts: newHearts } : null)
+            // Sync local hearts to DB status to remain aligned
+            setHearts(dbHearts)
+            setProfile((prev: any) => prev ? { ...prev, hearts: dbHearts } : null)
             
-            // Dispatch hearts changed event
             window.dispatchEvent(new CustomEvent('cognara_hearts_changed', {
-              detail: { hearts: newHearts }
+              detail: { hearts: dbHearts }
             }))
             
             if (isGameOver) {
               setTimeout(() => {
                 setErrorMsg('OUT_OF_HEARTS')
-              }, 1500) // Small delay to let them see explanation first
+              }, 1200)
             }
           }
         })
@@ -256,11 +323,23 @@ export default function QuizPage() {
         }
 
         setQuizResult(result)
+        
+        let isPhaseComplete = false
+        if (result.passed) {
+          isPhaseComplete = await checkPhaseCompletion(result)
+        }
+        
+        // 5/5 perfect score: 50% probability to show testimonial prompt (only if phase did not complete)
+        if (result.correctCount === 5 && Math.random() < 0.5 && !isPhaseComplete) {
+          setShowQuizTestimonialPrompt(true)
+        }
+        
+        // Trigger float-up XP animation
+        setShowXpAnim(true)
+        setTimeout(() => setShowXpAnim(false), 2400)
 
         // Play sound on completion
-        if (result.passed) {
-          SoundEffects.play('achievement')
-        }
+        SoundEffects.play(result.passed ? 'achievement' : 'success')
 
         // Dispatch XP gained event
         if (result.xp) {
@@ -276,7 +355,7 @@ export default function QuizPage() {
 
         // Trigger badge check on quiz submission
         try {
-          const badgeRes = await fetch('/api/badges/check-and-award', {
+          await fetch('/api/badges/check-and-award', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -285,14 +364,6 @@ export default function QuizPage() {
               currentStreak: result.streak?.current
             })
           })
-          if (badgeRes.ok) {
-            const badgeData = await badgeRes.json()
-            if (badgeData.newBadges && badgeData.newBadges.length > 0) {
-              setNewBadges(badgeData.newBadges)
-              setCurrentBadgeIndex(0)
-              SoundEffects.play('achievement') // Play sound when badge earned
-            }
-          }
         } catch (badgeErr) {
           console.error('Error checking badges on quiz submit:', badgeErr)
         }
@@ -307,7 +378,6 @@ export default function QuizPage() {
 
   // Reset quiz state to retry
   const handleRetryQuiz = () => {
-    // Reshuffle questions and options on retake to reinforce active recall
     setQuestions(prevQuestions => prepareQuizQuestions(prevQuestions))
     setCurrentIdx(0)
     setSelectedAnswer('')
@@ -316,84 +386,501 @@ export default function QuizPage() {
     setQuizResult(null)
     setErrorMsg('')
     setTimeSpentSecs(0)
+    if (timerRef.current) clearInterval(timerRef.current)
     timerRef.current = setInterval(() => {
       setTimeSpentSecs((prev) => prev + 1)
     }, 1000)
   }
 
+  // Save certificate as unclaimed in Supabase
+  const saveUnclaimedCertificate = async () => {
+    if (!userId || !phaseCompleteData) return
+
+    try {
+      // Check if certificate already exists to avoid duplicate inserts
+      const { data: existingCert } = await supabase
+        .from('cognara_certificates')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('phase_number', phaseCompleteData.phaseNumber)
+        .eq('goal_name', phaseCompleteData.goalName)
+        .maybeSingle()
+
+      if (existingCert) {
+        console.log('Certificate already exists in database.')
+        return
+      }
+
+      const certCode = `COG-PH${phaseCompleteData.phaseNumber}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
+
+      const { error } = await supabase
+        .from('cognara_certificates')
+        .insert({
+          certificate_id: certCode,
+          user_id: userId,
+          goal_name: phaseCompleteData.goalName,
+          phase_name: phaseCompleteData.phaseName,
+          phase_number: phaseCompleteData.phaseNumber,
+          topics_covered: phaseCompleteData.topics || [],
+          is_goal_completion: false,
+          claimed: false
+        })
+
+      if (error) throw error
+      console.log('Unclaimed certificate saved successfully:', certCode)
+    } catch (err) {
+      console.error('Error saving unclaimed certificate:', err)
+    }
+  }
+
+  // Generate unique certificate ID checking for database collisions
+  const generateUniqueCertificateId = async (): Promise<string> => {
+    let attempts = 0
+    while (attempts < 5) {
+      const prefix = 'CGN'
+      const timestamp = Date.now().toString(36).toUpperCase()
+      const random = Math.random().toString(36).substring(2, 6).toUpperCase()
+      const certId = `${prefix}-${timestamp}-${random}`
+
+      const { data } = await supabase
+        .from('cognara_certificates')
+        .select('id')
+        .eq('certificate_id', certId)
+        .maybeSingle()
+
+      if (!data) {
+        return certId
+      }
+      attempts++
+    }
+    return `CGN-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+  }
+
+  // Generate PNG/PDF and upload to Supabase Storage
+  const generateCertificate = async (): Promise<any> => {
+    if (!userId || !phaseCompleteData) throw new Error('Missing user or phase details')
+
+    // Generate unique ID
+    const certId = await generateUniqueCertificateId()
+    setCurrentGeneratedId(certId)
+
+    // Wait for rendering offscreen
+    await new Promise(resolve => setTimeout(resolve, 250))
+
+    const element = document.getElementById('certificate-template')
+    if (!element) throw new Error('Certificate template element not found in DOM')
+
+    // Load libraries dynamically to prevent SSR mismatches
+    const html2canvas = (await import('html2canvas')).default
+    const { jsPDF } = await import('jspdf')
+
+    // Capture canvas
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      logging: false
+    })
+
+    // Convert to PNG blob
+    const pngBlob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob((blob) => resolve(blob), 'image/png')
+    })
+    if (!pngBlob) throw new Error('Failed to generate PNG blob')
+
+    // Convert to PDF blob
+    const pdf = new jsPDF({
+      orientation: 'landscape',
+      unit: 'px',
+      format: [1200, 850]
+    })
+    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 1200, 850)
+    const pdfBlob = pdf.output('blob')
+
+    // Paths
+    const pngPath = `certificates/${userId}/${certId}.png`
+    const pdfPath = `certificates/${userId}/${certId}.pdf`
+
+    // Upload to Supabase Storage
+    const [pngUpload, pdfUpload] = await Promise.all([
+      supabase.storage
+        .from('cognara-certificates')
+        .upload(pngPath, pngBlob, { contentType: 'image/png', upsert: true }),
+      supabase.storage
+        .from('cognara-certificates')
+        .upload(pdfPath, pdfBlob, { contentType: 'application/pdf', upsert: true })
+    ])
+
+    if (pngUpload.error) throw pngUpload.error
+    if (pdfUpload.error) throw pdfUpload.error
+
+    // Public URLs
+    const pngUrl = supabase.storage
+      .from('cognara-certificates')
+      .getPublicUrl(pngPath).data.publicUrl
+
+    const pdfUrl = supabase.storage
+      .from('cognara-certificates')
+      .getPublicUrl(pdfPath).data.publicUrl
+
+    // Check if certificate record already exists
+    const { data: existingCert } = await supabase
+      .from('cognara_certificates')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('phase_number', phaseCompleteData.phaseNumber)
+      .eq('goal_name', phaseCompleteData.goalName)
+      .maybeSingle()
+
+    const certPayload = {
+      certificate_id: certId,
+      user_id: userId,
+      goal_name: phaseCompleteData.goalName,
+      phase_name: phaseCompleteData.phaseName,
+      phase_number: phaseCompleteData.phaseNumber,
+      topics_covered: phaseCompleteData.topics || [],
+      issued_at: new Date().toISOString(),
+      certificate_url_png: pngUrl,
+      certificate_url_pdf: pdfUrl,
+      is_goal_completion: false,
+      claimed: true
+    }
+
+    let dbError
+    if (existingCert) {
+      const { error } = await supabase
+        .from('cognara_certificates')
+        .update(certPayload)
+        .eq('id', existingCert.id)
+      dbError = error
+    } else {
+      const { error } = await supabase
+        .from('cognara_certificates')
+        .insert(certPayload)
+      dbError = error
+    }
+
+    if (dbError) throw dbError
+
+    return {
+      certificateId: certId,
+      pngUrl,
+      pdfUrl
+    }
+  }
+
+  const generateCertificateInBackground = () => {
+    generateCertificate()
+      .then((res) => {
+        console.log('Background certificate generation completed:', res)
+      })
+      .catch((err) => {
+        console.error('Background certificate generation failed:', err)
+      })
+  }
+
+  // Handle Certificate Claim (Primary Action)
+  const handleClaimCertificate = async () => {
+    setIsGeneratingCert(true)
+    setShowFriendlyError(false)
+
+    // 3 seconds timeout
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('TIMEOUT')), 3000)
+    )
+
+    try {
+      const result = await Promise.race([
+        generateCertificate(),
+        timeoutPromise
+      ])
+      
+      setIsGeneratingCert(false)
+      toast('Certificate claimed successfully!')
+      window.open((result as any).pdfUrl, '_blank')
+    } catch (err: any) {
+      console.warn('Certificate generation hit error or timeout, running in background:', err)
+      setIsGeneratingCert(false)
+      setShowFriendlyError(true)
+      generateCertificateInBackground()
+    }
+  }
+
+  // Handle Continue without claiming (Secondary Action)
+  const handleContinueWithoutClaiming = async () => {
+    await saveUnclaimedCertificate()
+
+    if (phaseCompleteData?.nextPhaseId) {
+      try {
+        const { data: nextLessons } = await supabase
+          .from('lessons')
+          .select('id')
+          .eq('phase_id', phaseCompleteData.nextPhaseId)
+          .order('order_index', { ascending: true })
+          .limit(1)
+
+        if (nextLessons && nextLessons.length > 0) {
+          router.push(`/dashboard/lesson/${nextLessons[0].id}`)
+          return
+        }
+      } catch (err) {
+        console.error('Error finding next phase lesson:', err)
+      }
+    }
+    router.push('/dashboard')
+  }
+
+  // Check if phase is completed after passing quiz
+  const checkPhaseCompletion = async (result: any): Promise<boolean> => {
+    if (!result.passed || !userId || !activeLesson) return false
+
+    try {
+      // 1. Fetch current phase details
+      const { data: phaseRow } = await supabase
+        .from('roadmap_phases')
+        .select('*')
+        .eq('id', activeLesson.phase_id)
+        .maybeSingle()
+
+      if (!phaseRow) return false
+
+      // 2. Fetch all lessons in this phase
+      const { data: phaseLessons } = await supabase
+        .from('lessons')
+        .select('id, title')
+        .eq('phase_id', activeLesson.phase_id)
+
+      const phaseLessonIds = phaseLessons?.map((l: any) => l.id) || []
+      if (phaseLessonIds.length === 0) return false
+
+      // 3. Fetch completed lessons from lesson_progress for this user
+      const { data: completedProgress } = await supabase
+        .from('lesson_progress')
+        .select('lesson_id')
+        .eq('user_id', userId)
+        .eq('status', 'completed')
+        .in('lesson_id', phaseLessonIds)
+
+      const completedIds = new Set(completedProgress?.map((p: any) => p.lesson_id) || [])
+      completedIds.add(lessonId) // Ensure current lesson is marked completed
+
+      if (completedIds.size === phaseLessonIds.length) {
+        // Phase is complete! Let's load stats and next phase details
+        const lessonsCount = phaseLessonIds.length
+
+        // Fetch quizzes for this phase
+        const { data: phaseQuizzes } = await supabase
+          .from('quizzes')
+          .select('id')
+          .in('lesson_id', phaseLessonIds)
+
+        const phaseQuizIds = phaseQuizzes?.map((q: any) => q.id) || []
+
+        // Fetch quiz attempts
+        const { data: quizAttemptsList } = await supabase
+          .from('quiz_attempts')
+          .select('quiz_id, score, passed')
+          .eq('user_id', userId)
+          .in('quiz_id', phaseQuizIds)
+
+        const passedQuizAttempts = quizAttemptsList?.filter((a: any) => a.passed) || []
+        const uniqueQuizzesPassed = new Set(passedQuizAttempts.map((a: any) => a.quiz_id)).size
+
+        // Calculate CXP earned in this phase (100 per lesson + best quiz scores XP)
+        const lessonsCxp = lessonsCount * 100
+        const bestScores = new Map<string, number>()
+        quizAttemptsList?.forEach((att: any) => {
+          const currentBest = bestScores.get(att.quiz_id) || 0
+          if (att.score > currentBest) {
+            bestScores.set(att.quiz_id, att.score)
+          }
+        })
+        
+        let quizCxp = 0
+        bestScores.forEach(score => {
+          let xpAward = 10
+          if (score === 100) xpAward = 100
+          else if (score >= 80) xpAward = 80
+          else if (score >= 60) xpAward = 60
+          else if (score >= 40) xpAward = 40
+          else if (score >= 20) xpAward = 20
+          quizCxp += xpAward
+        })
+
+        const totalCxp = lessonsCxp + quizCxp
+
+        // Fetch active goal name
+        let goalName = profile?.main_goal || 'My Learning Goal'
+        const { data: roadmapRow } = await supabase
+          .from('roadmaps')
+          .select('goal_id')
+          .eq('id', phaseRow.roadmap_id)
+          .maybeSingle()
+
+        if (roadmapRow?.goal_id) {
+          const { data: goalRow } = await supabase
+            .from('learning_goals')
+            .select('goal_text')
+            .eq('id', roadmapRow.goal_id)
+            .maybeSingle()
+          if (goalRow) {
+            goalName = goalRow.goal_text
+          }
+        }
+
+        // Fetch next phase details
+        const { data: nextPhaseRow } = await supabase
+          .from('roadmap_phases')
+          .select('*')
+          .eq('roadmap_id', phaseRow.roadmap_id)
+          .eq('phase_number', phaseRow.phase_number + 1)
+          .maybeSingle()
+
+        const topics = phaseLessons.map((l: any) => l.title)
+
+        setPhaseCompleteData({
+          phaseNumber: phaseRow.phase_number,
+          phaseName: phaseRow.title,
+          goalName,
+          lessonsCount,
+          quizzesCount: uniqueQuizzesPassed,
+          cxpEarned: totalCxp,
+          nextPhaseNumber: nextPhaseRow ? nextPhaseRow.phase_number : null,
+          nextPhaseName: nextPhaseRow ? nextPhaseRow.title : null,
+          nextPhaseDescription: nextPhaseRow ? (nextPhaseRow.description || 'Continue your learning journey with the next topics.') : null,
+          phaseId: phaseRow.id,
+          nextPhaseId: nextPhaseRow ? nextPhaseRow.id : null,
+          roadmapId: phaseRow.roadmap_id,
+          topics
+        })
+        setShowPhaseCompleteScreen(true)
+        return true
+      }
+    } catch (err) {
+      console.error('Error checking phase completion:', err)
+    }
+    return false
+  }
+
+  // Handle reminder click
+  const handleSetReminder = async () => {
+    try {
+      if (userId) {
+        await supabase.from('profiles').update({ reminder_enabled: true }).eq('id', userId)
+      }
+      toast('Reminder set! Spark will nudge you tomorrow ⏰')
+      setReminderSet(true)
+    } catch {
+      toast('Failed to set reminder.', 'error')
+    }
+  }
+
   // Loading Screen
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-bg text-text-1 flex flex-col items-center justify-center p-6 space-y-4 animate-page-enter">
+      <div className="min-h-screen bg-[#0A0C14] text-[#F0F4FF] flex flex-col items-center justify-center p-6 space-y-4 animate-page-enter">
         <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-        <p className="text-sm font-mono text-text-2 tracking-wide animate-pulse">
+        <p className="text-sm font-mono text-[#8B95B3] tracking-wide animate-pulse">
           Calibrating assessment metrics...
         </p>
       </div>
     )
   }
 
-  // Error Screen
+  // Phase Completion Celebration takeover
+  if (showPhaseCompleteScreen && phaseCompleteData) {
+    return (
+      <PhaseCelebration
+        phaseNumber={phaseCompleteData.phaseNumber}
+        phaseName={phaseCompleteData.phaseName}
+        goalName={phaseCompleteData.goalName}
+        lessonsCount={phaseCompleteData.lessonsCount}
+        quizzesCount={phaseCompleteData.quizzesCount}
+        cxpEarned={phaseCompleteData.cxpEarned}
+        nextPhaseNumber={phaseCompleteData.nextPhaseNumber}
+        nextPhaseName={phaseCompleteData.nextPhaseName}
+        nextPhaseDescription={phaseCompleteData.nextPhaseDescription}
+        userName={profile?.name || 'Learner'}
+        onClaimCertificate={handleClaimCertificate}
+        onContinue={handleContinueWithoutClaiming}
+      />
+    )
+  }
+
+  // Error Screen / Hearts Lost Screen
   if (errorMsg) {
     if (errorMsg === 'OUT_OF_HEARTS') {
       return (
-        <div className="min-h-screen bg-bg text-text-1 flex flex-col items-center justify-center p-6 space-y-6 max-w-md mx-auto text-center animate-page-enter">
-          <div className="p-4 bg-error/10 border border-error/20 rounded-full text-error">
-            <Heart className="h-10 w-10 fill-current animate-pulse text-error" />
+        <div className="min-h-screen bg-[#0A0C14] text-[#F0F4FF] flex flex-col items-center justify-center p-6 space-y-8 max-w-md mx-auto text-center animate-page-enter">
+          <div className="p-4 bg-rose-500/10 border border-rose-500/25 rounded-full text-rose-500">
+            <Heart className="h-12 w-12 fill-current text-rose-500 animate-pulse" />
           </div>
-          <div className="space-y-2">
-            <h2 className="font-heading text-2xl font-bold text-text-1">No Hearts Left!</h2>
-            <p className="text-sm text-text-2">
-              You ran out of cognitive energy. Hearts regenerate automatically at a rate of 1 heart every 2 hours, or you can get instant refills.
+          <div className="space-y-3">
+            <h2 className="font-heading text-2xl font-bold text-white">Not quite this time.</h2>
+            <p className="text-sm text-[#8B95B3] leading-relaxed">
+              Losing hearts means the content needs another look.
             </p>
-          </div>
-          
-          <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl text-left w-full space-y-2.5">
-            <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-primary block">Synapse Refill Plan</span>
-            <p className="text-[11.5px] text-text-2 leading-relaxed">
-              Reviewing previously completed lessons reinforces long-term memory and refills <strong className="text-text-1">+1 Heart</strong> per lesson!
+            <p className="text-sm text-[#A78BFA] font-medium">
+              Review the lesson and try again — you will get it.
             </p>
           </div>
 
           <div className="flex flex-col gap-3 w-full">
-            <Link href="/dashboard/path" className="w-full">
-              <Button
-                className="w-full h-11 bg-primary hover:bg-primary/95 text-white rounded-lg text-xs font-semibold"
-              >
-                Review Completed Lessons
-              </Button>
-            </Link>
-            <Link href="/dashboard/settings" className="w-full">
-              <Button
-                className="w-full h-11 bg-transparent border border-border hover:bg-surface-alt text-text-2 rounded-lg text-xs font-semibold"
-              >
-                Upgrade to Pro (Unlimited Hearts)
-              </Button>
-            </Link>
+            <Button
+              onClick={() => router.push(`/dashboard/lesson/${lessonId}`)}
+              className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-xl shadow-[0_0_20px_rgba(91,142,255,0.25)]"
+            >
+              Review Lesson
+            </Button>
+            <Button
+              onClick={async () => {
+                setIsLoading(true);
+                try {
+                  if (userId) {
+                    await supabase.from('profiles').update({ hearts: 3 }).eq('id', userId)
+                  }
+                  setHearts(3)
+                  if (profile) {
+                    setProfile((prev: any) => ({ ...prev, hearts: 3 }))
+                  }
+                  window.dispatchEvent(new CustomEvent('cognara_hearts_changed', {
+                    detail: { hearts: 3 }
+                  }))
+                  handleRetryQuiz()
+                } catch (err) {
+                  console.error(err)
+                } finally {
+                  setIsLoading(false);
+                }
+              }}
+              variant="ghost"
+              className="w-full h-13 bg-[#141A30]/50 hover:bg-[#1E2540]/60 border border-[#1E2540] text-[#8B95B3] hover:text-[#F0F4FF] rounded-xl text-[13px] font-bold"
+            >
+              Try Quiz Again
+            </Button>
           </div>
         </div>
       )
     }
 
     return (
-      <div className="min-h-screen bg-bg text-text-1 flex flex-col items-center justify-center p-6 space-y-6 max-w-md mx-auto">
-        <div className="p-4 bg-error/10 border border-error/20 rounded-full">
-          <AlertTriangle className="h-8 w-8 text-error" />
+      <div className="min-h-screen bg-[#0A0C14] text-[#F0F4FF] flex flex-col items-center justify-center p-6 space-y-6 max-w-md mx-auto text-center animate-page-enter">
+        <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-full">
+          <XCircle className="h-8 w-8 text-rose-500" />
         </div>
-        <div className="text-center space-y-2">
-          <h2 className="font-heading text-xl font-bold text-text-1">Assessment Interrupted</h2>
-          <p className="text-sm text-text-2">{errorMsg}</p>
+        <div className="space-y-2">
+          <h2 className="font-heading text-xl font-bold text-white">Assessment Interrupted</h2>
+          <p className="text-sm text-[#8B95B3]">{errorMsg}</p>
         </div>
         <div className="flex space-x-3 w-full">
           <Button
             onClick={() => router.push(`/dashboard/lesson/${lessonId}`)}
-            className="flex-1 h-11 bg-transparent border border-border hover:bg-surface-alt text-text-1 rounded-sm text-xs font-semibold"
+            className="flex-1 h-11 bg-[#141A30]/50 hover:bg-[#1E2540]/60 border border-[#1E2540] text-[#C8D0E8] rounded-xl text-xs font-semibold"
           >
             Back to Lesson
           </Button>
           <Button
             onClick={handleRetryQuiz}
-            className="flex-1 h-11 bg-primary hover:bg-primary/95 text-white rounded-sm text-xs font-semibold"
+            className="flex-1 h-11 bg-primary hover:bg-primary/95 text-white rounded-xl text-xs font-semibold"
           >
             Retry Loading
           </Button>
@@ -402,81 +889,236 @@ export default function QuizPage() {
     )
   }
 
-  // Results View
-  if (quizResult) {
-    return (
-      <div className="min-h-screen bg-bg text-text-1 flex flex-col items-center justify-center p-4 md:p-8 animate-page-enter">
-        <QuizResultModal
-          score={quizResult.score}
-          passed={quizResult.passed}
-          lessonTitle={lessonTitle}
-          xpGained={quizResult.xp?.xpGained}
-          onContinue={() => {
-            router.refresh()
-            if (quizResult.roadmapCompleted && quizResult.roadmapId) {
-              router.push(`/dashboard/roadmap-complete/${quizResult.roadmapId}`)
-            } else if (quizResult.passed) {
-              router.push('/dashboard/path')
-            } else {
-              router.push(`/dashboard/lesson/${lessonId}`)
-            }
-          }}
-          onRetry={handleRetryQuiz}
-        />
+  // End of Session Screen
+  if (isEndSession && quizResult) {
+    const xpAward = quizResult.xp?.xpGained ?? 10
+    const goalTitle = profile?.main_goal || 'your custom goal'
 
-        {newBadges.length > 0 && currentBadgeIndex < newBadges.length && (
-          (() => {
-            const badge = newBadges[currentBadgeIndex]
-            const isPhaseBadge = badge.badge_key.startsWith('phase')
-            
-            return (
-              <MascotOverlay
-                emotion="celebrate"
-                messages={
-                  isPhaseBadge
-                    ? [
-                        `Phase complete! 🏆`,
-                        `You finished every lesson in ${phaseTitle || badge.badge_label}`,
-                        `Your certificate is ready to download.`
-                      ]
-                    : [
-                        `New badge earned! ${badge.badge_emoji}`,
-                        `${badge.badge_label}`,
-                        BADGE_DESCRIPTIONS[badge.badge_key] || ''
-                      ]
-                }
-                ctaLabel={isPhaseBadge ? "Download Certificate" : "Keep going!"}
-                onDismiss={() => {
-                  if (isPhaseBadge) {
-                    window.open(`/api/certificate/generate?phaseId=${phaseId}`, '_blank')
-                  }
-                  
-                  if (currentBadgeIndex + 1 < newBadges.length) {
-                    setCurrentBadgeIndex(currentBadgeIndex + 1)
-                  } else {
-                    setNewBadges([])
-                    window.dispatchEvent(new Event('badge-earned'))
-                    router.refresh()
-                  }
-                }}
-              />
-            )
-          })()
-        )}
+    return (
+      <div className="min-h-screen bg-[#0A0C14] text-[#F0F4FF] flex flex-col items-center justify-center p-6 space-y-8 max-w-lg mx-auto text-left animate-page-enter">
+        <style>{`
+          @keyframes slideInUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+          }
+          .animate-slideInUp {
+            animation: slideInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          }
+        `}</style>
+        
+        {/* Title */}
+        <div className="space-y-1.5 w-full">
+          <h2 className="text-3xl font-extrabold text-white leading-tight">Day 1 complete. 🔥</h2>
+          <p className="text-sm text-[#8B95B3]">You set the foundation today. Here is what you achieved:</p>
+        </div>
+
+        {/* Accomplishments Box */}
+        <div className="w-full bg-[#111424] border border-[#1E2540] rounded-2xl p-5 space-y-3.5 animate-slideInUp">
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 font-bold text-xs">✓</div>
+            <p className="text-[13px] text-[#C8D0E8]">Built your <span className="text-[#A78BFA] font-bold">&quot;{goalTitle}&quot;</span> roadmap</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 font-bold text-xs">✓</div>
+            <p className="text-[13px] text-[#C8D0E8]">Completed Lesson 1: <span className="text-white font-medium">{lessonTitle}</span></p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 font-bold text-xs">✓</div>
+            <p className="text-[13px] text-[#C8D0E8]">Earned <span className="text-[#5B8EFF] font-extrabold">{xpAward} CXP</span></p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 font-bold text-xs">✓</div>
+            <p className="text-[13px] text-[#C8D0E8]">Started your streak</p>
+          </div>
+        </div>
+
+        {/* Tomorrow Mission */}
+        <div className="w-full bg-[#161B30]/40 border border-[#232B4C] rounded-2xl p-5 space-y-2.5 animate-slideInUp" style={{ animationDelay: '150ms' }}>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-[#5B8EFF] font-bold block">Tomorrow&apos;s Mission</span>
+          {nextLessonId ? (
+            <>
+              <p className="text-[14px] font-bold text-white leading-snug">Complete Lesson 2: &quot;{nextLessonTitle}&quot;</p>
+              <p className="text-[11px] text-[#8B95B3] font-medium">Estimated time: {nextLessonTime} minutes</p>
+            </>
+          ) : (
+            <p className="text-[13px] text-white">Choose your next goal on the dashboard to build your path!</p>
+          )}
+        </div>
+
+        {/* CTA Buttons */}
+        <div className="flex flex-col gap-3 w-full pt-4 animate-slideInUp" style={{ animationDelay: '300ms' }}>
+          <Button
+            onClick={handleSetReminder}
+            disabled={reminderSet}
+            className={`w-full h-13 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-2 text-[14px] ${
+              reminderSet
+                ? 'bg-[#1C2036] border border-[#282F52] text-[#4A5272] cursor-not-allowed'
+                : 'bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white shadow-[0_0_24px_rgba(91,142,255,0.25)]'
+            }`}
+          >
+            <Bell className="h-4 w-4" />
+            <span>{reminderSet ? 'Reminder Set! ⏰' : 'Set a reminder for tomorrow'}</span>
+          </Button>
+          <Button
+            onClick={() => router.push('/dashboard')}
+            variant="ghost"
+            className="w-full h-13 bg-[#141A30]/50 hover:bg-[#1E2540]/60 border border-[#1E2540] text-[#8B95B3] hover:text-[#F0F4FF] rounded-xl text-[13px] font-bold"
+          >
+            Go to my dashboard
+          </Button>
+        </div>
       </div>
     )
   }
 
-  // Active Focus Mode View
+  // Quiz Results / Completion View
+  if (quizResult) {
+    const firstName = profile?.name?.split(' ')[0] || 'Learner'
+    const correctCount = quizResult.correctCount
+    const xpAward = quizResult.xp?.xpGained ?? 10
+    
+    let performanceMsg = ""
+    if (correctCount >= 4) {
+      performanceMsg = `Excellent work, ${firstName}. You have a strong grasp of ${lessonTitle}.`
+    } else if (correctCount >= 2) {
+      performanceMsg = `Good effort, ${firstName}. You are getting there — a couple of concepts to revisit.`
+    } else {
+      performanceMsg = `This one was tough. Let's review the lesson together before moving on.`
+    }
+
+    return (
+      <div className="min-h-screen bg-[#0A0C14] text-[#F0F4FF] flex flex-col items-center justify-center p-6 space-y-8 max-w-md mx-auto text-center animate-page-enter">
+        <style>{`
+          @keyframes floatUpAndFade {
+            0% { opacity: 0; transform: translateY(80px) scale(0.7); }
+            15% { opacity: 1; transform: translateY(0) scale(1.15); }
+            30% { transform: scale(1.0); }
+            100% { opacity: 0; transform: translateY(-130px) scale(0.9); }
+          }
+          .animate-floatUpAndFade {
+            animation: floatUpAndFade 2.4s cubic-bezier(0.25, 1, 0.50, 1) forwards;
+          }
+        `}</style>
+
+        {/* Floating XP Burst Animation */}
+        {showXpAnim && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+            <div className="animate-floatUpAndFade flex flex-col items-center">
+              <span className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] drop-shadow-[0_0_24px_rgba(91,142,255,0.45)]">
+                +{xpAward} CXP
+              </span>
+              <span className="text-[10px] font-bold text-[#A78BFA] mt-1.5 tracking-widest uppercase">
+                Cognitive energy logged!
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Header */}
+        <div className="space-y-2">
+          <h2 className="text-3xl font-extrabold text-white tracking-tight">Quiz Complete! 🎉</h2>
+          <p className="text-lg font-semibold text-[#8B95B3]">
+            Score: <span className="text-white font-extrabold">{correctCount}</span> out of 5
+          </p>
+        </div>
+
+        {/* Performance details */}
+        <div className="space-y-4 bg-[#111424] border border-[#1E2540] p-5 rounded-2xl w-full">
+          <p className="text-sm text-[#C8D0E8] leading-relaxed font-medium">
+            {performanceMsg}
+          </p>
+
+          {/* Hearts status inside results */}
+          <div className="flex items-center justify-center gap-1.5 pt-1 border-t border-[#1E2540]/60 mt-3 text-xs text-[#8B95B3] font-medium">
+            <span>Hearts remaining:</span>
+            <div className="flex items-center gap-0.5">
+              {[1, 2, 3].map((val) => {
+                const isActive = val <= hearts
+                return (
+                  <Heart
+                    key={val}
+                    className={`h-3.5 w-3.5 ${
+                      isActive ? 'text-rose-500 fill-current' : 'text-[#232B4C]'
+                    }`}
+                  />
+                )
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Streak Announcement Banner */}
+        <div className="w-full py-3.5 px-4 bg-gradient-to-r from-[#5B8EFF]/15 to-[#A78BFA]/10 border border-[#5B8EFF]/25 rounded-2xl flex items-center justify-center gap-2">
+          <Flame className="h-5 w-5 text-rose-500 fill-current animate-pulse-subtle" />
+          <span className="text-xs font-bold text-white tracking-wide">
+            🔥 Day 1 Streak — You showed up. That matters.
+          </span>
+        </div>
+
+        {/* Perfect Score Quiz Testimonial Popups */}
+        {showQuizTestimonialPrompt && !showQuizTestimonialForm && (
+          <div className="bg-[#111424] border border-[#1E2540] p-5 rounded-2xl w-full text-center space-y-4 animate-page-enter">
+            <h3 className="text-sm font-extrabold text-white">Perfect score 🎉</h3>
+            <p className="text-xs text-[#C8D0E8] font-semibold">Enjoying your Cognara journey so far?</p>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => setShowQuizTestimonialForm(true)}
+                className="flex-1 h-9 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] text-white text-xs font-bold rounded-lg cursor-pointer"
+              >
+                Yes — loving it
+              </Button>
+              <button
+                onClick={() => setShowQuizTestimonialPrompt(false)}
+                className="flex-1 h-9 bg-transparent hover:bg-[#1C2036] border border-[#1E2540] text-[#8B95B3] hover:text-white rounded-lg text-xs font-bold cursor-pointer transition-colors"
+                type="button"
+              >
+                Still early days
+              </button>
+            </div>
+          </div>
+        )}
+
+        {showQuizTestimonialPrompt && showQuizTestimonialForm && (
+          <div className="w-full">
+            <TestimonialForm
+              moment="phase_complete"
+              learningGoal={profile?.main_goal || 'My Learning Goal'}
+              onComplete={() => setShowQuizTestimonialPrompt(false)}
+              onDismiss={() => setShowQuizTestimonialPrompt(false)}
+            />
+          </div>
+        )}
+
+        {/* Action CTAs */}
+        <div className="flex flex-col gap-3 w-full pt-4">
+          <Button
+            onClick={() => setIsEndSession(true)}
+            className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.3)] transition-all duration-200 flex items-center justify-center gap-2 text-[14px]"
+          >
+            <span>Continue to Next Lesson →</span>
+          </Button>
+          <Button
+            onClick={() => router.push(`/dashboard/lesson/${lessonId}`)}
+            variant="ghost"
+            className="w-full h-13 bg-[#141A30]/50 hover:bg-[#1E2540]/60 border border-[#1E2540] text-[#8B95B3] hover:text-[#F0F4FF] rounded-xl text-[13px] font-bold"
+          >
+            Review this lesson
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // Active Focus Quiz Mode
   const currentQuestion = questions[currentIdx]
   const questionNumber = currentIdx + 1
   const totalQuestions = questions.length
   const progressPercent = (questionNumber / totalQuestions) * 100
 
-  // Derive Spark's state during the quiz
+  // Spark coach comments
   let sparkEmotion: 'idle' | 'happy' | 'celebrate' | 'thinking' | 'wave' = 'thinking'
   let sparkBubble = "Read the question carefully and choose the best option."
-  const isCorrect = selectedAnswer.trim().toLowerCase() === currentQuestion.correct_answer.trim().toLowerCase()
+  const isCorrect = selectedAnswer.trim().toLowerCase() === currentQuestion?.correct_answer.trim().toLowerCase()
 
   if (isAnswerChecked) {
     if (isCorrect) {
@@ -515,37 +1157,59 @@ export default function QuizPage() {
   }
 
   return (
-    <div className="min-h-screen bg-bg text-text-1 flex flex-col animate-page-enter">
+    <div className="min-h-screen bg-[#0A0C14] text-[#F0F4FF] flex flex-col animate-page-enter">
+      {/* Styles */}
+      <style>{`
+        @keyframes pulse-subtle {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.08); }
+        }
+        .animate-pulse-subtle {
+          animation: pulse-subtle 2s infinite ease-in-out;
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-4px); }
+          75% { transform: translateX(4px); }
+        }
+        .animate-shake {
+          animation: shake 0.4s ease-in-out;
+        }
+      `}</style>
+
       {/* Minimal Focus Header */}
-      <header className="border-b border-border bg-surface/80 backdrop-blur-md sticky top-0 z-30">
+      <header className="border-b border-[#1E2540] bg-[#0A0C14]/90 backdrop-blur-md sticky top-0 z-30">
         <div className="max-w-[760px] mx-auto px-4 h-14 flex items-center justify-between">
           <Link
             href={`/dashboard/lesson/${lessonId}`}
-            className="flex items-center space-x-2 text-xs text-text-2 hover:text-text-1 transition-colors font-medium"
+            className="flex items-center space-x-2 text-xs text-[#8B95B3] hover:text-[#F0F4FF] transition-colors font-medium group"
           >
-            <ArrowLeft className="h-3.5 w-3.5" />
+            <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
             <span>Exit Focus Mode</span>
           </Link>
           <div className="flex items-center space-x-3">
+            {/* Prominent Hearts Display */}
             {profile && (
-              <div className="flex items-center space-x-1 text-red-500 text-xs font-mono select-none mr-1">
-                <Heart className="h-3.5 w-3.5 fill-current animate-pulse-subtle" />
-                <span className="font-extrabold">
-                  {profile.subscription_tier !== 'free' ? '∞' : profile.hearts}
+              <div className={`flex items-center space-x-1 text-rose-500 text-xs font-mono select-none mr-2 ${
+                isHeartAnimating ? 'animate-shake' : ''
+              }`}>
+                <Heart className={`h-4 w-4 fill-current text-rose-500 ${isHeartAnimating ? 'animate-pulse' : 'animate-pulse-subtle'}`} />
+                <span className="font-extrabold text-[13px]">
+                  {profile.subscription_tier !== 'free' ? '∞' : hearts}
                 </span>
               </div>
             )}
             <AIBadge />
-            <span className="text-[10px] font-mono text-text-2">
+            <span className="text-[10px] font-mono text-[#8B95B3] font-bold">
               Question {questionNumber} of {totalQuestions}
             </span>
           </div>
         </div>
         {/* Progress Bar */}
-        <div className="w-full bg-border h-1">
+        <div className="w-full bg-[#1E2540] h-1.5">
           <div 
             style={{ width: `${progressPercent}%` }} 
-            className="bg-primary h-full transition-all duration-300" 
+            className="bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] h-full transition-all duration-300" 
           />
         </div>
       </header>
@@ -553,34 +1217,36 @@ export default function QuizPage() {
       {/* Main Question Display */}
       <main className="flex-1 max-w-[720px] w-full mx-auto px-4 py-8 md:py-12 space-y-6">
         {/* Question Head */}
-        <div className="space-y-2">
-          <span className="text-[10px] font-mono uppercase tracking-wider text-accent font-semibold">
-            Section Quiz
-          </span>
-          <h2 className="font-heading text-lg md:text-xl font-semibold leading-snug text-text-1">
-            {currentQuestion.question}
-          </h2>
-        </div>
+        {currentQuestion && (
+          <div className="space-y-2">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-[#5B8EFF] font-bold block">
+              Section Quiz
+            </span>
+            <h2 className="font-heading text-lg md:text-xl font-semibold leading-relaxed text-white">
+              {currentQuestion.question}
+            </h2>
+          </div>
+        )}
 
         {/* Live Spark Mascot Feedback & Guidance */}
         <div className={`p-4 border rounded-xl flex items-center gap-4 transition-all duration-300 ${
           isAnswerChecked 
             ? isCorrect 
-              ? 'border-success/20 bg-success/5 shadow-[0_0_12px_rgba(16,185,129,0.04)]' 
-              : 'border-error/20 bg-error/5 shadow-[0_0_12px_rgba(239,68,68,0.04)]' 
-            : 'border-border/80 bg-surface-alt/45'
+              ? 'border-emerald-500/20 bg-emerald-500/5 shadow-[0_0_12px_rgba(16,185,129,0.04)]' 
+              : 'border-rose-500/20 bg-rose-500/5 shadow-[0_0_12px_rgba(239,68,68,0.04)]' 
+            : 'border-[#1E2540] bg-[#111424]/40'
         }`}>
-          <div className="shrink-0 flex items-center justify-center p-1 bg-surface rounded-xl border border-border/40">
+          <div className="shrink-0 flex items-center justify-center p-1 bg-[#141A30] rounded-xl border border-[#1E2540]">
             <Spark emotion={sparkEmotion} size={48} />
           </div>
           <div className="flex-grow space-y-0.5 min-w-0">
-            <span className="text-[9px] font-mono font-bold text-primary uppercase tracking-wider block">Spark Coach</span>
-            <p className={`text-[12px] font-medium leading-relaxed ${
+            <span className="text-[9px] font-mono font-bold text-[#5B8EFF] uppercase tracking-wider block">Spark Coach</span>
+            <p className={`text-[12.5px] font-medium leading-relaxed ${
               isAnswerChecked 
                 ? isCorrect 
-                  ? 'text-success' 
-                  : 'text-error' 
-                : 'text-text-2'
+                  ? 'text-emerald-400' 
+                  : 'text-rose-400' 
+                : 'text-[#8B95B3]'
             }`}>
               {sparkBubble}
             </p>
@@ -589,49 +1255,89 @@ export default function QuizPage() {
 
         {/* Inputs based on type */}
         <div className="py-4">
-          {currentQuestion.type === 'multiple_choice' && (
+          {currentQuestion?.type === 'multiple_choice' && (
             <div className="grid grid-cols-1 gap-3">
               {(currentQuestion.options || []).map((option) => {
                 const isSelected = selectedAnswer === option
+                const isCorrectAnswer = option.trim().toLowerCase() === currentQuestion.correct_answer.trim().toLowerCase()
+                
+                let btnStyle = 'border-[#1E2540] bg-[#141A30]/50 hover:bg-[#1E2540]/60 text-[#C8D0E8]'
+                if (isAnswerChecked) {
+                  if (isSelected) {
+                    if (isCorrectAnswer) {
+                      btnStyle = 'border-emerald-500 bg-emerald-500/10 text-emerald-400 font-bold'
+                    } else {
+                      btnStyle = 'border-rose-500 bg-rose-500/10 text-rose-400 font-bold'
+                    }
+                  } else if (isCorrectAnswer) {
+                    btnStyle = 'border-emerald-500 bg-emerald-500/10 text-emerald-400 font-bold'
+                  } else {
+                    btnStyle = 'border-[#1E2540] opacity-40 text-text-3'
+                  }
+                } else if (isSelected) {
+                  btnStyle = 'border-[#5B8EFF] bg-[#5B8EFF]/10 text-white font-semibold'
+                }
+
                 return (
                   <button
                     key={option}
                     disabled={isAnswerChecked}
                     onClick={() => setSelectedAnswer(option)}
                     type="button"
-                    className={`w-full text-left p-4 rounded-[10px] border text-sm font-medium transition-all flex items-center justify-between ${
-                      isSelected
-                        ? 'border-primary bg-primary/5 text-primary shadow-[0_0_12px_rgba(91,142,255,0.06)]'
-                        : 'border-border bg-surface hover:bg-surface-alt text-text-2 hover:text-text-1'
-                    } disabled:opacity-95`}
+                    className={`w-full text-left p-4 rounded-xl border text-sm transition-all flex items-center justify-between duration-200 ${btnStyle}`}
                   >
                     <span>{option}</span>
-                    <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                      isSelected ? 'border-primary bg-primary' : 'border-text-3'
-                    }`}>
-                      {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
-                    </span>
+                    <div className="shrink-0 ml-3">
+                      {isAnswerChecked ? (
+                        isCorrectAnswer ? (
+                          <CheckCircle2 className="h-4 w-4 text-emerald-400 animate-pulse" />
+                        ) : isSelected ? (
+                          <XCircle className="h-4 w-4 text-rose-400" />
+                        ) : null
+                      ) : (
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                          isSelected ? 'border-[#5B8EFF] bg-[#5B8EFF]' : 'border-[#2E3750]'
+                        }`}>
+                          {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                        </div>
+                      )}
+                    </div>
                   </button>
                 )
               })}
             </div>
           )}
 
-          {currentQuestion.type === 'true_false' && (
+          {currentQuestion?.type === 'true_false' && (
             <div className="grid grid-cols-2 gap-4">
               {['true', 'false'].map((option) => {
                 const isSelected = selectedAnswer === option
+                const isCorrectAnswer = option.trim().toLowerCase() === currentQuestion.correct_answer.trim().toLowerCase()
+                
+                let btnStyle = 'border-[#1E2540] bg-[#141A30]/50 hover:bg-[#1E2540]/60 text-[#C8D0E8]'
+                if (isAnswerChecked) {
+                  if (isSelected) {
+                    if (isCorrectAnswer) {
+                      btnStyle = 'border-emerald-500 bg-emerald-500/10 text-emerald-400 font-bold'
+                    } else {
+                      btnStyle = 'border-rose-500 bg-rose-500/10 text-rose-400 font-bold'
+                    }
+                  } else if (isCorrectAnswer) {
+                    btnStyle = 'border-emerald-500 bg-emerald-500/10 text-emerald-400 font-bold'
+                  } else {
+                    btnStyle = 'border-[#1E2540] opacity-40 text-text-3'
+                  }
+                } else if (isSelected) {
+                  btnStyle = 'border-[#5B8EFF] bg-[#5B8EFF]/10 text-white font-semibold'
+                }
+
                 return (
                   <button
                     key={option}
                     disabled={isAnswerChecked}
                     onClick={() => setSelectedAnswer(option)}
                     type="button"
-                    className={`text-center p-6 rounded-[10px] border text-base font-semibold capitalize transition-all ${
-                      isSelected
-                        ? 'border-primary bg-primary/5 text-primary shadow-[0_0_12px_rgba(91,142,255,0.06)]'
-                        : 'border-border bg-surface hover:bg-surface-alt text-text-2 hover:text-text-1'
-                    } disabled:opacity-95`}
+                    className={`text-center p-6 rounded-xl border text-base font-semibold capitalize transition-all duration-200 ${btnStyle}`}
                   >
                     {option === 'true' ? 'True' : 'False'}
                   </button>
@@ -640,7 +1346,7 @@ export default function QuizPage() {
             </div>
           )}
 
-          {currentQuestion.type === 'fill_blank' && (
+          {currentQuestion?.type === 'fill_blank' && (
             <div className="max-w-md space-y-2">
               <input
                 disabled={isAnswerChecked}
@@ -648,9 +1354,9 @@ export default function QuizPage() {
                 onChange={(e) => setSelectedAnswer(e.target.value)}
                 placeholder="Type your answer here..."
                 type="text"
-                className="w-full h-11 px-4 rounded-sm bg-surface border border-border text-text-1 text-sm placeholder:text-text-3 focus:outline-none focus:border-primary transition-colors disabled:opacity-75"
+                className="w-full h-12 px-4 rounded-xl bg-[#141A30] border border-[#1E2540] text-white text-sm placeholder-[#3A4262] focus:outline-none focus:border-[#5B8EFF] transition-colors disabled:opacity-75"
               />
-              <p className="text-[10px] font-mono text-text-3">
+              <p className="text-[10px] font-mono text-[#4A5272]">
                 Tip: Correct spelling is required (single word or short phrase).
               </p>
             </div>
@@ -662,7 +1368,7 @@ export default function QuizPage() {
           <Button
             onClick={handleCheckAnswer}
             disabled={!selectedAnswer.trim()}
-            className="w-full h-11 bg-primary hover:bg-primary/95 text-white rounded-sm text-xs font-semibold tracking-wide uppercase disabled:opacity-50"
+            className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.25)] transition-all duration-200 flex items-center justify-center gap-2 text-[14px] disabled:opacity-50"
           >
             Check Answer
           </Button>
@@ -672,26 +1378,26 @@ export default function QuizPage() {
             {(() => {
               const isCorrect = selectedAnswer.trim().toLowerCase() === currentQuestion.correct_answer.trim().toLowerCase()
               return (
-                <div className={`p-5 rounded-[10px] border flex gap-4 items-start ${
+                <div className={`p-5 rounded-xl border flex gap-4 items-start ${
                   isCorrect
-                    ? 'border-success/20 bg-success/5 text-text-1'
-                    : 'border-error/20 bg-error/5 text-text-1'
+                    ? 'border-emerald-500/25 bg-emerald-500/5 text-white'
+                    : 'border-rose-500/25 bg-rose-500/5 text-white'
                 }`}>
                   {isCorrect ? (
-                    <CheckCircle2 className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
+                    <CheckCircle2 className="h-5 w-5 text-emerald-400 flex-shrink-0 mt-0.5" />
                   ) : (
-                    <XCircle className="h-5 w-5 text-error flex-shrink-0 mt-0.5" />
+                    <XCircle className="h-5 w-5 text-rose-400 flex-shrink-0 mt-0.5" />
                   )}
-                  <div className="space-y-2">
-                    <h4 className={`text-sm font-bold uppercase tracking-wider ${isCorrect ? 'text-success' : 'text-error'}`}>
+                  <div className="space-y-1">
+                    <h4 className={`text-xs font-bold uppercase tracking-widest ${isCorrect ? 'text-emerald-400' : 'text-rose-400'}`}>
                       {isCorrect ? 'Correct Answer' : 'Incorrect Answer'}
                     </h4>
                     {!isCorrect && (
-                      <p className="text-xs text-text-2">
-                        Correct answer: <span className="font-mono font-semibold text-text-1">{currentQuestion.correct_answer}</span>
+                      <p className="text-[12px] text-[#C8D0E8] font-medium mt-1">
+                        Correct answer: <span className="font-mono text-emerald-400">{currentQuestion.correct_answer}</span>
                       </p>
                     )}
-                    <p className="text-xs text-text-2 leading-relaxed">
+                    <p className="text-[12.5px] text-[#8B95B3] leading-relaxed pt-1 font-medium">
                       {currentQuestion.explanation}
                     </p>
                   </div>
@@ -702,13 +1408,73 @@ export default function QuizPage() {
             <Button
               onClick={handleNextQuestion}
               disabled={isSubmitting}
-              className="w-full h-11 bg-primary hover:bg-primary/95 text-white rounded-sm text-xs font-semibold tracking-wide uppercase"
+              className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.3)] transition-all duration-200 flex items-center justify-center text-[14px]"
             >
               {isSubmitting ? 'Saving...' : currentIdx === questions.length - 1 ? 'Submit Assessment' : 'Next Question'}
             </Button>
           </div>
         )}
       </main>
+
+      {/* Hidden Certificate Template for Canvas Capture */}
+      {phaseCompleteData && (
+        <div style={{ position: 'absolute', left: '-9999px', top: '-9999px', pointerEvents: 'none' }}>
+          <CertificateTemplate
+            userName={profile?.name || 'Learner'}
+            phaseName={phaseCompleteData.phaseName}
+            phaseNumber={phaseCompleteData.phaseNumber}
+            goalName={phaseCompleteData.goalName}
+            topicsCovered={phaseCompleteData.topics || []}
+            completionDate={new Date().toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric'
+            })}
+            certificateId={currentGeneratedId || 'CGN-TEMP'}
+            isGoalCompletion={false}
+            theme={typeof window !== 'undefined' && document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
+          />
+        </div>
+      )}
+
+      {/* Generating Overlay Modal */}
+      {isGeneratingCert && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="w-full max-w-sm bg-[#111520] border border-[#1E2540] rounded-2xl shadow-2xl p-6 text-center space-y-4">
+            <div className="w-10 h-10 border-4 border-[#5B8EFF]/20 border-t-[#5B8EFF] rounded-full animate-spin mx-auto" />
+            <div className="space-y-1.5">
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Preparing Certificate</h3>
+              <p className="text-xs text-[#8B95B3]">Generating your premium high-fidelity document...</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Friendly Error Overlay Modal */}
+      {showFriendlyError && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+          <div className="w-full max-w-sm bg-[#111520] border border-amber-500/20 rounded-2xl shadow-2xl p-6 text-center space-y-5">
+            <div className="w-12 h-12 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center justify-center text-amber-500 mx-auto">
+              <span className="text-xl">✨</span>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-base font-extrabold text-white">Your certificate is being prepared.</h3>
+              <p className="text-xs text-[#8B95B3] leading-relaxed">
+                It will be ready in your profile within a few minutes.
+              </p>
+            </div>
+            <Button
+              onClick={() => {
+                setShowFriendlyError(false)
+                handleContinueWithoutClaiming()
+              }}
+              className="w-full h-11 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] text-white font-bold rounded-xl text-xs cursor-pointer"
+            >
+              Continue to Phase {phaseCompleteData?.nextPhaseNumber || (phaseCompleteData?.phaseNumber + 1)}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

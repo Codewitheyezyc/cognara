@@ -3,6 +3,10 @@
 import React, { useState } from 'react'
 import { LandingHeader } from '@/components/marketing/LandingHeader'
 import { HeroSection } from '@/components/marketing/HeroSection'
+import { ProblemSection } from '@/components/marketing/ProblemSection'
+import { TestimonialsSection } from '@/components/marketing/TestimonialsSection'
+import { ComparisonSection } from '@/components/marketing/ComparisonSection'
+import { FinalCtaSection } from '@/components/marketing/FinalCtaSection'
 import { DashboardPreview } from '@/components/marketing/DashboardPreview'
 import { HowItWorks } from '@/components/marketing/HowItWorks'
 import { DepthSimulator } from '@/components/marketing/DepthSimulator'
@@ -43,22 +47,25 @@ export default function MarketingPage() {
         handleScrollToSection={handleScrollToSection}
       />
 
-      {/* Main content container */}
-      <main className="relative z-10 max-w-6xl w-full mx-auto px-6 mt-12 md:mt-20">
+      <main className="relative z-10 max-w-6xl w-full mx-auto px-6 mt-12 md:mt-20 flex-1 flex flex-col justify-center">
         <HeroSection />
-        <DashboardPreview />
+        <ProblemSection />
         <HowItWorks />
+        <TestimonialsSection />
+        <ComparisonSection />
+        <PricingSection />
+        <FinalCtaSection />
+        {/*
+        <DashboardPreview />
         <DepthSimulator />
         <RichLayouts />
         <ProgressShowcase />
         <SparkShowcase />
         <OfflinePwa />
         <WhyCognara />
-        <PricingSection />
         <FaqSection />
+        */}
       </main>
-
-      <ContactSection />
 
       <LandingFooter />
     </div>

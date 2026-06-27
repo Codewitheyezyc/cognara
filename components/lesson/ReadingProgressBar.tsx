@@ -3,9 +3,10 @@ import { useState, useEffect } from 'react'
 
 interface ReadingProgressBarProps {
   estimatedMinutes: number
+  onProgressChange?: (progress: number) => void
 }
 
-export function ReadingProgressBar({ estimatedMinutes }: ReadingProgressBarProps) {
+export function ReadingProgressBar({ estimatedMinutes, onProgressChange }: ReadingProgressBarProps) {
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {
@@ -13,12 +14,14 @@ export function ReadingProgressBar({ estimatedMinutes }: ReadingProgressBarProps
       const scrollTop = window.scrollY
       const docHeight = document.documentElement.scrollHeight - window.innerHeight
       const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0
-      setProgress(Math.min(100, Math.round(scrollPercent)))
+      const clamped = Math.min(100, Math.round(scrollPercent))
+      setProgress(clamped)
+      onProgressChange?.(clamped)
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  }, [onProgressChange])
 
   const minutesRemaining = Math.ceil(estimatedMinutes * (1 - progress / 100))
   const isComplete = progress >= 98
@@ -33,26 +36,26 @@ export function ReadingProgressBar({ estimatedMinutes }: ReadingProgressBarProps
       display: 'flex',
       alignItems: 'center',
       height: '3px',
-      background: 'var(--color-border)'
+      background: 'rgba(30,37,64,0.8)'
     }}>
-      {/* Progress fill */}
+      {/* Progress fill — indigo/violet gradient */}
       <div style={{
         height: '100%',
         width: `${progress}%`,
         background: isComplete
-          ? 'var(--color-success)'
-          : 'var(--color-primary)',
+          ? 'linear-gradient(90deg, #34D399, #10B981)'
+          : 'linear-gradient(90deg, #5B8EFF, #A78BFA)',
         transition: 'width 0.1s ease',
         borderRadius: '0 2px 2px 0'
       }} />
 
-      {/* Time remaining label — anchored bottom-left, above mobile nav, clear of top navbar */}
+      {/* Time remaining label */}
       <div style={{
         position: 'fixed',
         bottom: '76px',
         left: '16px',
         fontSize: '11px',
-        color: isComplete ? 'var(--color-success)' : 'var(--color-text-3)',
+        color: isComplete ? '#34D399' : 'var(--color-text-3)',
         fontWeight: 500,
         background: 'var(--color-surface)',
         padding: '2px 10px',

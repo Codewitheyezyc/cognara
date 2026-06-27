@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Home, Map, BarChart2, Flame, Search, Bell, Bookmark, Download, Sparkles, Heart } from 'lucide-react'
+import { Home, Map, BarChart2, Flame, Search, Bell, Bookmark, Download, Sparkles, Heart, User } from 'lucide-react'
 import { ProfileDropdown } from '@/components/dashboard/ProfileDropdown'
 import { Logo } from '@/components/ui/Logo'
 import { LessonPreviewModal } from '@/components/dashboard/LessonPreviewModal'
@@ -452,16 +452,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { label: 'My Path', href: '/dashboard/path', icon: Map },
     { label: 'Progress', href: '/dashboard/progress', icon: BarChart2 },
     { label: 'Downloads', href: '/dashboard/downloads', icon: Download },
-    { label: 'Notes', href: '/dashboard/notes', icon: Bookmark },
+    { label: 'Profile', href: '/dashboard/profile', icon: User },
   ]
 
   const initialName = profile?.name || 'Learner'
   const isAdmin = profile?.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID || profile?.id === '4c1fbae5-c423-42e7-8394-1112fe00d42e'
   const isFree = profile && profile.subscription_tier === 'free' && !isAdmin
 
+  // Focus mode: hide all navigation chrome when reading a lesson or taking a quiz
+  const isLessonPage = pathname.startsWith('/dashboard/lesson/') || pathname.startsWith('/dashboard/quiz/')
+
   return (
     <div className="flex min-h-screen bg-bg text-text-1">
-      {/* 1. Desktop Sidebar Navigation */}
+      {/* 1. Desktop Sidebar Navigation — hidden in lesson focus mode */}
+      {!isLessonPage && (
       <aside className="hidden md:flex flex-col w-[260px] bg-surface border-r border-border h-screen sticky top-0 overflow-y-auto animate-page-enter">
         {/* Brand Banner */}
         <div className="h-16 flex items-center px-6 border-b border-border space-x-2">
@@ -565,10 +569,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           )}
         </div>
       </aside>
+      )}
 
       {/* 2. Main content viewport */}
-      <div className="flex-1 flex flex-col min-w-0 pb-16 md:pb-0">
-        {/* Unified Topbar/Navbar for mobile and desktop */}
+      <div className={`flex-1 flex flex-col min-w-0 ${isLessonPage ? '' : 'pb-16 md:pb-0'}`}>
+        {/* Unified Topbar/Navbar — hidden entirely in lesson focus mode and on the main dashboard */}
+        {!isLessonPage && pathname !== '/dashboard' && (
         <header className="h-16 bg-surface border-b border-border sticky top-0 z-40">
           <div className="max-w-7xl w-full mx-auto px-4 md:px-8 flex items-center justify-between h-full">
             {/* Logo visible on all viewports for consistent branding */}
@@ -578,6 +584,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           
           {/* Command Search Box for desktop */}
+          {pathname !== '/dashboard' && (
           <button 
             onClick={() => setIsSearchOpen(true)}
             className="hidden md:flex items-center space-x-2 text-text-3 bg-surface-alt/75 border border-border/85 rounded-[8px] px-3 py-1.5 w-64 hover:border-border transition-all cursor-pointer focus:outline-none"
@@ -589,9 +596,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               ⌘K
             </kbd>
           </button>
+          )}
 
           <div className="flex items-center space-x-2 sm:space-x-3">
             {/* Search trigger button visible on mobile only */}
+            {pathname !== '/dashboard' && (
             <button 
               onClick={() => setIsSearchOpen(true)}
               className="md:hidden p-1.5 text-text-3 hover:text-text-1 hover:bg-surface-alt rounded-full transition cursor-pointer focus:outline-none shrink-0"
@@ -599,8 +608,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             >
               <Search className="h-4 w-4" strokeWidth={2} />
             </button>
+            )}
 
             {/* Desktop Stats Group (Hidden on mobile) */}
+            {pathname !== '/dashboard' && (
             <div className="hidden md:flex items-center space-x-2 sm:space-x-3">
               {isFree ? (
                 <button
@@ -686,6 +697,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 );
               })()}
             </div>
+            )}
 
             {/* Notification Bell */}
             <div className="relative" ref={notificationsRef}>
@@ -762,8 +774,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
           </div>
         </header>
+        )}
 
-        {/* Mobile Stats Ribbon (shown below header on mobile only, screen < md) */}
+        {/* Mobile Stats Ribbon (shown below header on mobile only) — hidden in lesson focus mode */}
+        {!isLessonPage && pathname !== '/dashboard' && (
         <div className="md:hidden h-11 bg-surface/85 backdrop-blur-md border-b border-border flex items-center justify-around px-4 sticky top-16 z-30 select-none">
           {/* Streak Indicator */}
           {isLoading ? (
@@ -861,6 +875,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             }
           })()}
         </div>
+        )}
 
         {isOffline && (
           <div className="bg-amber-500 text-black px-4 py-2.5 text-xs font-semibold text-center sticky top-[108px] md:top-16 z-30 flex items-center justify-center gap-1.5 animate-fadeIn shadow-md">
@@ -951,7 +966,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       )}
 
-      {/* 3. Mobile Navigation Bottom Bar (< 768px) */}
+      {/* 3. Mobile Navigation Bottom Bar — hidden in lesson focus mode */}
+      {!isLessonPage && (
       <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-surface-alt border-t border-border flex items-center justify-around z-40 px-2">
         {navItems.map((item) => {
           const isActive = pathname === item.href
@@ -970,6 +986,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           );
         })}
       </nav>
+      )}
 
       <LessonPreviewModal 
         isOpen={isUpgradeModalOpen} 

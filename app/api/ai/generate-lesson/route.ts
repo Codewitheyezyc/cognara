@@ -4,6 +4,7 @@ import { generateLesson } from '@/lib/ai/lesson'
 import { checkRateLimit } from '@/lib/ai/rateLimit'
 import { logApiUsage } from '@/lib/ai/logUsage'
 import { checkRateLimit as checkNewRateLimit } from '@/lib/rateLimit'
+import { getDomainFromSubject, checkLessonCache, writeLessonCache } from '@/lib/ai/lessonCache'
 
 export async function POST(request: Request) {
   try {
@@ -152,45 +153,22 @@ export async function POST(request: Request) {
       console.log(`[generate-lesson] Cached content for lesson ${lessonId} depth ${depthLevel} is mock data — forcing regeneration with Claude.`)
     }
 
-    // 6.5. Organic Cross-User Caching Check
+    // 6.5. Organic Cross-User Caching Check (using cognara_lesson_cache table)
     let sharedLessonContent = null
+    const domain = getDomainFromSubject(goal.subject)
+
     if (!forceRegenerate) {
-      try {
-        // Find roadmaps for the same subject
-        const { data: matchingRoadmaps } = await supabase
-          .from('roadmaps')
-          .select('id, learning_goals!inner(subject)')
-          .eq('learning_goals.subject', goal.subject)
-
-        const roadmapIds = matchingRoadmaps?.map((r) => r.id) || []
-
-        if (roadmapIds.length > 0) {
-          const { data: sharedLessons } = await supabase
-            .from('lessons')
-            .select('content')
-            .eq('title', lesson.title)
-            .in('roadmap_id', roadmapIds)
-            .not('content', 'is', null)
-
-          if (sharedLessons && sharedLessons.length > 0) {
-            for (const candidate of sharedLessons) {
-              const candidateMap = candidate.content as any
-              const candidateCached = (candidateMap && typeof candidateMap === 'object') ? candidateMap[depthLevel] : null
-              if (candidateCached && !isMockLesson(candidateCached)) {
-                sharedLessonContent = candidateCached
-                console.log(`[Cross-User Caching] Found generated lesson for "${lesson.title}" under subject "${goal.subject}" and depth ${depthLevel}`)
-                break
-              }
-            }
-          }
-        }
-      } catch (err) {
-        console.warn('[Cross-User Caching] Sibling check failed:', err)
-      }
+      sharedLessonContent = await checkLessonCache(supabase, {
+        domain,
+        subject: goal.subject,
+        module: phase.title,
+        topic: lesson.title,
+        depthLevel: Number(depthLevel)
+      })
     }
 
     if (sharedLessonContent) {
-      // Cache it for the current user
+      // Cache it for the current user in their local lessons record
       const updatedContent = {
         ...(contentMap || {}),
         [depthLevel]: sharedLessonContent
@@ -271,10 +249,20 @@ export async function POST(request: Request) {
         .eq('id', lessonId)
 
       if (updateError) {
-        console.error('[generate-lesson] Failed to cache lesson content:', updateError)
+        console.error('[generate-lesson] Failed to cache lesson content in user lessons table:', updateError)
       } else {
-        console.log(`[generate-lesson] Cached real Claude content for lesson ${lessonId} depth ${depthLevel}`)
+        console.log(`[generate-lesson] Cached real Claude content in user lessons table for lesson ${lessonId} depth ${depthLevel}`)
       }
+
+      // Write to the global shared lesson cache
+      await writeLessonCache(supabase, {
+        domain,
+        subject: goal.subject,
+        module: phase.title,
+        topic: lesson.title,
+        depthLevel: Number(depthLevel),
+        content: generatedLesson
+      })
     } else {
       console.warn(`[generate-lesson] Claude not configured or failed — serving mock content without caching. Check ANTHROPIC_API_KEY in environment variables.`)
     }

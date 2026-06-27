@@ -19,14 +19,27 @@ export async function sendDailyNudge(params: {
   nextLessonId: string
   streakDays: number
   subject: string
+  type?: 'daily' | '2-day' | '14-day'
+  completedLessonsCount?: number
+  roadmapProgressPercent?: number
 }) {
   const resend = getResendClient()
+
+  let subjectText = ''
+  if (params.type === '2-day') {
+    subjectText = `Your ${params.subject} roadmap is waiting, ${params.userName}`
+  } else if (params.type === '14-day') {
+    subjectText = `Your ${params.subject} roadmap is still here, ${params.userName}`
+  } else {
+    subjectText = params.streakDays > 0
+      ? `🔥 ${params.streakDays} day streak — keep it going, ${params.userName}`
+      : `Your next lesson is waiting, ${params.userName}`
+  }
+
   await resend.emails.send({
     from: 'Cognara <noreply@cognaralearn.com>',
     to: params.to,
-    subject: params.streakDays > 0
-      ? `🔥 ${params.streakDays} day streak — keep going, ${params.userName}`
-      : `Your next lesson is waiting, ${params.userName}`,
+    subject: subjectText,
     react: React.createElement(DailyNudgeEmail, {
       ...params,
       appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
