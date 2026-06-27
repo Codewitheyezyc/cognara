@@ -14,6 +14,7 @@ import { useToast } from '@/components/ui/toast'
 import { TestimonialForm } from '@/components/marketing/TestimonialForm'
 import { PhaseCelebration } from '@/components/celebration/PhaseCelebration'
 import { CertificateTemplate } from '@/components/celebration/CertificateTemplate'
+import { CertificateShareScreen } from '@/components/celebration/CertificateShareScreen'
 
 function shuffleArray<T>(array: T[]): T[] {
   const arr = [...array]
@@ -101,6 +102,7 @@ export default function QuizPage() {
   const [isGeneratingCert, setIsGeneratingCert] = useState(false)
   const [showFriendlyError, setShowFriendlyError] = useState(false)
   const [currentGeneratedId, setCurrentGeneratedId] = useState<string | null>(null)
+  const [shareScreenData, setShareScreenData] = useState<any | null>(null)
 
   // Timer
   const [timeSpentSecs, setTimeSpentSecs] = useState(0)
@@ -596,7 +598,18 @@ export default function QuizPage() {
       
       setIsGeneratingCert(false)
       toast('Certificate claimed successfully!')
-      window.open((result as any).pdfUrl, '_blank')
+      setShareScreenData({
+        certificateId: (result as any).certificateId,
+        pngUrl: (result as any).pngUrl,
+        pdfUrl: (result as any).pdfUrl,
+        goalName: phaseCompleteData.goalName,
+        phaseName: phaseCompleteData.phaseName,
+        phaseNumber: phaseCompleteData.phaseNumber,
+        lessonsCount: phaseCompleteData.lessonsCount,
+        quizzesCount: phaseCompleteData.quizzesCount,
+        cxpEarned: phaseCompleteData.cxpEarned,
+        nextPhaseNumber: phaseCompleteData.nextPhaseNumber,
+      })
     } catch (err: any) {
       console.warn('Certificate generation hit error or timeout, running in background:', err)
       setIsGeneratingCert(false)
@@ -783,6 +796,27 @@ export default function QuizPage() {
           Calibrating assessment metrics...
         </p>
       </div>
+    )
+  }
+
+  // Share Screen takeover
+  if (shareScreenData) {
+    return (
+      <CertificateShareScreen
+        certificateId={shareScreenData.certificateId}
+        pngUrl={shareScreenData.pngUrl}
+        pdfUrl={shareScreenData.pdfUrl}
+        userName={profile?.full_name || profile?.name || 'Learner'}
+        goalName={shareScreenData.goalName}
+        phaseName={shareScreenData.phaseName}
+        phaseNumber={shareScreenData.phaseNumber}
+        lessonsCount={shareScreenData.lessonsCount}
+        quizzesCount={shareScreenData.quizzesCount}
+        cxpEarned={shareScreenData.cxpEarned}
+        isGoalCompletion={!shareScreenData.nextPhaseNumber}
+        nextPhaseNumber={shareScreenData.nextPhaseNumber}
+        onContinue={handleContinueWithoutClaiming}
+      />
     )
   }
 
