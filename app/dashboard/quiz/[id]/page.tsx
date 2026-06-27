@@ -15,6 +15,7 @@ import { TestimonialForm } from '@/components/marketing/TestimonialForm'
 import { PhaseCelebration } from '@/components/celebration/PhaseCelebration'
 import { CertificateTemplate } from '@/components/celebration/CertificateTemplate'
 import { CertificateShareScreen } from '@/components/celebration/CertificateShareScreen'
+import { GoalCelebration } from '@/components/celebration/GoalCelebration'
 
 function shuffleArray<T>(array: T[]): T[] {
   const arr = [...array]
@@ -103,6 +104,8 @@ export default function QuizPage() {
   const [showFriendlyError, setShowFriendlyError] = useState(false)
   const [currentGeneratedId, setCurrentGeneratedId] = useState<string | null>(null)
   const [shareScreenData, setShareScreenData] = useState<any | null>(null)
+  const [showGoalCompleteScreen, setShowGoalCompleteScreen] = useState(false)
+  const [goalCompleteData, setGoalCompleteData] = useState<any | null>(null)
 
   // Timer
   const [timeSpentSecs, setTimeSpentSecs] = useState(0)
@@ -765,9 +768,132 @@ export default function QuizPage() {
           roadmapId: phaseRow.roadmap_id,
           topics
         })
+        // Check if this was the final phase of the roadmap
+        const isFinalPhase = !nextPhaseRow
+        if (isFinalPhase && roadmapRow?.goal_id) {
+          const goalId = roadmapRow.goal_id
+          
+          // Check if already celebrated
+          const { data: alreadyCelebrated } = await supabase
+            .from('cognara_goal_celebrations')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('goal_id', goalId)
+            .maybeSingle()
+
+          if (!alreadyCelebrated) {
+            // Trigger goal completion state updates
+            // 1. Mark goal completed
+            await supabase
+              .from('learning_goals')
+              .update({ 
+                status: 'completed',
+                completed_at: new Date().toISOString()
+              })
+              .eq('id', goalId)
+
+            // 2. Award 500 CXP
+            const GOAL_COMPLETION_BONUS = 500
+            const currentXp = profile?.xp || 0
+            await supabase
+              .from('profiles')
+              .update({ xp: currentXp + GOAL_COMPLETION_BONUS })
+              .eq('id', userId)
+
+            // 3. Unlock 'goal_getter' badge
+            await supabase
+              .from('user_badges')
+              .insert({
+                user_id: userId,
+                badge_key: 'goal_getter',
+                earned_at: new Date().toISOString()
+              })
+
+            // 4. Mark celebrated
+            await supabase
+              .from('cognara_goal_celebrations')
+              .insert({ 
+                user_id: userId, 
+                goal_id: goalId,
+                celebrated_at: new Date().toISOString()
+              })
+
+            // Fetch goal start date (learning_goals.created_at)
+            const { data: goalRow } = await supabase
+              .from('learning_goals')
+              .select('created_at')
+              .eq('id', goalId)
+              .maybeSingle()
+
+            const startDateVal = goalRow?.created_at || new Date().toISOString()
+            const todayStr = new Date().toISOString()
+            const weeksElapsed = Math.max(1, Math.round((new Date(todayStr).getTime() - new Date(startDateVal).getTime()) / (1000 * 60 * 60 * 24 * 7)))
+
+            // Fetch all phases for this goal
+            const { data: phasesList } = await supabase
+              .from('roadmap_phases')
+              .select('id')
+              .eq('roadmap_id', phaseRow.roadmap_id)
+
+            const totalPhases = phasesList?.length || 1
+
+            // 5. Send admin email notification
+            try {
+              await fetch('/api/admin/notify-goal-completion', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  goalName,
+                  startDate: startDateVal,
+                  completedDate: todayStr,
+                  lessonsCount,
+                  quizzesCount: uniqueQuizzesPassed,
+                  cxpEarned: totalCxp + GOAL_COMPLETION_BONUS
+                })
+              })
+            } catch (emailErr) {
+              console.error('Failed to notify admin of goal completion:', emailErr)
+            }
+
+            // Set Goal Complete data
+            setGoalCompleteData({
+              goalId,
+              goalName,
+              startDate: startDateVal,
+              completedDate: todayStr,
+              totalTimeWeeks: weeksElapsed,
+              phasesCount: totalPhases,
+              lessonsCount,
+              quizzesCount: uniqueQuizzesPassed,
+              cxpEarned: totalCxp + GOAL_COMPLETION_BONUS
+            })
+
+            // Save to phaseCompleteData first so certificate template renders correctly in background
+            setPhaseCompleteData({
+              phaseNumber: phaseRow.phase_number,
+              phaseName: phaseRow.title,
+              goalName,
+              lessonsCount,
+              quizzesCount: uniqueQuizzesPassed,
+              cxpEarned: totalCxp,
+              nextPhaseNumber: null,
+              nextPhaseName: null,
+              nextPhaseDescription: null,
+              phaseId: phaseRow.id,
+              nextPhaseId: null,
+              roadmapId: phaseRow.roadmap_id,
+              topics
+            })
+
+            setShowGoalCompleteScreen(true)
+            return true
+          }
+        }
+
         setShowPhaseCompleteScreen(true)
         return true
       }
+
     } catch (err) {
       console.error('Error checking phase completion:', err)
     }
@@ -799,8 +925,29 @@ export default function QuizPage() {
     )
   }
 
+  // Goal Completion takeover
+  if (showGoalCompleteScreen && goalCompleteData) {
+    return (
+      <GoalCelebration
+        goalId={goalCompleteData.goalId}
+        goalName={goalCompleteData.goalName}
+        userName={profile?.full_name || profile?.name || 'Learner'}
+        startDate={goalCompleteData.startDate}
+        completedDate={goalCompleteData.completedDate}
+        totalTimeWeeks={goalCompleteData.totalTimeWeeks}
+        phasesCount={goalCompleteData.phasesCount}
+        lessonsCount={goalCompleteData.lessonsCount}
+        quizzesCount={goalCompleteData.quizzesCount}
+        cxpEarned={goalCompleteData.cxpEarned}
+        onClaimCertificate={handleClaimCertificate}
+        onContinue={handleContinueWithoutClaiming}
+      />
+    )
+  }
+
   // Share Screen takeover
   if (shareScreenData) {
+
     return (
       <CertificateShareScreen
         certificateId={shareScreenData.certificateId}
@@ -1465,11 +1612,12 @@ export default function QuizPage() {
               year: 'numeric'
             })}
             certificateId={currentGeneratedId || 'CGN-TEMP'}
-            isGoalCompletion={false}
+            isGoalCompletion={phaseCompleteData ? !phaseCompleteData.nextPhaseNumber : false}
             theme={typeof window !== 'undefined' && document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
           />
         </div>
       )}
+
 
       {/* Generating Overlay Modal */}
       {isGeneratingCert && (

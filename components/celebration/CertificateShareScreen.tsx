@@ -274,7 +274,9 @@ Check it out: cognaralearn.com`
         
         {/* TOP SECTION */}
         <div className="text-center space-y-2.5">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8B95B3]">
+          <span className={`text-[10px] font-mono font-bold uppercase tracking-widest ${
+            isGoalCompletion ? 'text-amber-500' : 'text-[#8B95B3]'
+          }`}>
             Your certificate is ready
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
@@ -282,11 +284,14 @@ Check it out: cognaralearn.com`
           </h2>
         </div>
 
+
         {/* CERTIFICATE PREVIEW CONTAINER */}
         <div className="w-full flex flex-col items-center">
           <div 
             onClick={() => setIsZoomed(true)}
-            className="w-full cursor-zoom-in relative rounded-xl overflow-hidden border border-[#1E2540] shadow-[0_12px_40px_rgba(0,0,0,0.4)] group transition-all duration-300 hover:border-[#5B8EFF]/40"
+            className={`w-full cursor-zoom-in relative rounded-xl overflow-hidden border border-[#1E2540] shadow-[0_12px_40px_rgba(0,0,0,0.4)] group transition-all duration-300 ${
+              isGoalCompletion ? 'hover:border-amber-500/40' : 'hover:border-[#5B8EFF]/40'
+            }`}
           >
             {/* Aspect ratio holder for 1200x850 certificate */}
             <div className="w-full relative aspect-[1200/850]">
@@ -313,11 +318,14 @@ Check it out: cognaralearn.com`
             </p>
             <p className="text-[10px] text-[#8B95B3]">
               Tap to verify:{' '}
-              <span className="font-semibold text-[#5B8EFF] underline decoration-[#5B8EFF]/40">
+              <span className={`font-semibold underline ${
+                isGoalCompletion ? 'text-amber-500 decoration-amber-500/40' : 'text-[#5B8EFF] decoration-[#5B8EFF]/40'
+              }`}>
                 cognaralearn.com/verify/{certificateId}
               </span>
             </p>
           </div>
+
         </div>
 
         {/* SHARE BUTTONS SECTION */}
@@ -334,12 +342,17 @@ Check it out: cognaralearn.com`
               <Button
                 onClick={handleNativeShare}
                 disabled={isSharingNative}
-                className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-extrabold text-[14px] rounded-xl shadow-[0_4px_14px_rgba(91,142,255,0.2)]"
+                className={`w-full h-13 text-white font-extrabold text-[14px] rounded-xl shadow-md ${
+                  isGoalCompletion 
+                    ? 'bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:from-amber-600 hover:to-amber-500 shadow-[0_4px_14px_rgba(245,158,11,0.2)]'
+                    : 'bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] shadow-[0_4px_14px_rgba(91,142,255,0.2)]'
+                }`}
               >
                 <Share2 className="h-5 w-5 mr-3 shrink-0" />
                 {isSharingNative ? 'Preparing Share...' : 'Share Certificate'}
               </Button>
             )}
+
 
             {/* LinkedIn Button */}
             <button
@@ -372,7 +385,11 @@ Check it out: cognaralearn.com`
               {/* Download PNG */}
               <Button
                 onClick={handleDownloadPNG}
-                className="h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-extrabold text-[13px] rounded-xl shadow-[0_2px_10px_rgba(91,142,255,0.15)]"
+                className={`h-13 text-white font-extrabold text-[13px] rounded-xl shadow-sm ${
+                  isGoalCompletion
+                    ? 'bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:from-amber-600 hover:to-amber-500 shadow-[0_2px_10px_rgba(245,158,11,0.15)]'
+                    : 'bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] shadow-[0_2px_10px_rgba(91,142,255,0.15)]'
+                }`}
               >
                 <Download className="h-4.5 w-4.5 mr-2 shrink-0" />
                 Download (Image)
@@ -382,12 +399,17 @@ Check it out: cognaralearn.com`
               <Button
                 onClick={handleDownloadPDF}
                 variant="ghost"
-                className="h-13 border border-[#5B8EFF]/40 hover:border-[#5B8EFF] bg-transparent hover:bg-[#5B8EFF]/5 text-[#5B8EFF] font-bold text-[13px] rounded-xl"
+                className={`h-13 border bg-transparent text-[13px] rounded-xl font-bold ${
+                  isGoalCompletion
+                    ? 'border-amber-500/40 hover:border-amber-500 text-amber-500 hover:bg-amber-500/5'
+                    : 'border-[#5B8EFF]/40 hover:border-[#5B8EFF] text-[#5B8EFF] hover:bg-[#5B8EFF]/5'
+                }`}
               >
                 <Download className="h-4.5 w-4.5 mr-2 shrink-0" />
                 Download (PDF)
               </Button>
             </div>
+
 
             {/* Copy Verification Link */}
             <Button
@@ -413,18 +435,23 @@ Check it out: cognaralearn.com`
         {/* BOTTOM SECTION: TESTIMONIAL NUDGE */}
         <div className="w-full bg-[#111520] border border-[#1E2540] rounded-2xl p-6 space-y-5">
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-[#5B8EFF]/10 border border-[#5B8EFF]/20 flex items-center justify-center text-xl shrink-0">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0 ${
+              isGoalCompletion ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' : 'bg-[#5B8EFF]/10 border border-[#5B8EFF]/20 text-primary'
+            }`}>
               ✨
             </div>
             <div className="space-y-1">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#A78BFA]">
+              <span className={`text-[10px] font-mono font-bold uppercase tracking-wider ${
+                isGoalCompletion ? 'text-amber-500' : 'text-[#A78BFA]'
+              }`}>
                 Spark
               </span>
-              <p className="text-xs sm:text-sm text-[#C8D0E8] leading-relaxed font-semibold">
+              <p className="text-xs sm:text-sm text-[#C8D0E8] leading-relaxed font-semibold text-left">
                 &ldquo;Your story could inspire someone who is exactly where you were on Day 1. Would you share it?&rdquo;
               </p>
             </div>
           </div>
+
 
           {!testimonialSubmitted ? (
             <form onSubmit={handleSubmitTestimonial} className="space-y-4">
@@ -457,7 +484,9 @@ Check it out: cognaralearn.com`
                   onChange={(e) => setTestimonialText(e.target.value.slice(0, 280))}
                   placeholder="What did you achieve in this phase?"
                   rows={3}
-                  className="w-full bg-[#0A0C14] border border-[#1E2540] focus:border-[#5B8EFF]/50 rounded-xl p-3.5 text-xs sm:text-sm text-white placeholder-[#8B95B3] focus:outline-none transition resize-none"
+                  className={`w-full bg-[#0A0C14] border border-[#1E2540] rounded-xl p-3.5 text-xs sm:text-sm text-white placeholder-[#8B95B3] focus:outline-none transition resize-none ${
+                    isGoalCompletion ? 'focus:border-amber-500/50' : 'focus:border-[#5B8EFF]/50'
+                  }`}
                 />
                 <div className="flex justify-end">
                   <span className="text-[10px] font-mono text-[#8B95B3] font-semibold">
@@ -471,7 +500,9 @@ Check it out: cognaralearn.com`
                 <Button
                   type="submit"
                   disabled={submittingTestimonial || !testimonialText.trim()}
-                  className="w-full h-11 bg-[#5B8EFF] hover:bg-[#4A7AEE] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl cursor-pointer"
+                  className={`w-full h-11 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl cursor-pointer ${
+                    isGoalCompletion ? 'bg-amber-500 hover:bg-amber-600' : 'bg-[#5B8EFF] hover:bg-[#4A7AEE]'
+                  }`}
                 >
                   {submittingTestimonial ? 'Submitting...' : 'Share my story'}
                 </Button>
@@ -486,8 +517,10 @@ Check it out: cognaralearn.com`
               </div>
             </form>
           ) : (
-            <div className="bg-[#5B8EFF]/5 border border-[#5B8EFF]/15 rounded-xl p-4 text-center">
-              <span className="text-[11px] font-mono font-bold text-[#5B8EFF] block">
+            <div className={`border rounded-xl p-4 text-center ${
+              isGoalCompletion ? 'bg-amber-500/5 border-amber-500/15 text-amber-500' : 'bg-[#5B8EFF]/5 border border-[#5B8EFF]/15 text-[#5B8EFF]'
+            }`}>
+              <span className="text-[11px] font-mono font-bold block">
                 Story Saved!
               </span>
               <p className="text-xs text-[#8B95B3] mt-1 font-semibold">
@@ -497,16 +530,22 @@ Check it out: cognaralearn.com`
           )}
         </div>
 
+
         {/* FINAL PROGRESS BUTTON */}
         <div className="w-full pt-4">
           <Button
             onClick={onContinue}
-            className="w-full h-13 bg-gradient-to-r from-[#3D6AFF] to-[#7C5CFA] hover:from-[#2d5aef] hover:to-[#6b47ef] text-white font-black text-[14px] rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-[0.99]"
+            className={`w-full h-13 text-white font-black text-[14px] rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-[0.99] ${
+              isGoalCompletion 
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-500 shadow-[0_4px_14px_rgba(245,158,11,0.2)]'
+                : 'bg-gradient-to-r from-[#3D6AFF] to-[#7C5CFA] hover:from-[#2d5aef] hover:to-[#6b47ef] shadow-[0_4px_14px_rgba(91,142,255,0.2)]'
+            }`}
           >
             {isGoalCompletion ? 'Start my next goal' : `Continue to Phase ${nextPhaseNumber || ''}`}
             <ArrowRight className="h-4.5 w-4.5 shrink-0" />
           </Button>
         </div>
+
 
       </div>
 
@@ -542,11 +581,16 @@ Check it out: cognaralearn.com`
           <div className="p-6 flex items-center justify-between gap-4 border-t border-[#1E2540] bg-[#0A0C14]">
             <Button
               onClick={handleDownloadPNG}
-              className="flex-1 h-12 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] text-white font-bold text-xs uppercase tracking-wider rounded-xl"
+              className={`flex-1 h-12 text-white font-bold text-xs uppercase tracking-wider rounded-xl ${
+                isGoalCompletion
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-500'
+                  : 'bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA]'
+              }`}
             >
               <Download className="h-4 w-4 mr-2" />
               Download PNG
             </Button>
+
             
             {isNativeShareAvailable && (
               <Button
