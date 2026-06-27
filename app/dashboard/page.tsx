@@ -456,9 +456,9 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0A0C14] text-[#F0F4FF] flex flex-col items-center justify-center p-6 space-y-4">
+      <div className="min-h-screen bg-bg text-text-1 flex flex-col items-center justify-center p-6 space-y-4">
         <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-        <p className="text-sm font-mono text-[#8B95B3] tracking-wide animate-pulse">
+        <p className="text-sm font-mono text-text-2 tracking-wide animate-pulse">
           Syncing learning telemetry...
         </p>
       </div>
@@ -1106,22 +1106,22 @@ export default function DashboardPage() {
       `}</style>
 
       {/* SECTION 1 — TODAY'S MISSION */}
-      <section className="relative overflow-hidden border border-[#1E2540] bg-[#111424] p-6 rounded-3xl shadow-lg flex flex-col gap-5">
-        <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-gradient-to-br from-[#5B8EFF]/10 to-[#A78BFA]/15 blur-[65px] opacity-60 pointer-events-none" />
+      <section className="relative overflow-hidden border border-border bg-surface p-6 rounded-3xl shadow-lg flex flex-col gap-5">
+        <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-gradient-to-br from-primary/10 to-accent/15 blur-[65px] opacity-60 pointer-events-none" />
 
         <div className="relative space-y-2">
-          <span className="text-[10px] font-mono uppercase tracking-widest text-[#5B8EFF] font-bold block">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-primary font-bold block">
             Today&apos;s Mission
           </span>
-          <p className="text-xs text-[#8B95B3] font-semibold">
+          <p className="text-xs text-text-2 font-semibold">
             {roadmap?.title || profile?.main_goal || 'Goal'} — Phase {activePhaseNumber} · Module {activeModuleNumber}
           </p>
           {activeLesson && (
             <>
-              <h3 className="text-2xl font-extrabold text-white tracking-tight leading-snug">
+              <h3 className="text-2xl font-extrabold text-text-1 tracking-tight leading-snug">
                 {activeLesson.title}
               </h3>
-              <p className="text-[#C8D0E8] text-[13px] leading-relaxed line-clamp-2">
+              <p className="text-text-2 text-[13px] leading-relaxed line-clamp-2">
                 {activeLesson.description || 'Gain standard depth insights on this topic.'}
               </p>
             </>
@@ -1129,13 +1129,13 @@ export default function DashboardPage() {
         </div>
 
         {activeLesson && !hasCompletedToday && (
-          <div className="relative flex items-center justify-between text-xs text-[#8B95B3] font-medium border-t border-[#1E2540]/60 pt-4">
+          <div className="relative flex items-center justify-between text-xs text-text-2 font-medium border-t border-border/60 pt-4">
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1">
                 <Clock className="h-3.5 w-3.5" />
                 Estimated time: {lessonBodyContent?.estimated_minutes || 5} minutes
               </span>
-              <span className="flex items-center gap-1 text-[#5B8EFF]">
+              <span className="flex items-center gap-1 text-primary">
                 <Sparkles className="h-3.5 w-3.5" />
                 CXP reward: +100
               </span>
@@ -1148,12 +1148,12 @@ export default function DashboardPage() {
             <div className="space-y-4 text-center py-4">
               <div className="flex flex-col items-center justify-center gap-1">
                 <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold mb-1">✓</div>
-                <p className="text-sm font-bold text-white">Today&apos;s mission complete ✓</p>
-                <p className="text-xs text-[#8B95B3]">Come back tomorrow for your next lesson</p>
+                <p className="text-sm font-bold text-text-1">Today&apos;s mission complete ✓</p>
+                <p className="text-xs text-text-2">Come back tomorrow for your next lesson</p>
               </div>
               <Button
                 onClick={() => router.push(`/dashboard/path`)}
-                className="w-full h-10 bg-[#1C2036] hover:bg-[#282F52] border border-[#282F52] text-[#8B95B3] hover:text-white font-bold rounded-xl text-xs transition-colors"
+                className="w-full h-10 bg-surface-alt hover:bg-surface-alt/85 border border-border text-text-2 hover:text-text-1 font-bold rounded-xl text-xs transition-colors"
               >
                 Get ahead — start tomorrow&apos;s lesson
               </Button>
@@ -1162,7 +1162,7 @@ export default function DashboardPage() {
             activeLesson && (
               <Link href={`/dashboard/lesson/${activeLesson.id}`}>
                 <Button
-                  className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.3)] transition-all duration-200 flex items-center justify-center gap-2 text-[14px] cursor-pointer"
+                  className="w-full h-13 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent text-white font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.3)] transition-all duration-200 flex items-center justify-center gap-2 text-[14px] cursor-pointer"
                 >
                   <span>Continue Learning →</span>
                 </Button>
@@ -1174,20 +1174,20 @@ export default function DashboardPage() {
 
       {/* 7 Day Streak Referral Nudge Card */}
       {streakData?.current_streak === 7 && !profile?.dismissed_streak_nudge && !dismissedStreakCard && (
-        <div className="relative overflow-hidden border border-[#A78BFA]/30 bg-gradient-to-r from-amber-500/10 via-[#A78BFA]/10 to-[#111424] p-5 rounded-2xl shadow-lg flex flex-col gap-3 animate-fadeIn">
+        <div className="relative overflow-hidden border border-accent/30 bg-gradient-to-r from-amber-500/10 via-accent/10 to-surface p-5 rounded-2xl shadow-lg flex flex-col gap-3 animate-fadeIn">
           {/* Close Button */}
           <button
             onClick={handleDismissStreakCard}
-            className="absolute top-3.5 right-3.5 text-[#8B95B3] hover:text-[#F0F4FF] transition cursor-pointer"
+            className="absolute top-3.5 right-3.5 text-text-2 hover:text-text-1 transition cursor-pointer"
           >
             <X size={16} />
           </button>
 
           <div className="space-y-1 pr-6">
-            <h3 className="text-sm font-extrabold text-white flex items-center gap-1.5">
+            <h3 className="text-sm font-extrabold text-text-1 flex items-center gap-1.5">
               <span>7 day streak 🔥</span>
             </h3>
-            <p className="text-xs text-[#8B95B3] leading-relaxed">
+            <p className="text-xs text-text-2 leading-relaxed">
               You are building something real. Know someone who should be too? Invite a friend to join you on Cognara.
             </p>
           </div>
@@ -1195,7 +1195,7 @@ export default function DashboardPage() {
           <div className="w-full">
             <Button
               onClick={handleInviteFriend}
-              className="h-9 px-4 bg-gradient-to-r from-[#A78BFA] to-[#8B5CF6] hover:from-[#9067FA] hover:to-[#7C3AED] text-white font-bold text-xs rounded-xl shadow-md cursor-pointer"
+              className="h-9 px-4 bg-gradient-to-r from-accent to-[#8B5CF6] hover:from-[#9067FA] hover:to-[#7C3AED] text-white font-bold text-xs rounded-xl shadow-md cursor-pointer"
             >
               Invite a friend
             </Button>
@@ -1204,31 +1204,31 @@ export default function DashboardPage() {
       )}
 
       {/* SECTION 2 — MY PROGRESS */}
-      <section className="border border-[#1E2540]/60 bg-[#111424]/40 p-6 rounded-2xl space-y-4">
+      <section className="border border-border/60 bg-surface/40 p-6 rounded-2xl space-y-4">
 
         <div className="space-y-1">
-          <h4 className="text-[14px] font-bold text-white truncate">{roadmap?.title || profile?.main_goal || 'Goal'}</h4>
-          <div className="w-full h-2.5 bg-[#1E2540] rounded-full overflow-hidden mt-2">
+          <h4 className="text-[14px] font-bold text-text-1 truncate">{roadmap?.title || profile?.main_goal || 'Goal'}</h4>
+          <div className="w-full h-2.5 bg-border rounded-full overflow-hidden mt-2">
             <div 
-              className="h-full bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] rounded-full transition-all duration-500 ease-out"
+              className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-500 ease-out"
               style={{ width: `${progressRatio}%` }}
             />
           </div>
-          <div className="flex justify-between text-[11px] text-[#8B95B3] font-medium pt-1">
+          <div className="flex justify-between text-[11px] text-text-2 font-medium pt-1">
             <span>Phase {activePhaseNumber} of {phases.length || 1} · Module {activeModuleNumber} of {totalModulesInPhase}</span>
-            <span className="font-bold text-white">{Math.round(progressRatio)}% Complete</span>
+            <span className="font-bold text-text-1">{Math.round(progressRatio)}% Complete</span>
           </div>
         </div>
 
-        <div className="flex items-center justify-between text-xs text-[#8B95B3] pt-1">
-          <p className="font-semibold text-white">Estimated completion: {formattedCompDate}</p>
+        <div className="flex items-center justify-between text-xs text-text-2 pt-1">
+          <p className="font-semibold text-text-1">Estimated completion: {formattedCompDate}</p>
         </div>
 
         <div className="pt-2">
           <Button
             onClick={() => router.push('/dashboard/path')}
             variant="ghost"
-            className="h-9 px-4 bg-[#141A30]/50 hover:bg-[#1E2540]/60 border border-[#1E2540] text-[#8B95B3] hover:text-white text-xs font-semibold rounded-xl"
+            className="h-9 px-4 bg-surface-alt/50 hover:bg-border/60 border border-border text-text-2 hover:text-text-1 text-xs font-semibold rounded-xl"
           >
             View full roadmap
           </Button>
@@ -1237,21 +1237,21 @@ export default function DashboardPage() {
 
       {/* SECTION 3 — SPARK CHECK-IN */}
       {showSpark && (
-        <section className="border border-primary/20 bg-[#12162B] p-5 rounded-2xl flex gap-4 items-start animate-page-enter">
-          <div className="shrink-0 flex items-center justify-center p-1 bg-[#1A203C] rounded-xl border border-[#2E3750] shadow-inner animate-pulse-subtle">
+        <section className="border border-primary/20 bg-surface-alt p-5 rounded-2xl flex gap-4 items-start animate-page-enter">
+          <div className="shrink-0 flex items-center justify-center p-1 bg-surface rounded-xl border border-border shadow-inner animate-pulse-subtle">
             <Spark emotion={failedLastQuiz ? 'thinking' : 'wave'} size={52} />
           </div>
           <div className="space-y-3 flex-grow min-w-0">
             <div className="space-y-0.5">
-              <span className="text-[9px] font-mono font-bold text-[#5B8EFF] uppercase tracking-wider block">Spark says:</span>
-              <p className="text-xs text-[#C8D0E8] leading-relaxed font-medium">
+              <span className="text-[9px] font-mono font-bold text-primary uppercase tracking-wider block">Spark says:</span>
+              <p className="text-xs text-text-2 leading-relaxed font-medium">
                 &ldquo;{sparkMsg}&rdquo;
               </p>
             </div>
             {activeLesson && (
               <Button
                 onClick={() => setIsSparkOpen(true)}
-                className="h-8 px-3.5 bg-gradient-to-br from-[#5B8EFF] to-[#A78BFA] text-white font-bold rounded-lg text-[11px] shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-transform cursor-pointer"
+                className="h-8 px-3.5 bg-gradient-to-br from-primary to-accent text-white font-bold rounded-lg text-[11px] shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-transform cursor-pointer"
               >
                 Talk to Spark
               </Button>
@@ -1262,28 +1262,28 @@ export default function DashboardPage() {
 
       {/* SECTION 4 — DAILY QUEST */}
       {dailyQuest && (
-        <section className="border border-[#1E2540]/60 bg-[#111424]/40 p-5 rounded-2xl space-y-4">
+        <section className="border border-border/60 bg-surface/40 p-5 rounded-2xl space-y-4">
           <div className="flex justify-between items-start">
             <div className="space-y-1">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-[#A78BFA] font-bold block">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-accent font-bold block">
                 Daily Quest
               </span>
-              <h4 className="text-[14px] font-bold text-white">{dailyQuest.title}</h4>
-              <p className="text-xs text-[#8B95B3]">{dailyQuest.description}</p>
+              <h4 className="text-[14px] font-bold text-text-1">{dailyQuest.title}</h4>
+              <p className="text-xs text-text-2">{dailyQuest.description}</p>
             </div>
             <div className="text-right shrink-0">
-              <span className="text-xs font-mono font-extrabold text-[#5B8EFF]">Reward: +{dailyQuest.xpReward} CXP</span>
+              <span className="text-xs font-mono font-extrabold text-primary">Reward: +{dailyQuest.xpReward} CXP</span>
             </div>
           </div>
 
           <div className="space-y-2">
-            <div className="flex justify-between text-[10px] text-[#8B95B3] font-mono">
+            <div className="flex justify-between text-[10px] text-text-2 font-mono">
               <span>Quest Progress</span>
               <span>{dailyQuest.progress} / {dailyQuest.target}</span>
             </div>
-            <div className="w-full h-1.5 bg-[#1E2540] rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-border rounded-full overflow-hidden">
               <div 
-                className="h-full bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] transition-all duration-300"
+                className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-300"
                 style={{ width: `${(dailyQuest.progress / dailyQuest.target) * 100}%` }}
               />
             </div>
@@ -1291,14 +1291,14 @@ export default function DashboardPage() {
 
           <div className="pt-1">
             {dailyQuest.claimed ? (
-              <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5 select-none">
+              <span className="text-xs font-bold text-emerald-500 flex items-center gap-1.5 select-none">
                 <CheckCircle2 className="h-3.5 w-3.5" /> Quest Complete
               </span>
             ) : dailyQuest.completed ? (
               <Button
                 onClick={handleClaimQuest}
                 disabled={isClaiming}
-                className="h-9 px-4 bg-gradient-to-br from-[#5B8EFF] to-[#A78BFA] text-white text-xs font-bold rounded-xl shadow-md cursor-pointer"
+                className="h-9 px-4 bg-gradient-to-br from-primary to-accent text-white text-xs font-bold rounded-xl shadow-md cursor-pointer"
               >
                 {isClaiming ? 'Claiming...' : 'Claim Reward ⚡'}
               </Button>
@@ -1309,7 +1309,7 @@ export default function DashboardPage() {
                   targetElement?.scrollIntoView({ behavior: 'smooth' })
                 }}
                 variant="ghost"
-                className="h-9 px-4 bg-[#141A30]/50 hover:bg-[#1E2540]/60 border border-[#1E2540] text-[#8B95B3] hover:text-white text-xs font-semibold rounded-xl cursor-pointer"
+                className="h-9 px-4 bg-surface-alt/50 hover:bg-border/60 border border-border text-text-2 hover:text-text-1 text-xs font-semibold rounded-xl cursor-pointer"
               >
                 Start Quest
               </Button>
@@ -1319,24 +1319,24 @@ export default function DashboardPage() {
       )}
 
       {/* SECTION 5 — QUICK STATS */}
-      <section className="border-t border-[#1E2540]/40 pt-6 space-y-3">
-        <h4 className="text-xs font-bold text-[#8B95B3] uppercase tracking-wider select-none">This week:</h4>
-        <div className="grid grid-cols-2 gap-y-3 gap-x-6 text-xs text-[#C8D0E8]">
-          <div className="flex justify-between border-b border-[#1E2540]/40 pb-1">
+      <section className="border-t border-border/40 pt-6 space-y-3">
+        <h4 className="text-xs font-bold text-text-2 uppercase tracking-wider select-none">This week:</h4>
+        <div className="grid grid-cols-2 gap-y-3 gap-x-6 text-xs text-text-2">
+          <div className="flex justify-between border-b border-border/40 pb-1">
             <span>Lessons completed</span>
-            <span className="font-bold text-white font-mono">{completedThisWeek}</span>
+            <span className="font-bold text-text-1 font-mono">{completedThisWeek}</span>
           </div>
-          <div className="flex justify-between border-b border-[#1E2540]/40 pb-1">
+          <div className="flex justify-between border-b border-border/40 pb-1">
             <span>Quizzes passed</span>
-            <span className="font-bold text-white font-mono">{quizzesPassedThisWeek}</span>
+            <span className="font-bold text-text-1 font-mono">{quizzesPassedThisWeek}</span>
           </div>
-          <div className="flex justify-between border-b border-[#1E2540]/40 pb-1">
+          <div className="flex justify-between border-b border-border/40 pb-1">
             <span>CXP earned</span>
-            <span className="font-bold text-[#5B8EFF] font-mono">+{cxpEarnedThisWeek}</span>
+            <span className="font-bold text-primary font-mono">+{cxpEarnedThisWeek}</span>
           </div>
-          <div className="flex justify-between border-b border-[#1E2540]/40 pb-1">
+          <div className="flex justify-between border-b border-border/40 pb-1">
             <span>Time spent learning</span>
-            <span className="font-bold text-white font-mono">{hoursSpent} hrs {minsSpent} mins</span>
+            <span className="font-bold text-text-1 font-mono">{hoursSpent} hrs {minsSpent} mins</span>
           </div>
         </div>
       </section>
@@ -1361,12 +1361,12 @@ export default function DashboardPage() {
           onClick={() => setActiveModal(null)}
         >
           <div 
-            className="bg-[#111424] border border-[#1E2540] rounded-2xl max-w-sm w-full p-6 space-y-5 animate-modal shadow-2xl relative"
+            className="bg-surface border border-border rounded-2xl max-w-sm w-full p-6 space-y-5 animate-modal shadow-2xl relative"
             onClick={e => e.stopPropagation()}
           >
             <button
               onClick={() => setActiveModal(null)}
-              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-[#141A30] hover:bg-[#1E2540] flex items-center justify-center text-[#8B95B3] hover:text-white transition-colors cursor-pointer"
+              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-surface-alt hover:bg-border flex items-center justify-center text-text-2 hover:text-text-1 transition-colors cursor-pointer"
               type="button"
             >
               <X className="h-3.5 w-3.5" />
@@ -1378,25 +1378,25 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-3">
                   <Flame className="h-8 w-8 text-rose-500 fill-current animate-pulse-subtle" />
                   <div>
-                    <h3 className="text-lg font-bold text-white">Streak History</h3>
-                    <p className="text-xs text-[#8B95B3]">Consistency is the key to memory adaptation</p>
+                    <h3 className="text-lg font-bold text-text-1">Streak History</h3>
+                    <p className="text-xs text-text-2">Consistency is the key to memory adaptation</p>
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 py-2 border-y border-[#1E2540]/60">
+                <div className="grid grid-cols-2 gap-4 py-2 border-y border-border/60">
                   <div className="text-center">
-                    <span className="text-[10px] uppercase text-[#8B95B3] font-bold">Current Streak</span>
-                    <p className="text-3xl font-extrabold text-white font-mono mt-1">{streakData?.current_streak || 0}d</p>
+                    <span className="text-[10px] uppercase text-text-2 font-bold">Current Streak</span>
+                    <p className="text-3xl font-extrabold text-text-1 font-mono mt-1">{streakData?.current_streak || 0}d</p>
                   </div>
                   <div className="text-center">
-                    <span className="text-[10px] uppercase text-[#8B95B3] font-bold">Longest Streak</span>
-                    <p className="text-3xl font-extrabold text-[#A78BFA] font-mono mt-1">{streakData?.longest_streak || 0}d</p>
+                    <span className="text-[10px] uppercase text-text-2 font-bold">Longest Streak</span>
+                    <p className="text-3xl font-extrabold text-accent font-mono mt-1">{streakData?.longest_streak || 0}d</p>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <span className="text-[10px] font-mono uppercase text-[#5B8EFF] font-bold">7-Day Study Log</span>
-                  <div className="flex justify-between items-center bg-[#0A0C14] p-3 rounded-xl">
+                  <span className="text-[10px] font-mono uppercase text-primary font-bold">7-Day Study Log</span>
+                  <div className="flex justify-between items-center bg-bg p-3 rounded-xl">
                     {[6, 5, 4, 3, 2, 1, 0].map((offset) => {
                       const date = new Date()
                       date.setDate(date.getDate() - offset)
@@ -1412,11 +1412,11 @@ export default function DashboardPage() {
 
                       return (
                         <div key={offset} className="flex flex-col items-center gap-1.5">
-                          <span className="text-[10px] text-[#4A5272] font-bold">{dayLabel}</span>
+                          <span className="text-[10px] text-text-3 font-bold">{dayLabel}</span>
                           <div className={`w-6 h-6 rounded-full flex items-center justify-center border text-[10px] font-bold ${
                             hasActivity 
                               ? 'bg-rose-500/10 border-rose-500/40 text-rose-500' 
-                              : 'border-[#1E2540] text-[#3E4562] bg-[#111424]'
+                              : 'border-border text-text-3 bg-surface'
                           }`}>
                             {hasActivity ? '🔥' : '•'}
                           </div>
@@ -1432,43 +1432,43 @@ export default function DashboardPage() {
             {activeModal === 'cxp' && (
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <Sparkles className="h-8 w-8 text-[#5B8EFF] fill-current animate-pulse" />
+                  <Sparkles className="h-8 w-8 text-primary fill-current animate-pulse" />
                   <div>
-                    <h3 className="text-lg font-bold text-white">CXP Level Breakdown</h3>
-                    <p className="text-xs text-[#8B95B3]">Cognara Experience Points metrics</p>
+                    <h3 className="text-lg font-bold text-text-1">CXP Level Breakdown</h3>
+                    <p className="text-xs text-text-2">Cognara Experience Points metrics</p>
                   </div>
                 </div>
 
-                <div className="space-y-3 bg-[#0A0C14] p-4 rounded-xl">
+                <div className="space-y-3 bg-bg p-4 rounded-xl">
                   <div className="flex justify-between items-baseline">
-                    <span className="text-sm font-bold text-white">Level {levelInfo.level}</span>
-                    <span className="text-xs font-bold text-[#5B8EFF] font-mono">{levelInfo.xpWithinLevel} / {levelInfo.xpNeededForLevelUp} XP</span>
+                    <span className="text-sm font-bold text-text-1">Level {levelInfo.level}</span>
+                    <span className="text-xs font-bold text-primary font-mono">{levelInfo.xpWithinLevel} / {levelInfo.xpNeededForLevelUp} XP</span>
                   </div>
-                  <div className="w-full h-2 bg-[#1E2540] rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-border rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] transition-all duration-300"
+                      className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-300"
                       style={{ width: `${levelInfo.progressPercentage}%` }}
                     />
                   </div>
-                  <p className="text-[10.5px] text-[#8B95B3] leading-relaxed">
-                    You need exactly <strong className="text-white">{levelInfo.xpNeededForLevelUp - levelInfo.xpWithinLevel} CXP</strong> to level up to Rank {levelInfo.level + 1}!
+                  <p className="text-[10.5px] text-text-2 leading-relaxed">
+                    You need exactly <strong className="text-text-1">{levelInfo.xpNeededForLevelUp - levelInfo.xpWithinLevel} CXP</strong> to level up to Rank {levelInfo.level + 1}!
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <span className="text-[10px] font-mono uppercase text-[#A78BFA] font-bold">How to earn points:</span>
-                  <ul className="space-y-2 text-[11.5px] text-[#C8D0E8] leading-relaxed select-none">
+                  <span className="text-[10px] font-mono uppercase text-accent font-bold">How to earn points:</span>
+                  <ul className="space-y-2 text-[11.5px] text-text-2 leading-relaxed select-none">
                     <li className="flex justify-between">
                       <span>✓ Completed Study Module</span>
-                      <strong className="text-white">+100 CXP</strong>
+                      <strong className="text-text-1">+100 CXP</strong>
                     </li>
                     <li className="flex justify-between">
                       <span>✓ Quiz Scores</span>
-                      <strong className="text-white">+10 to +100 CXP</strong>
+                      <strong className="text-text-1">+10 to +100 CXP</strong>
                     </li>
                     <li className="flex justify-between">
                       <span>✓ Claim Daily Quest</span>
-                      <strong className="text-white">+50 to +100 CXP</strong>
+                      <strong className="text-text-1">+50 to +100 CXP</strong>
                     </li>
                   </ul>
                 </div>
@@ -1481,15 +1481,15 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-3">
                   <Heart className="h-8 w-8 text-rose-500 fill-current animate-pulse-subtle" />
                   <div>
-                    <h3 className="text-lg font-bold text-white">Cognitive Energy (Hearts)</h3>
-                    <p className="text-xs text-[#8B95B3]">Cognitive energy controls quiz attempts</p>
+                    <h3 className="text-lg font-bold text-text-1">Cognitive Energy (Hearts)</h3>
+                    <p className="text-xs text-text-2">Cognitive energy controls quiz attempts</p>
                   </div>
                 </div>
 
-                <div className="bg-[#0A0C14] p-4 rounded-xl space-y-3">
+                <div className="bg-bg p-4 rounded-xl space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-[#8B95B3] font-bold uppercase">Energy Reserves</span>
-                    <div className="flex items-center gap-1 text-sm font-extrabold text-white">
+                    <span className="text-xs text-text-2 font-bold uppercase">Energy Reserves</span>
+                    <div className="flex items-center gap-1 text-sm font-extrabold text-text-1">
                       {[1, 2, 3].map((heartIdx) => {
                         const isProUser = profile?.subscription_tier !== 'free' || profile?.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID || profile?.id === '4c1fbae5-c423-42e7-8394-1112fe00d42e'
                         const heartsCount = profile?.hearts ?? 3
@@ -1504,13 +1504,13 @@ export default function DashboardPage() {
                       <span className="ml-1 font-mono">{profile?.subscription_tier !== 'free' ? '∞' : `${profile?.hearts ?? 3}/3`}</span>
                     </div>
                   </div>
-                  <p className="text-[10.5px] text-[#8B95B3] leading-relaxed">
+                  <p className="text-[10.5px] text-text-2 leading-relaxed">
                     Hearts protect you from burning out. Quizzes cost <strong>1 Heart</strong> if you fail. Refills cost 150 CXP, or you can review lessons to earn them back.
                   </p>
                 </div>
 
                 {profile?.subscription_tier === 'free' && (
-                  <div className="flex flex-col gap-2 pt-2 border-t border-[#1E2540]/60">
+                  <div className="flex flex-col gap-2 pt-2 border-t border-border/60">
                     {(profile?.hearts ?? 3) < 3 && (
                       <Button
                         onClick={handleCxpRefillHearts}
@@ -1526,7 +1526,7 @@ export default function DashboardPage() {
                         setActiveModal(null)
                         router.push('/dashboard/path')
                       }}
-                      className="w-full h-10 bg-[#5B8EFF] hover:bg-[#4A7AEE] text-white font-bold rounded-xl text-xs cursor-pointer"
+                      className="w-full h-10 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl text-xs cursor-pointer"
                     >
                       Review completed lessons (+1 Heart)
                     </Button>
@@ -1536,7 +1536,7 @@ export default function DashboardPage() {
                         router.push('/dashboard/settings')
                       }}
                       variant="ghost"
-                      className="w-full h-10 border border-[#1E2540] text-[#8B95B3] hover:text-white rounded-xl text-xs font-bold cursor-pointer"
+                      className="w-full h-10 border border-border text-text-2 hover:text-text-1 rounded-xl text-xs font-bold cursor-pointer"
                     >
                       Upgrade to Pro (Infinite Hearts)
                     </Button>
