@@ -34,7 +34,7 @@ export function FeedbackEmail({ userName, appUrl }: FeedbackEmailProps) {
           {/* Header */}
           <Section style={{ padding: '32px 36px 0', textAlign: 'center' }}>
             <Img
-              src="https://cognara-chi.vercel.app/logo.png"
+              src="https://www.cognaralearn.com/logo.png"
               width="48"
               height="48"
               alt="Cognara"
