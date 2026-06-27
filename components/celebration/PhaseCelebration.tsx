@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef } from 'react'
-import { BookOpen, CheckCircle, Award } from 'lucide-react'
+import { BookOpen, CheckCircle, Award, Share2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 // Performant Canvas Particles Component
@@ -104,6 +104,7 @@ interface PhaseCelebrationProps {
   nextPhaseName: string | null
   nextPhaseDescription: string | null
   userName: string
+  referralCode: string
   onClaimCertificate: () => void
   onContinue: () => void
 }
@@ -119,10 +120,32 @@ export function PhaseCelebration({
   nextPhaseName,
   nextPhaseDescription,
   userName,
+  referralCode,
   onClaimCertificate,
   onContinue,
 }: PhaseCelebrationProps) {
   const firstName = userName?.split(' ')[0] || 'Learner'
+  const [copied, setCopied] = React.useState(false)
+
+  const handleShareReferral = async () => {
+    const link = `https://www.cognaralearn.com/signup?ref=${referralCode}`
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Join me on Cognara',
+          text: `I just completed a phase on Cognara! Try it free and earn bonus CXP:`,
+          url: link
+        })
+      } catch (err) {
+        // user cancelled
+      }
+    } else {
+      navigator.clipboard.writeText(link)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 3000)
+    }
+  }
+
 
   return (
     <div className="fixed inset-0 z-50 bg-[#0A0C14] text-[#F0F4FF] flex flex-col items-center justify-center p-6 overflow-y-auto animate-fade-in-celebrate">
@@ -280,7 +303,21 @@ export function PhaseCelebration({
           >
             {nextPhaseNumber ? `Continue to Phase ${nextPhaseNumber} →` : 'Continue to Dashboard →'}
           </Button>
+
+          {/* Referral Nudge */}
+          <div className="pt-4 border-t border-[#1E2540] text-center space-y-1.5 mt-2">
+            <p className="text-[11px] text-[#8B95B3]">Enjoying Cognara?</p>
+            <Button
+              onClick={handleShareReferral}
+              variant="outline"
+              className="w-full h-10 border border-[#A78BFA] text-[#A78BFA] hover:bg-[#A78BFA]/10 font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Share2 size={13} />
+              <span>{copied ? 'Link copied ✓ Share it with someone who needs a clear path.' : 'Invite a friend — you both earn CXP'}</span>
+            </Button>
+          </div>
         </div>
+
 
       </div>
     </div>

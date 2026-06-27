@@ -11,7 +11,8 @@ import { Label } from '@/components/ui/label'
 import { 
   User, Award, Lock, Download, Share2, Camera, Loader2, LogOut, Trash2, 
   Sparkles, Flame, Heart, CheckCircle2, ChevronRight, Bell, Settings2, Shield,
-  Mail, KeyRound, AlertTriangle, Activity, BarChart2, BookOpen, Clock
+  Mail, KeyRound, AlertTriangle, Activity, BarChart2, BookOpen, Clock, Copy
+
 } from 'lucide-react'
 import { getLevelInfo } from '@/lib/leveling'
 import { LinkedinIcon, TwitterIcon } from '@/components/ui/SocialIcons'
@@ -76,6 +77,48 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<any>(null)
   const [streakData, setStreakData] = useState<any>(null)
   const [userBadges, setUserBadges] = useState<any[]>([])
+  const [referralsList, setReferralsList] = useState<any[]>([])
+  const [referralStats, setReferralStats] = useState({
+    invited: 0,
+    joined: 0,
+    cxpEarned: 0,
+  })
+  const [copyingLink, setCopyingLink] = useState(false)
+
+  // Count-up animations for referral stats
+  const countInvited = useCountUp(referralStats.invited)
+  const countJoined = useCountUp(referralStats.joined)
+  const countCxp = useCountUp(referralStats.cxpEarned)
+
+  // Build the unique referral link
+  const referralLink = profile?.referral_code
+    ? `https://www.cognaralearn.com/signup?ref=${profile.referral_code}`
+    : `https://www.cognaralearn.com/signup?ref=CGN-${userId?.substring(0, 4).toUpperCase()}`
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(referralLink)
+    setCopyingLink(true)
+    toast('Referral link copied to clipboard', 'success')
+    setTimeout(() => setCopyingLink(false), 3000)
+  }
+
+  const handleShareNative = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Join me on Cognara',
+          text: `I use Cognara to learn ${profile?.main_goal || 'my goals'}. Try it free and earn bonus CXP:`,
+          url: referralLink
+        })
+      } catch (err) {
+        // User cancelled
+      }
+    } else {
+      handleCopyLink()
+    }
+  }
+
+
   
   // Dynamic metrics
   const [stats, setStats] = useState({
@@ -181,6 +224,25 @@ export default function ProfilePage() {
           .select('*')
           .eq('user_id', user.id)
         setUserBadges(badgeData || [])
+
+        // 5b. Fetch referrals
+        try {
+          const { data: refsData, error: refsErr } = await supabase
+            .from('cognara_referrals')
+            .select('*')
+            .eq('referrer_user_id', user.id)
+            .order('created_at', { ascending: false })
+
+          if (!refsErr && refsData) {
+            setReferralsList(refsData)
+            const invited = refsData.length
+            const joined = refsData.filter((r: any) => r.status !== 'pending').length
+            const cxpEarned = refsData.filter((r: any) => r.status === 'completed_first_lesson' && r.referrer_cxp_awarded).length * 200
+            setReferralStats({ invited, joined, cxpEarned })
+          }
+        } catch (refsFetchErr) {
+          console.error('Error fetching referrals for profile:', refsFetchErr)
+        }
 
         // 6. Fetch Goals
         const { data: goalsData } = await supabase
@@ -1013,6 +1075,152 @@ export default function ProfilePage() {
                     </button>
                   )
                 })}
+              </div>
+            </div>
+
+            {/* REFER FRIENDS SECTION */}
+            <div className="p-6 bg-[#111520] border border-[#1E2540] rounded-2xl shadow-xl space-y-6">
+              <div className="border-b border-[#1E2540] pb-3 flex justify-between items-center">
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-[#A78BFA] flex items-center gap-2">
+                    <Sparkles className="h-4.5 w-4.5 text-[#A78BFA]" />
+                    Refer Friends
+                  </h3>
+                  <p className="text-[11px] text-[#8B95B3] mt-1 leading-relaxed">
+                    Invite someone with a goal. You earn <span className="text-[#A78BFA] font-bold">+200 CXP</span> when they complete their first lesson. They earn <span className="text-amber-400 font-bold">+100 CXP</span> welcome bonus.
+                  </p>
+                </div>
+              </div>
+
+              {/* REFERRAL STATS STRIP */}
+              <div className="grid grid-cols-3 gap-3.5">
+                <div className="bg-[#151926] border border-[#1E2540] rounded-xl p-3.5 text-center space-y-1">
+                  <span className="text-2xl font-black text-white font-mono block transition-all duration-300">{countInvited}</span>
+                  <span className="text-[10px] font-bold text-[#8B95B3] uppercase tracking-wider block">Invited</span>
+                </div>
+                <div className="bg-[#151926] border border-[#1E2540] rounded-xl p-3.5 text-center space-y-1">
+                  <span className="text-2xl font-black text-[#A78BFA] font-mono block transition-all duration-300">{countJoined}</span>
+                  <span className="text-[10px] font-bold text-[#8B95B3] uppercase tracking-wider block">Joined</span>
+                </div>
+                <div className="bg-[#151926] border border-[#1E2540] rounded-xl p-3.5 text-center space-y-1">
+                  <span className="text-2xl font-black text-amber-400 font-mono block transition-all duration-300">{countCxp}</span>
+                  <span className="text-[10px] font-bold text-[#8B95B3] uppercase tracking-wider block">CXP Earned</span>
+                </div>
+              </div>
+
+              {/* REFERRAL LINK BOX */}
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-bold text-[#8B95B3] uppercase tracking-widest block">Your referral link</span>
+                <div className="flex items-center gap-2 p-3 bg-[#151926] border border-[#A78BFA]/30 rounded-xl">
+                  <span className="text-xs text-[#C8D0E8] font-semibold select-all truncate flex-1 font-mono">
+                    {referralLink}
+                  </span>
+                </div>
+              </div>
+
+              {/* SHARE BUTTONS */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <Button
+                  onClick={handleCopyLink}
+                  className="w-full h-11 bg-gradient-to-r from-[#A78BFA] to-[#8B5CF6] hover:from-[#9067FA] hover:to-[#7C3AED] text-white font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Copy className="h-4 w-4" />
+                  <span>{copyingLink ? '✓ Copied to clipboard' : 'Copy my referral link'}</span>
+                </Button>
+                
+                <a
+                  href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+                    `Hey! I have been using Cognara to learn ${profile?.main_goal || 'my goals'} and it is the first app that actually built me a structured path and kept me on track.\n\nTry it free — you get a bonus 100 CXP when you complete your first lesson:\n${referralLink}`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full h-11 bg-[#25D366] hover:bg-[#20BA56] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition"
+                >
+                  <span className="font-semibold text-center leading-[44px]">Share on WhatsApp</span>
+                </a>
+
+                <a
+                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                    `If you have a goal and keep losing the thread — @CognaraLearn builds your personalised path and keeps you accountable every day.\n\nTry it free:\n${referralLink}`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full h-11 bg-black hover:bg-[#111111] border border-[#1E2540] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition"
+                >
+                  <span className="font-semibold text-center leading-[44px]">Share on Twitter/X</span>
+                </a>
+
+                <Button
+                  onClick={handleShareNative}
+                  variant="outline"
+                  className="w-full h-11 border border-[#A78BFA] text-[#A78BFA] hover:bg-[#A78BFA]/10 font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span>Share</span>
+                </Button>
+              </div>
+
+              {/* REFERRAL HISTORY */}
+              <div className="space-y-3">
+                <span className="text-[10px] font-bold text-[#8B95B3] uppercase tracking-widest block">Referral History</span>
+
+                {referralsList.length === 0 ? (
+                  /* Empty State 1 */
+                  <div className="text-center py-6 px-4 bg-[#151926] border border-[#1E2540] rounded-xl space-y-1.5">
+                    <p className="text-xs text-white font-semibold">No referrals yet.</p>
+                    <p className="text-[11px] text-[#8B95B3]">Your unique link is ready — share it with one person today.</p>
+                  </div>
+                ) : referralsList.filter((r: any) => r.status !== 'pending').length === 0 ? (
+                  /* Empty State 2 */
+                  <div className="text-center py-6 px-4 bg-[#151926] border border-[#1E2540] rounded-xl space-y-2">
+                    <p className="text-xs text-white font-semibold">Your link has been shared.</p>
+                    <p className="text-[11px] text-[#8B95B3]">When a friend signs up and completes their first lesson you will earn +200 CXP.</p>
+                    <Button 
+                      onClick={handleCopyLink}
+                      variant="ghost" 
+                      className="text-xs text-[#A78BFA] hover:text-[#9067FA] font-bold h-7 px-3 cursor-pointer"
+                    >
+                      Share again
+                    </Button>
+                  </div>
+                ) : (
+                  /* History List */
+                  <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                    {referralsList.slice(0, 5).map((refRow: any) => {
+                      const createdDate = new Date(refRow.created_at)
+                      const monthYear = createdDate.toLocaleString('default', { month: 'long', year: 'numeric' })
+                      
+                      return (
+                        <div key={refRow.id} className="flex items-center justify-between p-3 bg-[#151926] border border-[#1E2540] rounded-xl text-xs">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 rounded-full bg-[#1E2540] flex items-center justify-center text-text-3">
+                              <User size={13} />
+                            </div>
+                            <span className="font-semibold text-white">Friend joined {monthYear}</span>
+                          </div>
+                          
+                          <div className="text-right">
+                            {refRow.status === 'completed_first_lesson' ? (
+                              <div className="text-[11px] font-bold text-emerald-400">
+                                <div>Lesson complete ✓</div>
+                                <div className="text-[10px] font-medium text-emerald-500/85 font-mono">+200 CXP earned</div>
+                              </div>
+                            ) : refRow.status === 'expired' ? (
+                              <span className="text-[11px] font-semibold text-[#8B95B3] bg-[#1E2540] px-2 py-0.5 rounded-md">
+                                Expired
+                              </span>
+                            ) : (
+                              <div className="text-[11px] font-bold text-[#8B95B3]">
+                                <div>Signed up</div>
+                                <div className="text-[9px] font-medium text-[#8B95B3]/80">Waiting for first lesson</div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             </div>
 

@@ -1015,9 +1015,11 @@ export default function QuizPage() {
         nextPhaseName={phaseCompleteData.nextPhaseName}
         nextPhaseDescription={phaseCompleteData.nextPhaseDescription}
         userName={profile?.name || 'Learner'}
+        referralCode={profile?.referral_code || (userId ? `CGN-${userId.substring(0, 4).toUpperCase()}` : '')}
         onClaimCertificate={handleClaimCertificate}
         onContinue={handleContinueWithoutClaiming}
       />
+
     )
   }
 

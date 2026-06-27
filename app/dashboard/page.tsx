@@ -47,6 +47,8 @@ export default function DashboardPage() {
   const notificationsRef = useRef<HTMLDivElement>(null)
   const [showStreakBreak, setShowStreakBreak] = useState(false)
   const [show5DayAbsence, setShow5DayAbsence] = useState(false)
+  const [dismissedStreakCard, setDismissedStreakCard] = useState(false)
+
 
   // Load custom notifications dynamically
   useEffect(() => {
@@ -98,6 +100,39 @@ export default function DashboardPage() {
     router.push('/login')
     router.refresh()
   }
+
+  const handleDismissStreakCard = async () => {
+    setDismissedStreakCard(true)
+    try {
+      await supabase
+        .from('profiles')
+        .update({ dismissed_streak_nudge: true })
+        .eq('id', profile.id)
+    } catch (err) {
+      console.error('Failed to dismiss streak card in Supabase:', err)
+    }
+  }
+
+  const handleInviteFriend = async () => {
+    const referralCode = profile?.referral_code || `CGN-${profile?.id?.substring(0, 4).toUpperCase()}`
+    const referralLink = `https://www.cognaralearn.com/signup?ref=${referralCode}`
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Join me on Cognara',
+          text: `I have maintained a learning streak on Cognara. Try it free and earn bonus CXP:`,
+          url: referralLink
+        })
+      } catch (err) {
+        // user cancelled
+      }
+    } else {
+      navigator.clipboard.writeText(referralLink)
+      toast('Referral link copied — share it with a friend!', 'success')
+    }
+  }
+
 
   // Load dashboard details on mount
   useEffect(() => {
@@ -930,8 +965,40 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      {/* 7 Day Streak Referral Nudge Card */}
+      {streakData?.current_streak === 7 && !profile?.dismissed_streak_nudge && !dismissedStreakCard && (
+        <div className="relative overflow-hidden border border-[#A78BFA]/30 bg-gradient-to-r from-amber-500/10 via-[#A78BFA]/10 to-[#111424] p-5 rounded-2xl shadow-lg flex flex-col gap-3 animate-fadeIn">
+          {/* Close Button */}
+          <button
+            onClick={handleDismissStreakCard}
+            className="absolute top-3.5 right-3.5 text-[#8B95B3] hover:text-[#F0F4FF] transition cursor-pointer"
+          >
+            <X size={16} />
+          </button>
+
+          <div className="space-y-1 pr-6">
+            <h3 className="text-sm font-extrabold text-white flex items-center gap-1.5">
+              <span>7 day streak 🔥</span>
+            </h3>
+            <p className="text-xs text-[#8B95B3] leading-relaxed">
+              You are building something real. Know someone who should be too? Invite a friend to join you on Cognara.
+            </p>
+          </div>
+
+          <div className="w-full">
+            <Button
+              onClick={handleInviteFriend}
+              className="h-9 px-4 bg-gradient-to-r from-[#A78BFA] to-[#8B5CF6] hover:from-[#9067FA] hover:to-[#7C3AED] text-white font-bold text-xs rounded-xl shadow-md cursor-pointer"
+            >
+              Invite a friend
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* SECTION 2 — MY PROGRESS */}
       <section className="border border-[#1E2540]/60 bg-[#111424]/40 p-6 rounded-2xl space-y-4">
+
         <div className="space-y-1">
           <h4 className="text-[14px] font-bold text-white truncate">{roadmap?.title || profile?.main_goal || 'Goal'}</h4>
           <div className="w-full h-2.5 bg-[#1E2540] rounded-full overflow-hidden mt-2">

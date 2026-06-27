@@ -57,6 +57,27 @@ export function GoalCelebration({
 
   // Referral copy state
   const [referralCopied, setReferralCopied] = useState(false)
+  const [profile, setProfile] = useState<any>(null)
+  const [userId, setUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function loadUser() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setUserId(user.id)
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('referral_code')
+          .eq('id', user.id)
+          .maybeSingle()
+        if (prof) {
+          setProfile(prof)
+        }
+      }
+    }
+    loadUser()
+  }, [])
+
 
   // Suggest goals based on completed goal name
   const getSuggestedGoals = () => {
@@ -157,13 +178,29 @@ export function GoalCelebration({
     }
   }
 
-  // Invite Friend (Copy Link)
-  const handleInviteFriend = () => {
-    navigator.clipboard.writeText('https://www.cognaralearn.com')
-    setReferralCopied(true)
-    toast('Cognara homepage URL copied! Share it with a friend.')
-    setTimeout(() => setReferralCopied(false), 3000)
+  // Invite Friend (Copy Link / Share referral)
+  const handleInviteFriend = async () => {
+    const referralCode = profile?.referral_code || `CGN-${userId?.substring(0, 4).toUpperCase()}`
+    const referralLink = `https://www.cognaralearn.com/signup?ref=${referralCode}`
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Join me on Cognara',
+          text: `I just completed my ${goalName} goal on Cognara. Try it free and earn bonus CXP:`,
+          url: referralLink
+        })
+      } catch (err) {
+        // user cancelled
+      }
+    } else {
+      navigator.clipboard.writeText(referralLink)
+      setReferralCopied(true)
+      toast('Referral link copied — share it with someone who has a goal.')
+      setTimeout(() => setReferralCopied(false), 3000)
+    }
   }
+
 
   // Helper formatting for dates
   const formatDate = (dateStr: string) => {

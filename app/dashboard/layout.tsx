@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Home, Map, BarChart2, Flame, Search, Bell, Bookmark, Download, Sparkles, Heart, User, X } from 'lucide-react'
+import { Home, Map, BarChart2, Flame, Search, Bell, Bookmark, Download, Sparkles, Heart, User, X, Gift } from 'lucide-react'
 import { ProfileDropdown } from '@/components/dashboard/ProfileDropdown'
 import { Logo } from '@/components/ui/Logo'
 import { LessonPreviewModal } from '@/components/dashboard/LessonPreviewModal'
@@ -496,9 +496,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { label: 'Home', href: '/dashboard', icon: Home },
     { label: 'My Path', href: '/dashboard/path', icon: Map },
     { label: 'Progress', href: '/dashboard/progress', icon: BarChart2 },
+    { label: 'Invite Friends', href: '/dashboard/refer', icon: Gift },
     { label: 'Downloads', href: '/dashboard/downloads', icon: Download },
     { label: 'Profile', href: '/dashboard/profile', icon: User },
   ]
+
 
   const initialName = profile?.name || 'Learner'
   const isAdmin = profile?.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID || profile?.id === '4c1fbae5-c423-42e7-8394-1112fe00d42e'
