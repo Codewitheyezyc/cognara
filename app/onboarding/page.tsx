@@ -110,6 +110,18 @@ export default function OnboardingPage() {
           if (profile.daily_study_minutes) setQ3Selection(profile.daily_study_minutes)
           if (profile.main_roadmap) setSuccessRoadmap(profile.main_roadmap)
         }
+
+        // Check if there is a referral source in sessionStorage and sync it
+        if (typeof window !== 'undefined') {
+          const refSource = sessionStorage.getItem('referral_source')
+          if (refSource) {
+            await supabase
+              .from('profiles')
+              .update({ referral_source: refSource })
+              .eq('id', user.id)
+            sessionStorage.removeItem('referral_source')
+          }
+        }
       } catch (err) {
         console.error('[Onboarding] Error checking user session:', err)
       } finally {

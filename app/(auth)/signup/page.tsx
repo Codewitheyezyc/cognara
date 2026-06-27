@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -93,6 +93,18 @@ export default function SignupPage() {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [userEmail, setUserEmail] = useState('')
 
+  // Capture referral certificate info if present
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search)
+      const ref = searchParams.get('ref')
+      const cert = searchParams.get('cert')
+      if (ref === 'certificate' && cert) {
+        sessionStorage.setItem('referral_source', `certificate:${cert}`)
+      }
+    }
+  }, [])
+
   const {
     register,
     handleSubmit,
@@ -116,12 +128,15 @@ export default function SignupPage() {
     setErrorMsg(null)
 
     try {
+      const refSource = typeof window !== 'undefined' ? sessionStorage.getItem('referral_source') : null
+
       const { data: signUpData, error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
           data: {
             name: data.name,
+            ...(refSource ? { referral_source: refSource } : {})
           },
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
