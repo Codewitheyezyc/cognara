@@ -856,9 +856,9 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0A0C14] text-[#F0F4FF] flex flex-col items-center justify-center p-6 space-y-4">
+      <div className="min-h-screen bg-bg text-text-1 flex flex-col items-center justify-center p-6 space-y-4">
         <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-        <p className="text-sm font-mono text-[#8B95B3] tracking-wide animate-pulse">
+        <p className="text-sm font-mono text-text-2 tracking-wide animate-pulse">
           Syncing profile telemetry...
         </p>
       </div>
@@ -917,16 +917,16 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0C14] text-[#F0F4FF] pb-24">
+    <div className="min-h-screen bg-bg text-text-1 pb-24">
       {/* Sticky Tab Switcher Bar */}
-      <div className="sticky top-0 z-20 bg-[#0A0C14]/90 backdrop-blur-md border-b border-[#1E2540] py-2 px-4 mb-8">
+      <div className="sticky top-0 z-20 bg-bg/90 backdrop-blur-md border-b border-border py-2 px-4 mb-8">
         <div className="max-w-4xl mx-auto flex items-center justify-center sm:justify-start gap-4">
           <button
             onClick={() => setActiveTab('profile')}
             className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-200 cursor-pointer ${
               activeTab === 'profile'
-                ? 'bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] text-white shadow-lg shadow-[#5B8EFF]/20'
-                : 'text-[#8B95B3] hover:text-[#F0F4FF] hover:bg-[#1E2540]/40'
+                ? 'bg-gradient-to-r from-primary to-accent text-white shadow-lg shadow-primary/20'
+                : 'text-text-2 hover:text-text-1 hover:bg-surface-alt/40'
             }`}
           >
             Profile
@@ -935,8 +935,8 @@ export default function ProfilePage() {
             onClick={() => setActiveTab('progress')}
             className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-200 cursor-pointer ${
               activeTab === 'progress'
-                ? 'bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] text-white shadow-lg shadow-[#5B8EFF]/20'
-                : 'text-[#8B95B3] hover:text-[#F0F4FF] hover:bg-[#1E2540]/40'
+                ? 'bg-gradient-to-r from-primary to-accent text-white shadow-lg shadow-primary/20'
+                : 'text-text-2 hover:text-text-1 hover:bg-surface-alt/40'
             }`}
           >
             Progress
@@ -1132,7 +1132,7 @@ export default function ProfilePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <Button
                   onClick={handleCopyLink}
-                  className="w-full h-11 bg-gradient-to-r from-accent to-[#8B5CF6] hover:from-[#9067FA] hover:to-[#7C3AED] text-white font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full h-11 bg-gradient-to-r from-accent to-primary hover:from-accent/90 hover:to-primary text-white font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Copy className="h-4 w-4" />
                   <span>{copyingLink ? '✓ Copied to clipboard' : 'Copy my referral link'}</span>

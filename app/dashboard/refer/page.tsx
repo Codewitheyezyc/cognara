@@ -138,8 +138,8 @@ export default function ReferPage() {
   if (isLoading) {
     return (
       <div className="py-24 flex flex-col items-center justify-center space-y-4">
-        <Loader2 className="h-8 w-8 text-[#A78BFA] animate-spin" />
-        <span className="text-sm text-[#8B95B3]">Loading invitation details...</span>
+        <Loader2 className="h-8 w-8 text-accent animate-spin" />
+        <span className="text-sm text-text-2">Loading invitation details...</span>
       </div>
     )
   }
@@ -149,7 +149,7 @@ export default function ReferPage() {
       {/* Back Button */}
       <button
         onClick={() => router.back()}
-        className="flex items-center gap-2 text-xs text-[#8B95B3] hover:text-[#F0F4FF] transition font-bold"
+        className="flex items-center gap-2 text-xs text-text-2 hover:text-text-1 transition font-bold"
       >
         <ArrowLeft size={14} />
         Back
@@ -157,50 +157,50 @@ export default function ReferPage() {
 
       {/* Page Header */}
       <div className="text-center space-y-3">
-        <div className="inline-flex p-4 bg-[#A78BFA]/10 border border-[#A78BFA]/20 rounded-full text-[#A78BFA] animate-bounce-subtle">
+        <div className="inline-flex p-4 bg-accent/10 border border-accent/20 rounded-full text-accent animate-bounce-subtle">
           <Gift className="h-10 w-10" />
         </div>
-        <h1 className="font-heading text-3xl font-black text-white tracking-tight">
+        <h1 className="font-heading text-3xl font-black text-text-1 tracking-tight">
           Invite friends.<br />Earn together.
         </h1>
-        <p className="text-sm text-[#8B95B3] max-w-md mx-auto leading-relaxed">
+        <p className="text-sm text-text-2 max-w-md mx-auto leading-relaxed">
           Share Cognara with someone who has a goal. When they complete their first lesson, you both get rewarded!
         </p>
       </div>
 
       {/* How It Works Steps */}
-      <div className="bg-[#111520] border border-[#1E2540] rounded-2xl p-6 space-y-6">
-        <h3 className="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#A78BFA] to-[#8B5CF6] uppercase tracking-widest block">
+      <div className="bg-surface border border-border rounded-2xl p-6 space-y-6">
+        <h3 className="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-accent to-primary uppercase tracking-widest block">
           How It Works
         </h3>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-2">
-            <div className="w-8 h-8 rounded-full bg-[#A78BFA]/10 border border-[#A78BFA]/20 flex items-center justify-center text-xs font-bold text-[#A78BFA]">
+            <div className="w-8 h-8 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-xs font-bold text-accent">
               1
             </div>
-            <h4 className="text-xs font-extrabold text-white">Share your link</h4>
-            <p className="text-[11px] text-[#8B95B3] leading-relaxed">
+            <h4 className="text-xs font-extrabold text-text-1">Share your link</h4>
+            <p className="text-[11px] text-text-2 leading-relaxed">
               Send your unique referral link to anyone with a goal.
             </p>
           </div>
 
           <div className="space-y-2">
-            <div className="w-8 h-8 rounded-full bg-[#A78BFA]/10 border border-[#A78BFA]/20 flex items-center justify-center text-xs font-bold text-[#A78BFA]">
+            <div className="w-8 h-8 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-xs font-bold text-accent">
               2
             </div>
-            <h4 className="text-xs font-extrabold text-white">They sign up free</h4>
-            <p className="text-[11px] text-[#8B95B3] leading-relaxed">
+            <h4 className="text-xs font-extrabold text-text-1">They sign up free</h4>
+            <p className="text-[11px] text-text-2 leading-relaxed">
               Your friend creates their account and builds their first roadmap path.
             </p>
           </div>
 
           <div className="space-y-2">
-            <div className="w-8 h-8 rounded-full bg-[#A78BFA]/10 border border-[#A78BFA]/20 flex items-center justify-center text-xs font-bold text-[#A78BFA]">
+            <div className="w-8 h-8 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-xs font-bold text-accent">
               3
             </div>
-            <h4 className="text-xs font-extrabold text-white">You both earn CXP</h4>
-            <p className="text-[11px] text-[#8B95B3] leading-relaxed">
+            <h4 className="text-xs font-extrabold text-text-1">You both earn CXP</h4>
+            <p className="text-[11px] text-text-2 leading-relaxed">
               When they complete their first lesson, both of you get rewarded!
             </p>
           </div>
@@ -209,26 +209,26 @@ export default function ReferPage() {
 
       {/* Referral Stats */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-[#111520] border border-[#1E2540] rounded-2xl p-5 text-center space-y-1">
-          <span className="text-3xl font-black text-white font-mono block">{countInvited}</span>
-          <span className="text-[10px] font-bold text-[#8B95B3] uppercase tracking-wider block">Invited</span>
+        <div className="bg-surface border border-border rounded-2xl p-5 text-center space-y-1">
+          <span className="text-3xl font-black text-text-1 font-mono block">{countInvited}</span>
+          <span className="text-[10px] font-bold text-text-2 uppercase tracking-wider block">Invited</span>
         </div>
-        <div className="bg-[#111520] border border-[#1E2540] rounded-2xl p-5 text-center space-y-1">
-          <span className="text-3xl font-black text-[#A78BFA] font-mono block">{countJoined}</span>
-          <span className="text-[10px] font-bold text-[#8B95B3] uppercase tracking-wider block">Joined</span>
+        <div className="bg-surface border border-border rounded-2xl p-5 text-center space-y-1">
+          <span className="text-3xl font-black text-accent font-mono block">{countJoined}</span>
+          <span className="text-[10px] font-bold text-text-2 uppercase tracking-wider block">Joined</span>
         </div>
-        <div className="bg-[#111520] border border-[#1E2540] rounded-2xl p-5 text-center space-y-1">
-          <span className="text-3xl font-black text-amber-400 font-mono block">{countCxp}</span>
-          <span className="text-[10px] font-bold text-[#8B95B3] uppercase tracking-wider block">CXP Earned</span>
+        <div className="bg-surface border border-border rounded-2xl p-5 text-center space-y-1">
+          <span className="text-3xl font-black text-amber-500 font-mono block">{countCxp}</span>
+          <span className="text-[10px] font-bold text-text-2 uppercase tracking-wider block">CXP Earned</span>
         </div>
       </div>
 
       {/* Link and Share Controls */}
-      <div className="bg-[#111520] border border-[#1E2540] rounded-2xl p-6 space-y-6">
+      <div className="bg-surface border border-border rounded-2xl p-6 space-y-6">
         <div className="space-y-1.5">
-          <span className="text-[10px] font-bold text-[#8B95B3] uppercase tracking-widest block">Your referral link</span>
-          <div className="flex items-center gap-2 p-3.5 bg-[#151926] border border-[#A78BFA]/30 rounded-xl">
-            <span className="text-xs text-[#C8D0E8] font-semibold select-all truncate flex-1 font-mono">
+          <span className="text-[10px] font-bold text-text-2 uppercase tracking-widest block">Your referral link</span>
+          <div className="flex items-center gap-2 p-3.5 bg-surface-alt border border-accent/30 rounded-xl">
+            <span className="text-xs text-text-1 font-semibold select-all truncate flex-1 font-mono">
               {referralLink}
             </span>
           </div>
@@ -237,7 +237,7 @@ export default function ReferPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Button
             onClick={handleCopyLink}
-            className="w-full h-12 bg-gradient-to-r from-[#A78BFA] to-[#8B5CF6] hover:from-[#9067FA] hover:to-[#7C3AED] text-white font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full h-12 bg-gradient-to-r from-accent to-primary hover:from-accent/90 hover:to-primary text-white font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 cursor-pointer"
           >
             <Copy className="h-4.5 w-4.5" />
             <span>{copyingLink ? '✓ Copied to clipboard' : 'Copy my referral link'}</span>
@@ -260,7 +260,7 @@ export default function ReferPage() {
             )}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full h-12 bg-black hover:bg-[#111111] border border-[#1E2540] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition"
+            className="w-full h-12 bg-black hover:bg-neutral-900 border border-border text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition"
           >
             <span className="font-semibold text-center leading-[48px]">Share on Twitter/X</span>
           </a>
@@ -268,7 +268,7 @@ export default function ReferPage() {
           <Button
             onClick={handleShareNative}
             variant="outline"
-            className="w-full h-12 border border-[#A78BFA] text-[#A78BFA] hover:bg-[#A78BFA]/10 font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full h-12 border border-accent text-accent hover:bg-accent/10 font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer"
           >
             <Share2 className="h-4.5 w-4.5" />
             <span>Share</span>
@@ -277,24 +277,24 @@ export default function ReferPage() {
       </div>
 
       {/* Referral History */}
-      <div className="bg-[#111520] border border-[#1E2540] rounded-2xl p-6 space-y-4">
-        <span className="text-[10px] font-bold text-[#8B95B3] uppercase tracking-widest block">Referral History</span>
+      <div className="bg-surface border border-border rounded-2xl p-6 space-y-4">
+        <span className="text-[10px] font-bold text-text-2 uppercase tracking-widest block">Referral History</span>
 
         {referralsList.length === 0 ? (
           /* Empty State 1 */
-          <div className="text-center py-8 px-4 bg-[#151926] border border-[#1E2540] rounded-xl space-y-1.5 animate-fadeIn">
-            <p className="text-xs text-white font-semibold">No referrals yet.</p>
-            <p className="text-[11px] text-[#8B95B3]">Your unique link is ready — share it with one person today.</p>
+          <div className="text-center py-8 px-4 bg-surface-alt border border-border rounded-xl space-y-1.5 animate-fadeIn">
+            <p className="text-xs text-text-1 font-semibold">No referrals yet.</p>
+            <p className="text-[11px] text-text-2">Your unique link is ready — share it with one person today.</p>
           </div>
         ) : referralsList.filter((r: any) => r.status !== 'pending').length === 0 ? (
           /* Empty State 2 */
-          <div className="text-center py-8 px-4 bg-[#151926] border border-[#1E2540] rounded-xl space-y-2.5 animate-fadeIn">
-            <p className="text-xs text-white font-semibold">Your link has been shared.</p>
-            <p className="text-[11px] text-[#8B95B3]">When a friend signs up and completes their first lesson you will earn +200 CXP.</p>
+          <div className="text-center py-8 px-4 bg-surface-alt border border-border rounded-xl space-y-2.5 animate-fadeIn">
+            <p className="text-xs text-text-1 font-semibold">Your link has been shared.</p>
+            <p className="text-[11px] text-text-2">When a friend signs up and completes their first lesson you will earn +200 CXP.</p>
             <Button
               onClick={handleCopyLink}
               variant="ghost"
-              className="text-xs text-[#A78BFA] hover:text-[#9067FA] font-bold h-8 px-4 cursor-pointer"
+              className="text-xs text-accent hover:text-accent/90 font-bold h-8 px-4 cursor-pointer"
             >
               Share again
             </Button>
@@ -307,28 +307,28 @@ export default function ReferPage() {
               const monthYear = createdDate.toLocaleString('default', { month: 'long', year: 'numeric' })
 
               return (
-                <div key={refRow.id} className="flex items-center justify-between p-3.5 bg-[#151926] border border-[#1E2540] rounded-xl text-xs">
+                <div key={refRow.id} className="flex items-center justify-between p-3.5 bg-surface-alt border border-border rounded-xl text-xs">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-[#1E2540] flex items-center justify-center text-text-3">
+                    <div className="w-8 h-8 rounded-full bg-surface flex items-center justify-center text-text-3">
                       <User size={14} />
                     </div>
-                    <span className="font-semibold text-white">Friend joined {monthYear}</span>
+                    <span className="font-semibold text-text-1">Friend joined {monthYear}</span>
                   </div>
 
                   <div className="text-right">
                     {refRow.status === 'completed_first_lesson' ? (
-                      <div className="text-[11px] font-bold text-emerald-400">
+                      <div className="text-[11px] font-bold text-emerald-500">
                         <div>Lesson complete ✓</div>
                         <div className="text-[10px] font-medium text-emerald-500/85 font-mono">+200 CXP earned</div>
                       </div>
                     ) : refRow.status === 'expired' ? (
-                      <span className="text-[11px] font-semibold text-[#8B95B3] bg-[#1E2540] px-2 py-0.5 rounded-md">
+                      <span className="text-[11px] font-semibold text-text-2 bg-surface px-2 py-0.5 rounded-md">
                         Expired
                       </span>
                     ) : (
-                      <div className="text-[11px] font-bold text-[#8B95B3]">
+                      <div className="text-[11px] font-bold text-text-2">
                         <div>Signed up</div>
-                        <div className="text-[9px] font-medium text-[#8B95B3]/80">Waiting for first lesson</div>
+                        <div className="text-[9px] font-medium text-text-2/80">Waiting for first lesson</div>
                       </div>
                     )}
                   </div>
