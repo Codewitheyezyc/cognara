@@ -1,10 +1,23 @@
 'use client'
 
-import React from 'react'
-import Link from 'next/link'
-import { Check, X, Sparkles } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { Check, X, Sparkles, Loader2 } from 'lucide-react'
 
 export function PricingSection() {
+  const router = useRouter()
+  const supabase = createClient()
+  
+  const [user, setUser] = useState<any>(null)
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
+
+  useEffect(() => {
+    supabase.auth.getUser().then((res: any) => {
+      setUser(res.data?.user || null)
+    })
+  }, [supabase])
+
   const freeFeatures = [
     { label: '1 active learning goal', included: true },
     { label: 'Beginner depth level', included: true },
@@ -27,6 +40,49 @@ export function PricingSection() {
     'Speed run mode',
     'Advanced quests'
   ]
+
+  const handleSelectPlan = async (plan: 'free' | 'monthly' | 'annual') => {
+    if (plan === 'free') {
+      sessionStorage.removeItem('pending_plan')
+      if (user) {
+        router.push('/dashboard')
+      } else {
+        router.push('/signup')
+      }
+      return
+    }
+
+    // Save pending plan to session storage for post-signup/redirects
+    sessionStorage.setItem('pending_plan', plan === 'annual' ? 'pro_annual' : 'pro_monthly')
+
+    if (!user) {
+      // Redirect new user to signup (Scenario 1)
+      router.push('/signup')
+      return
+    }
+
+    // User is logged in: skip signup and go straight to Paystack (Scenario 3 & 4)
+    setLoadingPlan(plan)
+    try {
+      const res = await fetch('/api/paystack/initialize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan }),
+      })
+
+      const data = await res.json()
+      if (data.authorization_url) {
+        window.location.href = data.authorization_url
+      } else {
+        alert(data.error || 'Failed to initialize payment')
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Payment setup error. Please try again.')
+    } finally {
+      setLoadingPlan(null)
+    }
+  }
 
   return (
     <section id="pricing" className="py-16 md:py-24 max-w-6xl mx-auto px-4 border-t border-border/40 scroll-mt-24">
@@ -74,11 +130,14 @@ export function PricingSection() {
             </ul>
           </div>
 
-          <Link href="/signup" className="w-full pt-4">
-            <button className="w-full h-11 border border-border bg-surface-alt hover:bg-surface text-text-1 font-bold rounded-xl text-xs transition duration-150 cursor-pointer">
+          <div className="w-full pt-4">
+            <button 
+              onClick={() => handleSelectPlan('free')}
+              className="w-full h-11 border border-border bg-surface-alt hover:bg-surface text-text-1 font-bold rounded-xl text-xs transition duration-150 cursor-pointer"
+            >
               Start Free →
             </button>
-          </Link>
+          </div>
         </div>
 
         {/* CARD 2 — PRO MONTHLY */}
@@ -112,11 +171,22 @@ export function PricingSection() {
             </ul>
           </div>
 
-          <Link href="/signup" className="w-full pt-4">
-            <button className="w-full h-12 bg-gradient-to-r from-primary to-accent hover:from-primary-hover hover:to-accent text-white font-extrabold rounded-xl text-xs shadow-[0_0_16px_rgba(91,142,255,0.3)] transition duration-150 hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
-              Start Pro →
+          <div className="w-full pt-4">
+            <button 
+              onClick={() => handleSelectPlan('monthly')}
+              disabled={loadingPlan !== null}
+              className="w-full h-12 bg-gradient-to-r from-primary to-accent hover:from-primary/95 hover:to-accent text-white font-extrabold rounded-xl text-xs shadow-[0_0_16px_rgba(91,142,255,0.3)] transition duration-150 hover:scale-[1.02] active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
+            >
+              {loadingPlan === 'monthly' ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Initializing...</span>
+                </>
+              ) : (
+                <span>Start Pro →</span>
+              )}
             </button>
-          </Link>
+          </div>
         </div>
 
         {/* CARD 3 — PRO ANNUAL */}
@@ -149,11 +219,22 @@ export function PricingSection() {
             </ul>
           </div>
 
-          <Link href="/signup" className="w-full pt-4">
-            <button className="w-full h-11 border border-border bg-surface-alt hover:bg-surface text-text-1 font-bold rounded-xl text-xs transition duration-150 cursor-pointer">
-              Get Annual →
+          <div className="w-full pt-4">
+            <button 
+              onClick={() => handleSelectPlan('annual')}
+              disabled={loadingPlan !== null}
+              className="w-full h-11 border border-border bg-surface-alt hover:bg-surface text-text-1 font-bold rounded-xl text-xs transition duration-150 cursor-pointer flex items-center justify-center gap-2"
+            >
+              {loadingPlan === 'annual' ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Initializing...</span>
+                </>
+              ) : (
+                <span>Get Annual →</span>
+              )}
             </button>
-          </Link>
+          </div>
         </div>
 
       </div>

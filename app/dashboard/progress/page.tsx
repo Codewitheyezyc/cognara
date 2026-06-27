@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Lock, BarChart2, Flame, Award, BookOpen, CheckCircle, Clock } from 'lucide-react'
+import { Lock, BarChart2, Flame, Award, BookOpen, CheckCircle, Clock, Info } from 'lucide-react'
 import {
   ResponsiveContainer,
   LineChart,
@@ -34,6 +34,7 @@ export default function ProgressPage() {
   const [heatmapData, setHeatmapData] = useState<Record<string, number>>({})
   const [chartLineData, setChartLineData] = useState<any[]>([])
   const [chartBarData, setChartBarData] = useState<any[]>([])
+  const [cxpEvents, setCxpEvents] = useState<any[]>([])
   
   // Loading state
   const [isLoading, setIsLoading] = useState(true)
@@ -67,6 +68,19 @@ export default function ProgressPage() {
 
         const isAdmin = user.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID || user.id === '4c1fbae5-c423-42e7-8394-1112fe00d42e'
         const hasProAccess = activeAndNotExpired || isAdmin
+
+        // Fetch CXP Events for all users
+        try {
+          const { data: cxpData } = await supabase
+            .from('cognara_cxp_events')
+            .select('id, amount, source, description, created_at')
+            .order('created_at', { ascending: false })
+          if (cxpData) {
+            setCxpEvents(cxpData)
+          }
+        } catch (cxpErr) {
+          console.error('Error fetching CXP events:', cxpErr)
+        }
 
         if (!hasProAccess) {
           setIsPro(false)
@@ -257,6 +271,69 @@ export default function ProgressPage() {
     )
   }
 
+  const renderCxpHistory = () => {
+    return (
+      <div className="bg-surface border border-border rounded-[10px] p-6 shadow-sm space-y-4">
+        <div className="flex items-center justify-between border-b border-border pb-3">
+          <div className="flex items-center space-x-2">
+            <h3 id="cxp-history-heading" className="font-heading text-base font-bold text-text-1">
+              CXP History Logs
+            </h3>
+            <button
+              onClick={() => window.dispatchEvent(new Event('open-cxp-info'))}
+              className="p-1 hover:bg-surface-alt rounded-full text-text-3 hover:text-primary transition shrink-0 cursor-pointer focus:outline-none"
+              title="CXP Info"
+            >
+              <Info size={14} />
+            </button>
+          </div>
+          <span className="text-[10px] font-mono bg-[#5B8EFF]/10 text-[#5B8EFF] px-2 py-0.5 rounded font-extrabold uppercase tracking-wider">
+            Active Points History
+          </span>
+        </div>
+
+        {cxpEvents.length > 0 ? (
+          <div className="max-h-[250px] overflow-y-auto pr-1 space-y-2.5">
+            {cxpEvents.map((event) => {
+              const isGain = event.amount > 0
+              return (
+                <div 
+                  key={event.id}
+                  className="flex items-center justify-between p-3 bg-surface-alt/45 rounded-lg border border-border/40 hover:bg-surface-alt transition duration-100 gap-3"
+                >
+                  <div className="space-y-0.5 text-left min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-text-2">
+                        {event.source || 'Lesson Completion'}
+                      </span>
+                      <span className="text-[9px] text-text-3 font-mono">
+                        {new Date(event.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    {event.description && (
+                      <p className="text-xs text-text-2 leading-relaxed truncate" title={event.description}>
+                        {event.description}
+                      </p>
+                    )}
+                  </div>
+                  
+                  <span className={`font-mono text-xs font-black shrink-0 ${isGain ? 'text-emerald-500' : 'text-error'}`}>
+                    {isGain ? `+${event.amount}` : event.amount} CXP
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="py-6 text-center text-text-3 text-xs flex flex-col items-center justify-center space-y-2">
+            <span>No CXP events logged yet.</span>
+            <span className="text-[10px] text-text-2 font-medium max-w-xs">Complete your first lesson to earn CXP!</span>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   // Calculate Average score across all attempts
   const overallAvg = attempts.length > 0
     ? Math.round(attempts.reduce((acc, curr) => acc + curr.score, 0) / attempts.length)
@@ -293,6 +370,9 @@ export default function ProgressPage() {
             Detailed metrics of your learning streak, quiz history, and skill breakdown.
           </p>
         </div>
+
+        {/* CXP History Logs */}
+        {renderCxpHistory()}
 
         {/* Lock Overlay with Blur */}
         <div className="relative rounded-[16px] border border-border bg-surface p-8 md:p-12 overflow-hidden shadow-2xl flex flex-col items-center text-center space-y-6">
@@ -395,6 +475,9 @@ export default function ProgressPage() {
 
       {/* AI Coach Insights Panel */}
       <AICoachInsight isPro={isPro} />
+
+      {/* CXP History Logs */}
+      {renderCxpHistory()}
 
       {/* Activity Heatmap Grid */}
       <div className="bg-surface border border-border rounded-[10px] p-6 shadow-sm space-y-4">

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { Sparkles, Trophy, Check, Loader2 } from 'lucide-react'
+import { Sparkles, Trophy, Check, Loader2, Lock } from 'lucide-react'
 import { useToast } from '@/components/ui/toast'
 import { SoundEffects } from '@/lib/sound'
 
@@ -18,7 +18,7 @@ interface QuestItem {
   claimed: boolean
 }
 
-export default function QuestsWidget() {
+export default function QuestsWidget({ isPro = false }: { isPro?: boolean }) {
   const { toast } = useToast()
   const [activeTab, setActiveTab] = useState<'daily' | 'weekly'>('daily')
   const [quests, setQuests] = useState<{ daily: QuestItem[]; weekly: QuestItem[] } | null>(null)
@@ -169,7 +169,28 @@ export default function QuestsWidget() {
 
       {/* Quests List */}
       <div className="flex flex-col gap-3">
-        {activeQuests.length === 0 ? (
+        {!isPro && activeTab === 'weekly' ? (
+          <div className="p-5 border border-border bg-surface-alt/45 rounded-xl text-center flex flex-col items-center space-y-3 py-6 animate-fadeIn">
+            <div className="p-2.5 bg-primary/10 border border-primary/20 rounded-xl text-primary">
+              <Lock size={16} />
+            </div>
+            <div className="space-y-1">
+              <span className="text-[9px] font-mono uppercase text-accent font-bold tracking-wider">Weekly Quests</span>
+              <h5 className="text-xs font-bold text-text-1">Weekly Goals are Locked</h5>
+              <p className="text-[10px] text-text-3 max-w-[200px] mx-auto leading-relaxed">
+                Upgrade to Pro to unlock advanced weekly quests and earn major CXP rewards.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                window.location.href = '/#pricing'
+              }}
+              className="px-4 py-1.5 bg-gradient-to-r from-primary to-accent hover:from-primary/95 hover:to-accent/95 text-white font-extrabold text-[10px] rounded-lg shadow-sm transition hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+            >
+              Unlock Quests
+            </button>
+          </div>
+        ) : activeQuests.length === 0 ? (
           <div className="text-center py-6 text-xs text-text-3 font-mono">
             No active quests available.
           </div>

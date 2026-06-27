@@ -218,7 +218,7 @@ export function GoalCelebration({
   // MOMENT 1: The Arrival
   if (moment === 1) {
     return (
-      <div className="fixed inset-0 z-50 bg-[#0A0C14] flex flex-col items-center justify-center p-6 select-none animate-fade-in-celebrate">
+      <div className="fixed inset-0 z-50 bg-bg flex flex-col items-center justify-center p-6 select-none animate-fade-in-celebrate">
         {/* Glow behind logo */}
         <div className="absolute w-[300px] h-[300px] rounded-full bg-gradient-to-br from-amber-500/10 to-amber-600/15 blur-3xl opacity-60 animate-learning-pulse pointer-events-none" />
         
@@ -241,7 +241,7 @@ export function GoalCelebration({
 
   // MOMENT 2: The Celebration (Main screen scrollable)
   return (
-    <div className="fixed inset-0 z-50 bg-[#0A0C14] text-[#F0F4FF] overflow-y-auto select-none animate-fade-in-celebrate pb-32">
+    <div className="fixed inset-0 z-50 bg-bg text-text-1 overflow-y-auto select-none animate-fade-in-celebrate pb-32">
       
       {/* Background glow highlights */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -292,7 +292,7 @@ export function GoalCelebration({
               animation: bubbleUp 6s linear infinite;
             }
           `}</style>
-          <div className="w-24 h-24 rounded-full bg-[#111520] border border-amber-500/30 flex items-center justify-center text-4xl shadow-2xl z-10 animate-scale-up-delayed relative overflow-hidden">
+          <div className="w-24 h-24 rounded-full bg-surface border border-amber-500/30 flex items-center justify-center text-4xl shadow-2xl z-10 animate-scale-up-delayed relative overflow-hidden">
             <Trophy className="h-10 w-10 text-amber-500 fill-current" />
             <div className="absolute inset-0 bg-amber-500/5 animate-pulse" />
           </div>
@@ -300,7 +300,7 @@ export function GoalCelebration({
 
         {/* Celebratory Headers */}
         <div className="space-y-3">
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white leading-[1.1]">
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-text-1 leading-[1.1]">
             You did it, {userName.split(' ')[0]}.
           </h1>
           <p className="text-sm font-extrabold text-amber-500 font-mono tracking-wider uppercase">
@@ -310,45 +310,45 @@ export function GoalCelebration({
 
         {/* JOURNEY STATS SECTION */}
         <div className="w-full space-y-4">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8B95B3]">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-text-2">
             Your Journey
           </span>
-          <div className="bg-[#111520]/80 border border-[#1E2540] rounded-2xl p-5 space-y-4 text-left">
-            <div className="grid grid-cols-2 gap-4 pb-4 border-b border-[#1E2540]/40">
+          <div className="bg-surface/80 border border-border rounded-2xl p-5 space-y-4 text-left">
+            <div className="grid grid-cols-2 gap-4 pb-4 border-b border-border/40">
               <div>
-                <span className="text-[9px] font-mono font-bold text-[#8B95B3] uppercase tracking-wider block">Started</span>
-                <span className="text-xs font-bold text-white mt-0.5 block">{formatDate(startDate)}</span>
+                <span className="text-[9px] font-mono font-bold text-text-2 uppercase tracking-wider block">Started</span>
+                <span className="text-xs font-bold text-text-1 mt-0.5 block">{formatDate(startDate)}</span>
               </div>
               <div>
-                <span className="text-[9px] font-mono font-bold text-[#8B95B3] uppercase tracking-wider block">Completed</span>
-                <span className="text-xs font-bold text-white mt-0.5 block">{formatDate(completedDate)}</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 pb-4 border-b border-[#1E2540]/40">
-              <div>
-                <span className="text-[9px] font-mono font-bold text-[#8B95B3] uppercase tracking-wider block">Total Time</span>
-                <span className="text-xs font-bold text-white mt-0.5 block">{totalTimeWeeks} weeks</span>
-              </div>
-              <div>
-                <span className="text-[9px] font-mono font-bold text-[#8B95B3] uppercase tracking-wider block">Phases</span>
-                <span className="text-xs font-bold text-white mt-0.5 block">{phasesCount} complete</span>
+                <span className="text-[9px] font-mono font-bold text-text-2 uppercase tracking-wider block">Completed</span>
+                <span className="text-xs font-bold text-text-1 mt-0.5 block">{formatDate(completedDate)}</span>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 pb-4 border-b border-[#1E2540]/40">
+            <div className="grid grid-cols-2 gap-4 pb-4 border-b border-border/40">
               <div>
-                <span className="text-[9px] font-mono font-bold text-[#8B95B3] uppercase tracking-wider block">Lessons</span>
-                <span className="text-xs font-bold text-white mt-0.5 block">{lessonsCount} completed</span>
+                <span className="text-[9px] font-mono font-bold text-text-2 uppercase tracking-wider block">Total Time</span>
+                <span className="text-xs font-bold text-text-1 mt-0.5 block">{totalTimeWeeks} weeks</span>
               </div>
               <div>
-                <span className="text-[9px] font-mono font-bold text-[#8B95B3] uppercase tracking-wider block">Quizzes</span>
-                <span className="text-xs font-bold text-white mt-0.5 block">{quizzesCount} passed</span>
+                <span className="text-[9px] font-mono font-bold text-text-2 uppercase tracking-wider block">Phases</span>
+                <span className="text-xs font-bold text-text-1 mt-0.5 block">{phasesCount} complete</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 pb-4 border-b border-border/40">
+              <div>
+                <span className="text-[9px] font-mono font-bold text-text-2 uppercase tracking-wider block">Lessons</span>
+                <span className="text-xs font-bold text-text-1 mt-0.5 block">{lessonsCount} completed</span>
+              </div>
+              <div>
+                <span className="text-[9px] font-mono font-bold text-text-2 uppercase tracking-wider block">Quizzes</span>
+                <span className="text-xs font-bold text-text-1 mt-0.5 block">{quizzesCount} passed</span>
               </div>
             </div>
 
             <div className="pt-2 text-center">
-              <span className="text-[9px] font-mono font-bold text-[#8B95B3] uppercase tracking-wider block">Total CXP Earned</span>
+              <span className="text-[9px] font-mono font-bold text-text-2 uppercase tracking-wider block">Total CXP Earned</span>
               <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent font-mono tracking-tight drop-shadow-[0_0_12px_rgba(91,142,255,0.2)] block mt-1">
                 +{cxpEarned} CXP
               </span>
@@ -358,19 +358,19 @@ export function GoalCelebration({
 
         {/* IDENTITY STATEMENT SECTION */}
         <div className="w-full py-8 border-y border-amber-500/20 space-y-4">
-          <p className="text-sm sm:text-base font-semibold text-[#8B95B3] tracking-wide">
+          <p className="text-sm sm:text-base font-semibold text-text-2 tracking-wide">
             You are no longer someone who wanted to
           </p>
           <h3 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent tracking-tight leading-none px-4">
             {goalName}
           </h3>
-          <p className="text-lg sm:text-xl font-bold text-white tracking-wide">
+          <p className="text-lg sm:text-xl font-bold text-text-1 tracking-wide">
             You are someone who did.
           </p>
         </div>
 
         {/* GOAL COMPLETION CERTIFICATE SECTION */}
-        <div className="w-full bg-[#111520] border border-[#1E2540] rounded-2xl p-6 space-y-5">
+        <div className="w-full bg-surface border border-border rounded-2xl p-6 space-y-5">
           <div className="flex items-start gap-4 text-left">
             <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xl shrink-0">
               ✨
@@ -379,7 +379,7 @@ export function GoalCelebration({
               <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-500">
                 Spark
               </span>
-              <p className="text-xs sm:text-sm text-[#C8D0E8] leading-relaxed font-semibold">
+              <p className="text-xs sm:text-sm text-text-2 leading-relaxed font-semibold">
                 &ldquo;{getSparkQuote(userName.split(' ')[0])}&rdquo;
               </p>
             </div>
@@ -387,19 +387,19 @@ export function GoalCelebration({
 
           <Button
             onClick={onClaimCertificate}
-            className="w-full h-13 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white font-extrabold text-[14px] rounded-xl shadow-[0_0_24px_rgba(245,158,11,0.25)] transition duration-150 active:scale-[0.99] cursor-pointer"
+            className="w-full h-13 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-text-1 font-extrabold text-[14px] rounded-xl shadow-[0_0_24px_rgba(245,158,11,0.25)] transition duration-150 active:scale-[0.99] cursor-pointer"
           >
             Claim My Goal Certificate 🏆
           </Button>
         </div>
 
         {/* MOMENT 3: TESTIMONIAL REQUEST */}
-        <div className="w-full bg-[#111520] border border-[#1E2540] rounded-2xl p-6 space-y-5 pt-8">
+        <div className="w-full bg-surface border border-border rounded-2xl p-6 space-y-5 pt-8">
           <div className="space-y-2 text-center">
-            <h3 className="text-lg sm:text-xl font-extrabold text-white">
+            <h3 className="text-lg sm:text-xl font-extrabold text-text-1">
               Your story could change someone&apos;s life.
             </h3>
-            <p className="text-xs sm:text-sm text-[#8B95B3] leading-relaxed font-semibold max-w-sm mx-auto">
+            <p className="text-xs sm:text-sm text-text-2 leading-relaxed font-semibold max-w-sm mx-auto">
               Someone out there has the same goal you just achieved. They are exactly where you were on Day 1 — overwhelmed, unsure, looking for a sign that it is possible.<br /><br />
               Your story is that sign.
             </p>
@@ -436,10 +436,10 @@ export function GoalCelebration({
                   onChange={(e) => setTestimonialText(e.target.value.slice(0, 500))}
                   placeholder="What did you achieve? How did Cognara help? What would you tell someone who is just starting?"
                   rows={4}
-                  className="w-full bg-[#0A0C14] border border-[#1E2540] focus:border-amber-500/50 rounded-xl p-3.5 text-xs sm:text-sm text-white placeholder-[#8B95B3] focus:outline-none transition resize-none"
+                  className="w-full bg-bg border border-border focus:border-amber-500/50 rounded-xl p-3.5 text-xs sm:text-sm text-text-1 placeholder-[#8B95B3] focus:outline-none transition resize-none"
                 />
                 <div className="flex justify-end">
-                  <span className="text-[10px] font-mono text-[#8B95B3] font-semibold">
+                  <span className="text-[10px] font-mono text-text-2 font-semibold">
                     {testimonialText.length}/500 characters
                   </span>
                 </div>
@@ -450,7 +450,7 @@ export function GoalCelebration({
                 <Button
                   type="submit"
                   disabled={submittingTestimonial || !testimonialText.trim()}
-                  className="w-full h-11 bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl cursor-pointer"
+                  className="w-full h-11 bg-amber-500 hover:bg-amber-600 text-text-1 font-extrabold text-xs uppercase tracking-wider rounded-xl cursor-pointer"
                 >
                   {submittingTestimonial ? 'Sharing...' : 'Share my story'}
                 </Button>
@@ -458,7 +458,7 @@ export function GoalCelebration({
                 <button
                   type="button"
                   onClick={() => setTestimonialSubmitted(true)}
-                  className="text-[11px] text-[#8B95B3] hover:text-[#F0F4FF] font-bold uppercase tracking-wider block text-center py-2"
+                  className="text-[11px] text-text-2 hover:text-text-1 font-bold uppercase tracking-wider block text-center py-2"
                 >
                   Maybe later — show me my next goal
                 </button>
@@ -469,7 +469,7 @@ export function GoalCelebration({
               <span className="text-[11px] font-mono font-bold text-amber-500 block">
                 Story Shared!
               </span>
-              <p className="text-xs text-[#8B95B3] mt-1 font-semibold">
+              <p className="text-xs text-text-2 mt-1 font-semibold">
                 Your testimonial has been submitted. Thank you for motivating other learners!
               </p>
             </div>
@@ -477,12 +477,12 @@ export function GoalCelebration({
         </div>
 
         {/* MOMENT 4: WHAT COMES NEXT */}
-        <div className="w-full border-t border-[#1E2540]/60 pt-8 space-y-6">
+        <div className="w-full border-t border-border/60 pt-8 space-y-6">
           <div className="space-y-1.5 text-center">
-            <h3 className="text-lg sm:text-xl font-extrabold text-white">
+            <h3 className="text-lg sm:text-xl font-extrabold text-text-1">
               What do you want to achieve next?
             </h3>
-            <p className="text-xs text-[#8B95B3] font-semibold">
+            <p className="text-xs text-text-2 font-semibold">
               Every expert was once a beginner with a goal and a place to start.
             </p>
           </div>
@@ -493,7 +493,7 @@ export function GoalCelebration({
               <button
                 key={idx}
                 onClick={onContinue}
-                className="px-4 py-2 border border-[#1E2540] hover:border-amber-500/40 bg-[#111520] hover:bg-[#1E2540] text-xs font-bold text-text-2 hover:text-white rounded-full transition cursor-pointer"
+                className="px-4 py-2 border border-border hover:border-amber-500/40 bg-surface hover:bg-[#1E2540] text-xs font-bold text-text-2 hover:text-text-1 rounded-full transition cursor-pointer"
               >
                 {goal}
               </button>
@@ -503,20 +503,20 @@ export function GoalCelebration({
           <Button
             onClick={onContinue}
             variant="ghost"
-            className="w-full h-12 border border-[#1E2540] hover:bg-surface-alt text-xs font-bold uppercase tracking-wider rounded-xl"
+            className="w-full h-12 border border-border hover:bg-surface-alt text-xs font-bold uppercase tracking-wider rounded-xl"
           >
             Choose my own goal
           </Button>
 
           {/* Referral Section */}
-          <div className="border-t border-[#1E2540]/60 pt-6 space-y-4 text-center">
-            <h4 className="text-sm font-extrabold text-white">
+          <div className="border-t border-border/60 pt-6 space-y-4 text-center">
+            <h4 className="text-sm font-extrabold text-text-1">
               Know someone with a goal and no clear path?
             </h4>
             <Button
               onClick={handleInviteFriend}
               variant="ghost"
-              className="w-full h-12 bg-[#111520]/50 hover:bg-[#1E2540]/60 border border-[#1E2540] text-text-2 hover:text-[#F0F4FF] font-bold text-xs uppercase tracking-wider rounded-xl"
+              className="w-full h-12 bg-surface/50 hover:bg-surface-alt border border-border text-text-2 hover:text-text-1 font-bold text-xs uppercase tracking-wider rounded-xl"
             >
               {referralCopied ? (
                 <>
@@ -530,7 +530,7 @@ export function GoalCelebration({
                 </>
               )}
             </Button>
-            <p className="text-[10px] text-[#8B95B3] leading-relaxed max-w-xs mx-auto font-medium">
+            <p className="text-[10px] text-text-2 leading-relaxed max-w-xs mx-auto font-medium">
               They get a structured path. You get bonus CXP when they complete their first lesson.
             </p>
           </div>
@@ -540,7 +540,7 @@ export function GoalCelebration({
         <div className="w-full pt-4">
           <Button
             onClick={onContinue}
-            className="w-full h-13 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white font-extrabold text-[14px] rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-[0.99]"
+            className="w-full h-13 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-text-1 font-extrabold text-[14px] rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-[0.99]"
           >
             Start my next goal
             <ArrowRight className="h-4.5 w-4.5" />

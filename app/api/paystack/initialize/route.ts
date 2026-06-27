@@ -47,9 +47,8 @@ export async function POST(req: Request) {
       }
     }
 
-    const separator = redirectPath.includes('?') ? '&' : '?'
-    const callbackUrl = `${appUrl}${redirectPath}${separator}payment=success&plan=${plan}`
-    const cancelAction = cancelUrl || `${appUrl}${redirectPath}`
+    const callbackUrl = `${appUrl}/dashboard/payment-success?plan=${plan}`
+    const cancelAction = cancelUrl || `${appUrl}/dashboard/payment-failure?plan=${plan}`
 
     // Initialize Paystack transaction
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
@@ -66,6 +65,7 @@ export async function POST(req: Request) {
         channels: ["card", "bank", "ussd", "bank_transfer"],
         metadata: {
           user_id: user.id,
+          plan: plan,
           plan_type: plan,
           cancel_action: cancelAction,
         },

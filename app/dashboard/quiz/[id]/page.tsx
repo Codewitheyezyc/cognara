@@ -990,9 +990,9 @@ export default function QuizPage() {
   // Loading Screen
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0A0C14] text-[#F0F4FF] flex flex-col items-center justify-center p-6 space-y-4 animate-page-enter">
+      <div className="min-h-screen bg-bg text-text-1 flex flex-col items-center justify-center p-6 space-y-4 animate-page-enter">
         <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-        <p className="text-sm font-mono text-[#8B95B3] tracking-wide animate-pulse">
+        <p className="text-sm font-mono text-text-2 tracking-wide animate-pulse">
           Calibrating assessment metrics...
         </p>
       </div>
@@ -1067,13 +1067,13 @@ export default function QuizPage() {
   if (errorMsg) {
     if (errorMsg === 'OUT_OF_HEARTS') {
       return (
-        <div className="min-h-screen bg-[#0A0C14] text-[#F0F4FF] flex flex-col items-center justify-center p-6 space-y-8 max-w-md mx-auto text-center animate-page-enter">
+        <div className="min-h-screen bg-bg text-text-1 flex flex-col items-center justify-center p-6 space-y-8 max-w-md mx-auto text-center animate-page-enter">
           <div className="p-4 bg-rose-500/10 border border-rose-500/25 rounded-full text-rose-500">
             <Heart className="h-12 w-12 fill-current text-rose-500 animate-pulse" />
           </div>
           <div className="space-y-3">
-            <h2 className="font-heading text-2xl font-bold text-white">Not quite this time.</h2>
-            <p className="text-sm text-[#8B95B3] leading-relaxed">
+            <h2 className="font-heading text-2xl font-bold text-text-1">Not quite this time.</h2>
+            <p className="text-sm text-text-2 leading-relaxed">
               Losing hearts means the content needs another look.
             </p>
             <p className="text-sm text-[#A78BFA] font-medium">
@@ -1084,7 +1084,7 @@ export default function QuizPage() {
           <div className="flex flex-col gap-3 w-full">
             <Button
               onClick={() => router.push(`/dashboard/lesson/${lessonId}`)}
-              className="w-full h-13 bg-[#1E2540] hover:bg-[#2E3750] border border-[#2E3750] text-[#F0F4FF] font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition active:scale-[0.99]"
+              className="w-full h-13 bg-[#1E2540] hover:bg-[#2E3750] border border-border text-text-1 font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition active:scale-[0.99]"
             >
               Review Lesson
             </Button>
@@ -1093,22 +1093,22 @@ export default function QuizPage() {
               <Button
                 onClick={handleCxpRefillHearts}
                 disabled={isRefillingHearts}
-                className="w-full h-13 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.25)] flex items-center justify-center gap-2 cursor-pointer transition active:scale-[0.99]"
+                className="w-full h-13 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-text-1 font-bold rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.25)] flex items-center justify-center gap-2 cursor-pointer transition active:scale-[0.99]"
               >
-                <Sparkles className="h-4 w-4 fill-current animate-pulse text-white" />
+                <Sparkles className="h-4 w-4 fill-current animate-pulse text-text-1" />
                 Refill & Retry (150 CXP)
               </Button>
             ) : (
               <div className="space-y-2">
                 <Button
                   disabled={true}
-                  className="w-full h-13 bg-[#1E2540]/30 border border-[#1E2540]/55 text-[#8B95B3]/50 font-bold rounded-xl text-xs flex items-center justify-center gap-2"
+                  className="w-full h-13 bg-[#1E2540]/30 border border-border/55 text-text-2/50 font-bold rounded-xl text-xs flex items-center justify-center gap-2"
                 >
                   Need 150 CXP to refill (You have {profile?.xp ?? 0} CXP)
                 </Button>
                 <Button
                   onClick={() => router.push('/dashboard/path?reentry=true')}
-                  className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-xl shadow-[0_0_20px_rgba(91,142,255,0.25)] flex items-center justify-center gap-2 cursor-pointer transition active:scale-[0.99]"
+                  className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-text-1 font-bold rounded-xl shadow-[0_0_20px_rgba(91,142,255,0.25)] flex items-center justify-center gap-2 cursor-pointer transition active:scale-[0.99]"
                 >
                   Review Completed Lessons (+1 Heart)
                 </Button>
@@ -1118,7 +1118,7 @@ export default function QuizPage() {
             <Button
               onClick={() => router.push('/dashboard/settings')}
               variant="ghost"
-              className="w-full h-13 bg-[#141A30]/50 hover:bg-[#1E2540]/60 border border-[#1E2540] text-[#8B95B3] hover:text-[#F0F4FF] rounded-xl text-[13px] font-bold cursor-pointer transition active:scale-[0.99]"
+              className="w-full h-13 bg-surface-alt/50 hover:bg-surface-alt border border-border text-text-2 hover:text-text-1 rounded-xl text-[13px] font-bold cursor-pointer transition active:scale-[0.99]"
             >
               Upgrade to Pro (Infinite Hearts)
             </Button>
@@ -1128,24 +1128,24 @@ export default function QuizPage() {
     }
 
     return (
-      <div className="min-h-screen bg-[#0A0C14] text-[#F0F4FF] flex flex-col items-center justify-center p-6 space-y-6 max-w-md mx-auto text-center animate-page-enter">
+      <div className="min-h-screen bg-bg text-text-1 flex flex-col items-center justify-center p-6 space-y-6 max-w-md mx-auto text-center animate-page-enter">
         <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-full">
           <XCircle className="h-8 w-8 text-rose-500" />
         </div>
         <div className="space-y-2">
-          <h2 className="font-heading text-xl font-bold text-white">Assessment Interrupted</h2>
-          <p className="text-sm text-[#8B95B3]">{errorMsg}</p>
+          <h2 className="font-heading text-xl font-bold text-text-1">Assessment Interrupted</h2>
+          <p className="text-sm text-text-2">{errorMsg}</p>
         </div>
         <div className="flex space-x-3 w-full">
           <Button
             onClick={() => router.push(`/dashboard/lesson/${lessonId}`)}
-            className="flex-1 h-11 bg-[#141A30]/50 hover:bg-[#1E2540]/60 border border-[#1E2540] text-[#C8D0E8] rounded-xl text-xs font-semibold"
+            className="flex-1 h-11 bg-surface-alt/50 hover:bg-surface-alt border border-border text-text-2 rounded-xl text-xs font-semibold"
           >
             Back to Lesson
           </Button>
           <Button
             onClick={handleRetryQuiz}
-            className="flex-1 h-11 bg-primary hover:bg-primary/95 text-white rounded-xl text-xs font-semibold"
+            className="flex-1 h-11 bg-primary hover:bg-primary/95 text-text-1 rounded-xl text-xs font-semibold"
           >
             Retry Loading
           </Button>
@@ -1160,7 +1160,7 @@ export default function QuizPage() {
     const goalTitle = profile?.main_goal || 'your custom goal'
 
     return (
-      <div className="min-h-screen bg-[#0A0C14] text-[#F0F4FF] flex flex-col items-center justify-center p-6 space-y-8 max-w-lg mx-auto text-left animate-page-enter">
+      <div className="min-h-screen bg-bg text-text-1 flex flex-col items-center justify-center p-6 space-y-8 max-w-lg mx-auto text-left animate-page-enter">
         <style>{`
           @keyframes slideInUp {
             from { transform: translateY(20px); opacity: 0; }
@@ -1173,40 +1173,40 @@ export default function QuizPage() {
         
         {/* Title */}
         <div className="space-y-1.5 w-full">
-          <h2 className="text-3xl font-extrabold text-white leading-tight">Day 1 complete. 🔥</h2>
-          <p className="text-sm text-[#8B95B3]">You set the foundation today. Here is what you achieved:</p>
+          <h2 className="text-3xl font-extrabold text-text-1 leading-tight">Day 1 complete. 🔥</h2>
+          <p className="text-sm text-text-2">You set the foundation today. Here is what you achieved:</p>
         </div>
 
         {/* Accomplishments Box */}
-        <div className="w-full bg-[#111424] border border-[#1E2540] rounded-2xl p-5 space-y-3.5 animate-slideInUp">
+        <div className="w-full bg-surface border border-border rounded-2xl p-5 space-y-3.5 animate-slideInUp">
           <div className="flex items-center gap-3">
             <div className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 font-bold text-xs">✓</div>
-            <p className="text-[13px] text-[#C8D0E8]">Built your <span className="text-[#A78BFA] font-bold">&quot;{goalTitle}&quot;</span> roadmap</p>
+            <p className="text-[13px] text-text-2">Built your <span className="text-[#A78BFA] font-bold">&quot;{goalTitle}&quot;</span> roadmap</p>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 font-bold text-xs">✓</div>
-            <p className="text-[13px] text-[#C8D0E8]">Completed Lesson 1: <span className="text-white font-medium">{lessonTitle}</span></p>
+            <p className="text-[13px] text-text-2">Completed Lesson 1: <span className="text-text-1 font-medium">{lessonTitle}</span></p>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 font-bold text-xs">✓</div>
-            <p className="text-[13px] text-[#C8D0E8]">Earned <span className="text-[#5B8EFF] font-extrabold">{xpAward} CXP</span></p>
+            <p className="text-[13px] text-text-2">Earned <span className="text-[#5B8EFF] font-extrabold">{xpAward} CXP</span></p>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 font-bold text-xs">✓</div>
-            <p className="text-[13px] text-[#C8D0E8]">Started your streak</p>
+            <p className="text-[13px] text-text-2">Started your streak</p>
           </div>
         </div>
 
         {/* Tomorrow Mission */}
-        <div className="w-full bg-[#161B30]/40 border border-[#232B4C] rounded-2xl p-5 space-y-2.5 animate-slideInUp" style={{ animationDelay: '150ms' }}>
+        <div className="w-full bg-surface-alt/40 border border-border rounded-2xl p-5 space-y-2.5 animate-slideInUp" style={{ animationDelay: '150ms' }}>
           <span className="text-[10px] font-mono uppercase tracking-widest text-[#5B8EFF] font-bold block">Tomorrow&apos;s Mission</span>
           {nextLessonId ? (
             <>
-              <p className="text-[14px] font-bold text-white leading-snug">Complete Lesson 2: &quot;{nextLessonTitle}&quot;</p>
-              <p className="text-[11px] text-[#8B95B3] font-medium">Estimated time: {nextLessonTime} minutes</p>
+              <p className="text-[14px] font-bold text-text-1 leading-snug">Complete Lesson 2: &quot;{nextLessonTitle}&quot;</p>
+              <p className="text-[11px] text-text-2 font-medium">Estimated time: {nextLessonTime} minutes</p>
             </>
           ) : (
-            <p className="text-[13px] text-white">Choose your next goal on the dashboard to build your path!</p>
+            <p className="text-[13px] text-text-1">Choose your next goal on the dashboard to build your path!</p>
           )}
         </div>
 
@@ -1217,8 +1217,8 @@ export default function QuizPage() {
             disabled={reminderSet}
             className={`w-full h-13 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-2 text-[14px] ${
               reminderSet
-                ? 'bg-[#1C2036] border border-[#282F52] text-[#4A5272] cursor-not-allowed'
-                : 'bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white shadow-[0_0_24px_rgba(91,142,255,0.25)]'
+                ? 'bg-surface-alt border border-border text-text-3 cursor-not-allowed'
+                : 'bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-text-1 shadow-[0_0_24px_rgba(91,142,255,0.25)]'
             }`}
           >
             <Bell className="h-4 w-4" />
@@ -1227,7 +1227,7 @@ export default function QuizPage() {
           <Button
             onClick={() => router.push('/dashboard')}
             variant="ghost"
-            className="w-full h-13 bg-[#141A30]/50 hover:bg-[#1E2540]/60 border border-[#1E2540] text-[#8B95B3] hover:text-[#F0F4FF] rounded-xl text-[13px] font-bold"
+            className="w-full h-13 bg-surface-alt/50 hover:bg-surface-alt border border-border text-text-2 hover:text-text-1 rounded-xl text-[13px] font-bold"
           >
             Go to my dashboard
           </Button>
@@ -1252,7 +1252,7 @@ export default function QuizPage() {
     }
 
     return (
-      <div className="min-h-screen bg-[#0A0C14] text-[#F0F4FF] flex flex-col items-center justify-center p-6 space-y-8 max-w-md mx-auto text-center animate-page-enter">
+      <div className="min-h-screen bg-bg text-text-1 flex flex-col items-center justify-center p-6 space-y-8 max-w-md mx-auto text-center animate-page-enter">
         <style>{`
           @keyframes floatUpAndFade {
             0% { opacity: 0; transform: translateY(80px) scale(0.7); }
@@ -1296,20 +1296,20 @@ export default function QuizPage() {
 
         {/* Header */}
         <div className="space-y-2">
-          <h2 className="text-3xl font-extrabold text-white tracking-tight">Quiz Complete! 🎉</h2>
-          <p className="text-lg font-semibold text-[#8B95B3]">
-            Score: <span className="text-white font-extrabold">{correctCount}</span> out of 5
+          <h2 className="text-3xl font-extrabold text-text-1 tracking-tight">Quiz Complete! 🎉</h2>
+          <p className="text-lg font-semibold text-text-2">
+            Score: <span className="text-text-1 font-extrabold">{correctCount}</span> out of 5
           </p>
         </div>
 
         {/* Performance details */}
-        <div className="space-y-4 bg-[#111424] border border-[#1E2540] p-5 rounded-2xl w-full">
-          <p className="text-sm text-[#C8D0E8] leading-relaxed font-medium">
+        <div className="space-y-4 bg-surface border border-border p-5 rounded-2xl w-full">
+          <p className="text-sm text-text-2 leading-relaxed font-medium">
             {performanceMsg}
           </p>
 
           {/* Hearts status inside results */}
-          <div className="flex items-center justify-center gap-1.5 pt-1 border-t border-[#1E2540]/60 mt-3 text-xs text-[#8B95B3] font-medium">
+          <div className="flex items-center justify-center gap-1.5 pt-1 border-t border-border/60 mt-3 text-xs text-text-2 font-medium">
             <span>Hearts remaining:</span>
             <div className="flex items-center gap-0.5">
               {[1, 2, 3].map((val) => {
@@ -1330,26 +1330,26 @@ export default function QuizPage() {
         {/* Streak Announcement Banner */}
         <div className="w-full py-3.5 px-4 bg-gradient-to-r from-[#5B8EFF]/15 to-[#A78BFA]/10 border border-[#5B8EFF]/25 rounded-2xl flex items-center justify-center gap-2">
           <Flame className="h-5 w-5 text-rose-500 fill-current animate-pulse-subtle" />
-          <span className="text-xs font-bold text-white tracking-wide">
+          <span className="text-xs font-bold text-text-1 tracking-wide">
             🔥 Day 1 Streak — You showed up. That matters.
           </span>
         </div>
 
         {/* Perfect Score Quiz Testimonial Popups */}
         {showQuizTestimonialPrompt && !showQuizTestimonialForm && (
-          <div className="bg-[#111424] border border-[#1E2540] p-5 rounded-2xl w-full text-center space-y-4 animate-page-enter">
-            <h3 className="text-sm font-extrabold text-white">Perfect score 🎉</h3>
-            <p className="text-xs text-[#C8D0E8] font-semibold">Enjoying your Cognara journey so far?</p>
+          <div className="bg-surface border border-border p-5 rounded-2xl w-full text-center space-y-4 animate-page-enter">
+            <h3 className="text-sm font-extrabold text-text-1">Perfect score 🎉</h3>
+            <p className="text-xs text-text-2 font-semibold">Enjoying your Cognara journey so far?</p>
             <div className="flex items-center gap-3">
               <Button
                 onClick={() => setShowQuizTestimonialForm(true)}
-                className="flex-1 h-9 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] text-white text-xs font-bold rounded-lg cursor-pointer"
+                className="flex-1 h-9 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] text-text-1 text-xs font-bold rounded-lg cursor-pointer"
               >
                 Yes — loving it
               </Button>
               <button
                 onClick={() => setShowQuizTestimonialPrompt(false)}
-                className="flex-1 h-9 bg-transparent hover:bg-[#1C2036] border border-[#1E2540] text-[#8B95B3] hover:text-white rounded-lg text-xs font-bold cursor-pointer transition-colors"
+                className="flex-1 h-9 bg-transparent hover:bg-surface-alt border border-border text-text-2 hover:text-text-1 rounded-lg text-xs font-bold cursor-pointer transition-colors"
                 type="button"
               >
                 Still early days
@@ -1373,14 +1373,14 @@ export default function QuizPage() {
         <div className="flex flex-col gap-3 w-full pt-4">
           <Button
             onClick={() => setIsEndSession(true)}
-            className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.3)] transition-all duration-200 flex items-center justify-center gap-2 text-[14px]"
+            className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-text-1 font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.3)] transition-all duration-200 flex items-center justify-center gap-2 text-[14px]"
           >
             <span>Continue to Next Lesson →</span>
           </Button>
           <Button
             onClick={() => router.push(`/dashboard/lesson/${lessonId}`)}
             variant="ghost"
-            className="w-full h-13 bg-[#141A30]/50 hover:bg-[#1E2540]/60 border border-[#1E2540] text-[#8B95B3] hover:text-[#F0F4FF] rounded-xl text-[13px] font-bold"
+            className="w-full h-13 bg-surface-alt/50 hover:bg-surface-alt border border-border text-text-2 hover:text-text-1 rounded-xl text-[13px] font-bold"
           >
             Review this lesson
           </Button>
@@ -1437,7 +1437,7 @@ export default function QuizPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0C14] text-[#F0F4FF] flex flex-col animate-page-enter">
+    <div className="min-h-screen bg-bg text-text-1 flex flex-col animate-page-enter">
       {/* Styles */}
       <style>{`
         @keyframes pulse-subtle {
@@ -1458,11 +1458,11 @@ export default function QuizPage() {
       `}</style>
 
       {/* Minimal Focus Header */}
-      <header className="border-b border-[#1E2540] bg-[#0A0C14]/90 backdrop-blur-md sticky top-0 z-30">
+      <header className="border-b border-border bg-bg/90 backdrop-blur-md sticky top-0 z-30">
         <div className="max-w-[760px] mx-auto px-4 h-14 flex items-center justify-between">
           <Link
             href={`/dashboard/lesson/${lessonId}`}
-            className="flex items-center space-x-2 text-xs text-[#8B95B3] hover:text-[#F0F4FF] transition-colors font-medium group"
+            className="flex items-center space-x-2 text-xs text-text-2 hover:text-text-1 transition-colors font-medium group"
           >
             <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
             <span>Exit Focus Mode</span>
@@ -1480,7 +1480,7 @@ export default function QuizPage() {
               </div>
             )}
             <AIBadge />
-            <span className="text-[10px] font-mono text-[#8B95B3] font-bold">
+            <span className="text-[10px] font-mono text-text-2 font-bold">
               Question {questionNumber} of {totalQuestions}
             </span>
           </div>
@@ -1502,7 +1502,7 @@ export default function QuizPage() {
             <span className="text-[10px] font-mono uppercase tracking-widest text-[#5B8EFF] font-bold block">
               Section Quiz
             </span>
-            <h2 className="font-heading text-lg md:text-xl font-semibold leading-relaxed text-white">
+            <h2 className="font-heading text-lg md:text-xl font-semibold leading-relaxed text-text-1">
               {currentQuestion.question}
             </h2>
           </div>
@@ -1514,9 +1514,9 @@ export default function QuizPage() {
             ? isCorrect 
               ? 'border-emerald-500/20 bg-emerald-500/5 shadow-[0_0_12px_rgba(16,185,129,0.04)]' 
               : 'border-rose-500/20 bg-rose-500/5 shadow-[0_0_12px_rgba(239,68,68,0.04)]' 
-            : 'border-[#1E2540] bg-[#111424]/40'
+            : 'border-border bg-surface/40'
         }`}>
-          <div className="shrink-0 flex items-center justify-center p-1 bg-[#141A30] rounded-xl border border-[#1E2540]">
+          <div className="shrink-0 flex items-center justify-center p-1 bg-surface-alt rounded-xl border border-border">
             <Spark emotion={sparkEmotion} size={48} />
           </div>
           <div className="flex-grow space-y-0.5 min-w-0">
@@ -1526,7 +1526,7 @@ export default function QuizPage() {
                 ? isCorrect 
                   ? 'text-emerald-400' 
                   : 'text-rose-400' 
-                : 'text-[#8B95B3]'
+                : 'text-text-2'
             }`}>
               {sparkBubble}
             </p>
@@ -1541,7 +1541,7 @@ export default function QuizPage() {
                 const isSelected = selectedAnswer === option
                 const isCorrectAnswer = option.trim().toLowerCase() === currentQuestion.correct_answer.trim().toLowerCase()
                 
-                let btnStyle = 'border-[#1E2540] bg-[#141A30]/50 hover:bg-[#1E2540]/60 text-[#C8D0E8]'
+                let btnStyle = 'border-border bg-surface-alt/50 hover:bg-surface-alt text-text-2'
                 if (isAnswerChecked) {
                   if (isSelected) {
                     if (isCorrectAnswer) {
@@ -1552,10 +1552,10 @@ export default function QuizPage() {
                   } else if (isCorrectAnswer) {
                     btnStyle = 'border-emerald-500 bg-emerald-500/10 text-emerald-400 font-bold'
                   } else {
-                    btnStyle = 'border-[#1E2540] opacity-40 text-text-3'
+                    btnStyle = 'border-border opacity-40 text-text-3'
                   }
                 } else if (isSelected) {
-                  btnStyle = 'border-[#5B8EFF] bg-[#5B8EFF]/10 text-white font-semibold'
+                  btnStyle = 'border-[#5B8EFF] bg-[#5B8EFF]/10 text-text-1 font-semibold'
                 }
 
                 return (
@@ -1576,7 +1576,7 @@ export default function QuizPage() {
                         ) : null
                       ) : (
                         <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                          isSelected ? 'border-[#5B8EFF] bg-[#5B8EFF]' : 'border-[#2E3750]'
+                          isSelected ? 'border-[#5B8EFF] bg-[#5B8EFF]' : 'border-border'
                         }`}>
                           {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                         </div>
@@ -1594,7 +1594,7 @@ export default function QuizPage() {
                 const isSelected = selectedAnswer === option
                 const isCorrectAnswer = option.trim().toLowerCase() === currentQuestion.correct_answer.trim().toLowerCase()
                 
-                let btnStyle = 'border-[#1E2540] bg-[#141A30]/50 hover:bg-[#1E2540]/60 text-[#C8D0E8]'
+                let btnStyle = 'border-border bg-surface-alt/50 hover:bg-surface-alt text-text-2'
                 if (isAnswerChecked) {
                   if (isSelected) {
                     if (isCorrectAnswer) {
@@ -1605,10 +1605,10 @@ export default function QuizPage() {
                   } else if (isCorrectAnswer) {
                     btnStyle = 'border-emerald-500 bg-emerald-500/10 text-emerald-400 font-bold'
                   } else {
-                    btnStyle = 'border-[#1E2540] opacity-40 text-text-3'
+                    btnStyle = 'border-border opacity-40 text-text-3'
                   }
                 } else if (isSelected) {
-                  btnStyle = 'border-[#5B8EFF] bg-[#5B8EFF]/10 text-white font-semibold'
+                  btnStyle = 'border-[#5B8EFF] bg-[#5B8EFF]/10 text-text-1 font-semibold'
                 }
 
                 return (
@@ -1634,9 +1634,9 @@ export default function QuizPage() {
                 onChange={(e) => setSelectedAnswer(e.target.value)}
                 placeholder="Type your answer here..."
                 type="text"
-                className="w-full h-12 px-4 rounded-xl bg-[#141A30] border border-[#1E2540] text-white text-sm placeholder-[#3A4262] focus:outline-none focus:border-[#5B8EFF] transition-colors disabled:opacity-75"
+                className="w-full h-12 px-4 rounded-xl bg-surface-alt border border-border text-text-1 text-sm placeholder-[#3A4262] focus:outline-none focus:border-[#5B8EFF] transition-colors disabled:opacity-75"
               />
-              <p className="text-[10px] font-mono text-[#4A5272]">
+              <p className="text-[10px] font-mono text-text-3">
                 Tip: Correct spelling is required (single word or short phrase).
               </p>
             </div>
@@ -1648,7 +1648,7 @@ export default function QuizPage() {
           <Button
             onClick={handleCheckAnswer}
             disabled={!selectedAnswer.trim()}
-            className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.25)] transition-all duration-200 flex items-center justify-center gap-2 text-[14px] disabled:opacity-50"
+            className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-text-1 font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.25)] transition-all duration-200 flex items-center justify-center gap-2 text-[14px] disabled:opacity-50"
           >
             Check Answer
           </Button>
@@ -1660,8 +1660,8 @@ export default function QuizPage() {
               return (
                 <div className={`p-5 rounded-xl border flex gap-4 items-start ${
                   isCorrect
-                    ? 'border-emerald-500/25 bg-emerald-500/5 text-white'
-                    : 'border-rose-500/25 bg-rose-500/5 text-white'
+                    ? 'border-emerald-500/25 bg-emerald-500/5 text-text-1'
+                    : 'border-rose-500/25 bg-rose-500/5 text-text-1'
                 }`}>
                   {isCorrect ? (
                     <CheckCircle2 className="h-5 w-5 text-emerald-400 flex-shrink-0 mt-0.5" />
@@ -1673,11 +1673,11 @@ export default function QuizPage() {
                       {isCorrect ? 'Correct Answer' : 'Incorrect Answer'}
                     </h4>
                     {!isCorrect && (
-                      <p className="text-[12px] text-[#C8D0E8] font-medium mt-1">
+                      <p className="text-[12px] text-text-2 font-medium mt-1">
                         Correct answer: <span className="font-mono text-emerald-400">{currentQuestion.correct_answer}</span>
                       </p>
                     )}
-                    <p className="text-[12.5px] text-[#8B95B3] leading-relaxed pt-1 font-medium">
+                    <p className="text-[12.5px] text-text-2 leading-relaxed pt-1 font-medium">
                       {currentQuestion.explanation}
                     </p>
                   </div>
@@ -1688,7 +1688,7 @@ export default function QuizPage() {
             <Button
               onClick={handleNextQuestion}
               disabled={isSubmitting}
-              className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.3)] transition-all duration-200 flex items-center justify-center text-[14px]"
+              className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-text-1 font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.3)] transition-all duration-200 flex items-center justify-center text-[14px]"
             >
               {isSubmitting ? 'Saving...' : currentIdx === questions.length - 1 ? 'Submit Assessment' : 'Next Question'}
             </Button>
@@ -1721,11 +1721,11 @@ export default function QuizPage() {
       {/* Generating Overlay Modal */}
       {isGeneratingCert && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="w-full max-w-sm bg-[#111520] border border-[#1E2540] rounded-2xl shadow-2xl p-6 text-center space-y-4">
+          <div className="w-full max-w-sm bg-surface border border-border rounded-2xl shadow-2xl p-6 text-center space-y-4">
             <div className="w-10 h-10 border-4 border-[#5B8EFF]/20 border-t-[#5B8EFF] rounded-full animate-spin mx-auto" />
             <div className="space-y-1.5">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Preparing Certificate</h3>
-              <p className="text-xs text-[#8B95B3]">Generating your premium high-fidelity document...</p>
+              <h3 className="text-sm font-bold text-text-1 uppercase tracking-wider">Preparing Certificate</h3>
+              <p className="text-xs text-text-2">Generating your premium high-fidelity document...</p>
             </div>
           </div>
         </div>
@@ -1734,13 +1734,13 @@ export default function QuizPage() {
       {/* Friendly Error Overlay Modal */}
       {showFriendlyError && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-          <div className="w-full max-w-sm bg-[#111520] border border-amber-500/20 rounded-2xl shadow-2xl p-6 text-center space-y-5">
+          <div className="w-full max-w-sm bg-surface border border-amber-500/20 rounded-2xl shadow-2xl p-6 text-center space-y-5">
             <div className="w-12 h-12 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center justify-center text-amber-500 mx-auto">
               <span className="text-xl">✨</span>
             </div>
             <div className="space-y-2">
-              <h3 className="text-base font-extrabold text-white">Your certificate is being prepared.</h3>
-              <p className="text-xs text-[#8B95B3] leading-relaxed">
+              <h3 className="text-base font-extrabold text-text-1">Your certificate is being prepared.</h3>
+              <p className="text-xs text-text-2 leading-relaxed">
                 It will be ready in your profile within a few minutes.
               </p>
             </div>
@@ -1749,7 +1749,7 @@ export default function QuizPage() {
                 setShowFriendlyError(false)
                 handleContinueWithoutClaiming()
               }}
-              className="w-full h-11 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] text-white font-bold rounded-xl text-xs cursor-pointer"
+              className="w-full h-11 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] text-text-1 font-bold rounded-xl text-xs cursor-pointer"
             >
               Continue to Phase {phaseCompleteData?.nextPhaseNumber || (phaseCompleteData?.phaseNumber + 1)}
             </Button>

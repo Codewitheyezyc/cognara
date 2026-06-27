@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { GeneratedLesson } from '@/types/ai'
-import { BookOpen, ArrowRight, ChevronDown, Lock, Download, Compass, Terminal, Activity, CheckCircle2, Sparkles } from 'lucide-react'
+import { BookOpen, ArrowRight, ChevronDown, Lock, Download, Compass, Terminal, Activity, CheckCircle2, Sparkles, Bookmark } from 'lucide-react'
 import { CodeBlock } from './CodeBlock'
 import { Callout } from './Callout'
 import { LessonTable } from './LessonTable'
@@ -12,7 +12,6 @@ import { ExerciseWriting } from './ExerciseWriting'
 import { ExerciseTask } from './ExerciseTask'
 import { ExerciseProject } from './ExerciseProject'
 import { createClient } from '@/lib/supabase/client'
-import { BookmarkButton } from './BookmarkButton'
 import { ConfusedButton } from './ConfusedButton'
 import { LessonPreviewModal } from '../dashboard/LessonPreviewModal'
 import { useToast } from '@/components/ui/toast'
@@ -192,26 +191,67 @@ export default function LessonContent({
   const router = useRouter()
 
   const supabase = createClient()
-  const [bookmarks, setBookmarks] = React.useState<any[]>([])
-
   const { toast } = useToast()
-  const [isDownloaded, setIsDownloaded] = React.useState(false)
+  
+  const [isSavedReference, setIsSavedReference] = React.useState(false)
+  const [isDownloadedOffline, setIsDownloadedOffline] = React.useState(false)
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
         const stored = localStorage.getItem('cognara_downloaded_lessons')
         const downloads = stored ? JSON.parse(stored) : {}
-        if (downloads[lessonId]) {
-          setIsDownloaded(true)
+        const entry = downloads[lessonId]
+        if (entry) {
+          if (entry.state === 'saved') {
+            setIsSavedReference(true)
+            setIsDownloadedOffline(false)
+          } else {
+            setIsSavedReference(false)
+            setIsDownloadedOffline(true)
+          }
+        } else {
+          setIsSavedReference(false)
+          setIsDownloadedOffline(false)
         }
       } catch (err) {
-        console.error('Failed to check downloads cache:', err)
+        console.error('Failed to check saved/downloaded cache:', err)
       }
     }
   }, [lessonId])
 
-  const handleDownload = () => {
+  const handleSaveAsReference = () => {
+    try {
+      const stored = localStorage.getItem('cognara_downloaded_lessons')
+      const downloads = stored ? JSON.parse(stored) : {}
+
+      if (isSavedReference) {
+        delete downloads[lessonId]
+        localStorage.setItem('cognara_downloaded_lessons', JSON.stringify(downloads))
+        setIsSavedReference(false)
+        toast('Lesson removed from Saved Lessons.')
+      } else {
+        downloads[lessonId] = {
+          id: lessonId,
+          title: lesson.title,
+          subject: subject,
+          depthLevel: depthLevel,
+          state: 'saved', // online-only reference
+          downloadedAt: new Date().toISOString(),
+        }
+        localStorage.setItem('cognara_downloaded_lessons', JSON.stringify(downloads))
+        setIsSavedReference(true)
+        setIsDownloadedOffline(false)
+        toast('Lesson saved as reference! 📁')
+      }
+      window.dispatchEvent(new Event('storage'))
+    } catch (err) {
+      console.error(err)
+      toast('Failed to save lesson reference', 'error')
+    }
+  }
+
+  const handleDownloadOffline = () => {
     if (!isPro && phaseNumber > 1) {
       setIsModalOpen(true)
       return
@@ -221,43 +261,32 @@ export default function LessonContent({
       const stored = localStorage.getItem('cognara_downloaded_lessons')
       const downloads = stored ? JSON.parse(stored) : {}
 
-      if (downloads[lessonId]) {
-        toast('Lesson is already downloaded and cached offline!')
-        return
+      if (isDownloadedOffline) {
+        delete downloads[lessonId]
+        localStorage.setItem('cognara_downloaded_lessons', JSON.stringify(downloads))
+        setIsDownloadedOffline(false)
+        toast('Offline download removed.')
+      } else {
+        downloads[lessonId] = {
+          id: lessonId,
+          title: lesson.title,
+          subject: subject,
+          depthLevel: depthLevel,
+          lesson: lesson, // download full content offline
+          state: 'downloaded',
+          downloadedAt: new Date().toISOString(),
+        }
+        localStorage.setItem('cognara_downloaded_lessons', JSON.stringify(downloads))
+        setIsDownloadedOffline(true)
+        setIsSavedReference(false)
+        toast('Lesson downloaded offline! 🎓')
       }
-
-      downloads[lessonId] = {
-        id: lessonId,
-        title: lesson.title,
-        subject: subject,
-        depthLevel: depthLevel,
-        lesson: lesson,
-        downloadedAt: new Date().toISOString(),
-      }
-
-      localStorage.setItem('cognara_downloaded_lessons', JSON.stringify(downloads))
-      setIsDownloaded(true)
-      toast('Lesson downloaded successfully for in-app offline reading! 🎓')
+      window.dispatchEvent(new Event('storage'))
     } catch (err) {
       console.error(err)
-      toast('Failed to cache lesson offline', 'error')
+      toast('Failed to download lesson offline', 'error')
     }
   }
-
-  React.useEffect(() => {
-    async function fetchBookmarks() {
-      if (!userId || !lessonId) return
-      const { data } = await supabase
-        .from('lesson_bookmarks')
-        .select('*')
-        .eq('lesson_id', lessonId)
-        .eq('user_id', userId)
-      if (data) {
-        setBookmarks(data)
-      }
-    }
-    fetchBookmarks()
-  }, [lessonId, userId, supabase])
 
   return (
     <div className="max-w-[720px] mx-auto space-y-8 pb-12 animate-page-enter">
@@ -274,21 +303,42 @@ export default function LessonContent({
               {depthLabels[depthLevel] || 'Beginner'}
             </span>
             
-            {/* Download Lesson Button */}
-            <button
-              type="button"
-              onClick={handleDownload}
-              className="px-2.5 py-1 bg-surface-alt hover:bg-surface border border-border/80 text-[10px] text-primary font-bold uppercase tracking-wide rounded-full flex items-center space-x-1.5 transition-all duration-150 shadow-sm shrink-0 cursor-pointer hover:border-primary/50"
-            >
-              <Download className="h-3 w-3 text-primary" />
-              <span>
-                {!isPro && phaseNumber > 1 
-                  ? 'Download 🔒' 
-                  : isDownloaded 
-                  ? 'Downloaded ✓' 
-                  : 'Download'}
-              </span>
-            </button>
+            {/* Save Actions Button Group */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              {/* Save as Reference Button */}
+              <button
+                type="button"
+                onClick={handleSaveAsReference}
+                className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide rounded-full flex items-center space-x-1.5 transition-all duration-150 shadow-sm shrink-0 cursor-pointer border ${
+                  isSavedReference
+                    ? 'bg-primary/10 border-primary text-primary'
+                    : 'bg-surface-alt hover:bg-surface border-border/80 text-text-2 hover:text-text-1'
+                }`}
+              >
+                <Bookmark className="h-3 w-3" />
+                <span>{isSavedReference ? 'Saved ✓' : 'Save as reference'}</span>
+              </button>
+
+              {/* Download for Offline Button */}
+              <button
+                type="button"
+                onClick={handleDownloadOffline}
+                className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide rounded-full flex items-center space-x-1.5 transition-all duration-150 shadow-sm shrink-0 cursor-pointer border ${
+                  isDownloadedOffline
+                    ? 'bg-success/10 border-success text-success'
+                    : 'bg-surface-alt hover:bg-surface border-border/80 text-text-2 hover:text-text-1'
+                }`}
+              >
+                <Download className="h-3 w-3" />
+                <span>
+                  {!isPro && phaseNumber > 1
+                    ? 'Download 🔒'
+                    : isDownloadedOffline
+                    ? 'Downloaded ✓'
+                    : 'Download for offline'}
+                </span>
+              </button>
+            </div>
 
             <div className="relative">
               <button
@@ -370,7 +420,6 @@ export default function LessonContent({
           const isEssential = ['explanation', 'analogy', 'summary', 'exercise_code', 'exercise_writing', 'exercise_task', 'exercise_project'].includes(section.type)
           if (isReentry && !isEssential) return null
 
-          const sectionBookmark = bookmarks.find(b => b.section_index === idx)
           const sectionEl = (() => {
             switch (section.type) {
             case 'explanation':
@@ -383,25 +432,6 @@ export default function LessonContent({
                     depthLevel={depthLevel}
                     isPro={isPro}
                     onUpgradePrompt={() => setIsModalOpen(true)}
-                    bookmarkSlot={
-                      <BookmarkButton
-                        lessonId={lessonId}
-                        lessonTitle={lessonTitle}
-                        sectionIndex={idx}
-                        sectionHeading={section.heading || ''}
-                        sectionBody={section.body?.slice(0, 200) || ''}
-                        userId={userId}
-                        initialBookmark={sectionBookmark}
-                        onBookmarkChange={(newBookmark) => {
-                          if (newBookmark) {
-                            setBookmarks(prev => [...prev.filter(b => b.section_index !== idx), newBookmark])
-                          } else {
-                            setBookmarks(prev => prev.filter(b => b.section_index !== idx))
-                          }
-                        }}
-                        variant="inline"
-                      />
-                    }
                   >
                     <div className="space-y-3">
                       {formatLessonText(section.body || '')}
@@ -420,25 +450,6 @@ export default function LessonContent({
                     depthLevel={depthLevel}
                     isPro={isPro}
                     onUpgradePrompt={() => setIsModalOpen(true)}
-                    bookmarkSlot={
-                      <BookmarkButton
-                        lessonId={lessonId}
-                        lessonTitle={lessonTitle}
-                        sectionIndex={idx}
-                        sectionHeading={section.heading || ''}
-                        sectionBody={section.body?.slice(0, 200) || ''}
-                        userId={userId}
-                        initialBookmark={sectionBookmark}
-                        onBookmarkChange={(newBookmark) => {
-                          if (newBookmark) {
-                            setBookmarks(prev => [...prev.filter(b => b.section_index !== idx), newBookmark])
-                          } else {
-                            setBookmarks(prev => prev.filter(b => b.section_index !== idx))
-                          }
-                        }}
-                        variant="inline"
-                      />
-                    }
                   >
                     <div className="my-3 p-5 rounded-xl border border-primary/20 bg-primary/5 shadow-sm relative overflow-hidden flex gap-4">
                       <div className="absolute right-0 bottom-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
@@ -468,25 +479,6 @@ export default function LessonContent({
                     depthLevel={depthLevel}
                     isPro={isPro}
                     onUpgradePrompt={() => setIsModalOpen(true)}
-                    bookmarkSlot={
-                      <BookmarkButton
-                        lessonId={lessonId}
-                        lessonTitle={lessonTitle}
-                        sectionIndex={idx}
-                        sectionHeading={section.heading || ''}
-                        sectionBody={section.body?.slice(0, 200) || ''}
-                        userId={userId}
-                        initialBookmark={sectionBookmark}
-                        onBookmarkChange={(newBookmark) => {
-                          if (newBookmark) {
-                            setBookmarks(prev => [...prev.filter(b => b.section_index !== idx), newBookmark])
-                          } else {
-                            setBookmarks(prev => prev.filter(b => b.section_index !== idx))
-                          }
-                        }}
-                        variant="inline"
-                      />
-                    }
                   >
                     <div className="my-3 p-5 rounded-xl border border-accent/25 bg-accent/5 shadow-sm relative overflow-hidden flex gap-4">
                       <div className="absolute right-0 bottom-0 w-24 h-24 bg-accent/10 rounded-full blur-2xl pointer-events-none" />
@@ -723,36 +715,7 @@ export default function LessonContent({
         })()
 
         if (!sectionEl) return null
-
-        // explanation/analogy/use_case sections embed the BookmarkButton inline inside
-        // ConfusedButton's header row via bookmarkSlot — no need for the absolute overlay wrapper.
-        const hasInlineBookmark = ['explanation', 'analogy', 'use_case', 'spark_comment'].includes(section.type)
-
-        if (hasInlineBookmark) {
-          return <div key={idx}>{sectionEl}</div>
-        }
-
-        return (
-          <div key={idx} className="relative group/section">
-            <BookmarkButton
-              lessonId={lessonId}
-              lessonTitle={lessonTitle}
-              sectionIndex={idx}
-              sectionHeading={section.heading || ''}
-              sectionBody={section.body?.slice(0, 200) || section.code_snippet?.slice(0, 200) || ''}
-              userId={userId}
-              initialBookmark={sectionBookmark}
-              onBookmarkChange={(newBookmark) => {
-                if (newBookmark) {
-                  setBookmarks(prev => [...prev.filter(b => b.section_index !== idx), newBookmark])
-                } else {
-                  setBookmarks(prev => prev.filter(b => b.section_index !== idx))
-                }
-              }}
-            />
-            {sectionEl}
-          </div>
-        )
+        return <div key={idx}>{sectionEl}</div>
       })}
       </div>
 

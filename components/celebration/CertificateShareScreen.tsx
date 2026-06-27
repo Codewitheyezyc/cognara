@@ -269,17 +269,17 @@ Check it out: cognaralearn.com`
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0A0C14] text-[#F0F4FF] overflow-y-auto select-none">
+    <div className="fixed inset-0 z-50 bg-bg text-text-1 overflow-y-auto select-none">
       <div className="max-w-2xl mx-auto px-6 py-12 flex flex-col items-center space-y-8 pb-32">
         
         {/* TOP SECTION */}
         <div className="text-center space-y-2.5">
           <span className={`text-[10px] font-mono font-bold uppercase tracking-widest ${
-            isGoalCompletion ? 'text-amber-500' : 'text-[#8B95B3]'
+            isGoalCompletion ? 'text-amber-500' : 'text-text-2'
           }`}>
             Your certificate is ready
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-text-1 leading-tight">
             You earned this.<br />Share it with the world.
           </h2>
         </div>
@@ -289,7 +289,7 @@ Check it out: cognaralearn.com`
         <div className="w-full flex flex-col items-center">
           <div 
             onClick={() => setIsZoomed(true)}
-            className={`w-full cursor-zoom-in relative rounded-xl overflow-hidden border border-[#1E2540] shadow-[0_12px_40px_rgba(0,0,0,0.4)] group transition-all duration-300 ${
+            className={`w-full cursor-zoom-in relative rounded-xl overflow-hidden border border-border shadow-[0_12px_40px_rgba(0,0,0,0.4)] group transition-all duration-300 ${
               isGoalCompletion ? 'hover:border-amber-500/40' : 'hover:border-[#5B8EFF]/40'
             }`}
           >
@@ -304,7 +304,7 @@ Check it out: cognaralearn.com`
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                <span className="bg-[#111520]/90 border border-[#1E2540] text-xs font-bold px-3 py-1.5 rounded-lg shadow-lg">
+                <span className="bg-surface/90 border border-border text-xs font-bold px-3 py-1.5 rounded-lg shadow-lg">
                   🔎 Tap to View Fullscreen
                 </span>
               </div>
@@ -313,10 +313,10 @@ Check it out: cognaralearn.com`
           
           {/* Certificate metadata */}
           <div className="text-center mt-3.5 space-y-1">
-            <p className="text-[10px] text-[#8B95B3] font-mono">
-              Certificate ID: <span className="font-bold text-white">{certificateId}</span>
+            <p className="text-[10px] text-text-2 font-mono">
+              Certificate ID: <span className="font-bold text-text-1">{certificateId}</span>
             </p>
-            <p className="text-[10px] text-[#8B95B3]">
+            <p className="text-[10px] text-text-2">
               Tap to verify:{' '}
               <span className={`font-semibold underline ${
                 isGoalCompletion ? 'text-amber-500 decoration-amber-500/40' : 'text-[#5B8EFF] decoration-[#5B8EFF]/40'
@@ -331,7 +331,7 @@ Check it out: cognaralearn.com`
         {/* SHARE BUTTONS SECTION */}
         <div className="w-full space-y-6">
           <div className="text-center">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#8B95B3]">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-text-2">
               Share your achievement
             </span>
           </div>
@@ -342,7 +342,7 @@ Check it out: cognaralearn.com`
               <Button
                 onClick={handleNativeShare}
                 disabled={isSharingNative}
-                className={`w-full h-13 text-white font-extrabold text-[14px] rounded-xl shadow-md ${
+                className={`w-full h-13 text-text-1 font-extrabold text-[14px] rounded-xl shadow-md ${
                   isGoalCompletion 
                     ? 'bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:from-amber-600 hover:to-amber-500 shadow-[0_4px_14px_rgba(245,158,11,0.2)]'
                     : 'bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] shadow-[0_4px_14px_rgba(91,142,255,0.2)]'
@@ -357,7 +357,7 @@ Check it out: cognaralearn.com`
             {/* LinkedIn Button */}
             <button
               onClick={handleShareLinkedIn}
-              className="w-full h-13 bg-[#0A66C2] hover:bg-[#0855A1] text-white font-bold text-[14px] rounded-xl flex items-center justify-center transition duration-150 active:scale-[0.99] cursor-pointer shadow-sm"
+              className="w-full h-13 bg-[#0A66C2] hover:bg-[#0855A1] text-text-1 font-bold text-[14px] rounded-xl flex items-center justify-center transition duration-150 active:scale-[0.99] cursor-pointer shadow-sm"
             >
               <LinkedInIcon />
               Share on LinkedIn
@@ -366,7 +366,7 @@ Check it out: cognaralearn.com`
             {/* Twitter/X Button */}
             <button
               onClick={handleShareTwitter}
-              className="w-full h-13 bg-black hover:bg-neutral-900 text-white font-bold text-[14px] rounded-xl flex items-center justify-center border border-[#1E2540] transition duration-150 active:scale-[0.99] cursor-pointer shadow-sm"
+              className="w-full h-13 bg-black hover:bg-neutral-900 text-text-1 font-bold text-[14px] rounded-xl flex items-center justify-center border border-border transition duration-150 active:scale-[0.99] cursor-pointer shadow-sm"
             >
               <TwitterXIcon />
               Share on Twitter/X
@@ -375,7 +375,7 @@ Check it out: cognaralearn.com`
             {/* WhatsApp Button */}
             <button
               onClick={handleShareWhatsApp}
-              className="w-full h-13 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-[14px] rounded-xl flex items-center justify-center transition duration-150 active:scale-[0.99] cursor-pointer shadow-sm"
+              className="w-full h-13 bg-[#25D366] hover:bg-[#20bd5a] text-text-1 font-bold text-[14px] rounded-xl flex items-center justify-center transition duration-150 active:scale-[0.99] cursor-pointer shadow-sm"
             >
               <WhatsAppIcon />
               Share on WhatsApp
@@ -385,7 +385,7 @@ Check it out: cognaralearn.com`
               {/* Download PNG */}
               <Button
                 onClick={handleDownloadPNG}
-                className={`h-13 text-white font-extrabold text-[13px] rounded-xl shadow-sm ${
+                className={`h-13 text-text-1 font-extrabold text-[13px] rounded-xl shadow-sm ${
                   isGoalCompletion
                     ? 'bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:from-amber-600 hover:to-amber-500 shadow-[0_2px_10px_rgba(245,158,11,0.15)]'
                     : 'bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] shadow-[0_2px_10px_rgba(91,142,255,0.15)]'
@@ -415,7 +415,7 @@ Check it out: cognaralearn.com`
             <Button
               onClick={handleCopyLink}
               variant="ghost"
-              className="w-full h-13 bg-[#111520]/50 hover:bg-[#1E2540]/60 border border-[#1E2540] text-[#8B95B3] hover:text-[#F0F4FF] font-bold text-[13px] rounded-xl"
+              className="w-full h-13 bg-surface/50 hover:bg-surface-alt border border-border text-text-2 hover:text-text-1 font-bold text-[13px] rounded-xl"
             >
               {copied ? (
                 <>
@@ -433,7 +433,7 @@ Check it out: cognaralearn.com`
         </div>
 
         {/* BOTTOM SECTION: TESTIMONIAL NUDGE */}
-        <div className="w-full bg-[#111520] border border-[#1E2540] rounded-2xl p-6 space-y-5">
+        <div className="w-full bg-surface border border-border rounded-2xl p-6 space-y-5">
           <div className="flex items-start gap-4">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0 ${
               isGoalCompletion ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' : 'bg-[#5B8EFF]/10 border border-[#5B8EFF]/20 text-primary'
@@ -446,7 +446,7 @@ Check it out: cognaralearn.com`
               }`}>
                 Spark
               </span>
-              <p className="text-xs sm:text-sm text-[#C8D0E8] leading-relaxed font-semibold text-left">
+              <p className="text-xs sm:text-sm text-text-2 leading-relaxed font-semibold text-left">
                 &ldquo;Your story could inspire someone who is exactly where you were on Day 1. Would you share it?&rdquo;
               </p>
             </div>
@@ -484,12 +484,12 @@ Check it out: cognaralearn.com`
                   onChange={(e) => setTestimonialText(e.target.value.slice(0, 280))}
                   placeholder="What did you achieve in this phase?"
                   rows={3}
-                  className={`w-full bg-[#0A0C14] border border-[#1E2540] rounded-xl p-3.5 text-xs sm:text-sm text-white placeholder-[#8B95B3] focus:outline-none transition resize-none ${
+                  className={`w-full bg-bg border border-border rounded-xl p-3.5 text-xs sm:text-sm text-text-1 placeholder-[#8B95B3] focus:outline-none transition resize-none ${
                     isGoalCompletion ? 'focus:border-amber-500/50' : 'focus:border-[#5B8EFF]/50'
                   }`}
                 />
                 <div className="flex justify-end">
-                  <span className="text-[10px] font-mono text-[#8B95B3] font-semibold">
+                  <span className="text-[10px] font-mono text-text-2 font-semibold">
                     {testimonialText.length}/280 characters
                   </span>
                 </div>
@@ -500,7 +500,7 @@ Check it out: cognaralearn.com`
                 <Button
                   type="submit"
                   disabled={submittingTestimonial || !testimonialText.trim()}
-                  className={`w-full h-11 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl cursor-pointer ${
+                  className={`w-full h-11 text-text-1 font-extrabold text-xs uppercase tracking-wider rounded-xl cursor-pointer ${
                     isGoalCompletion ? 'bg-amber-500 hover:bg-amber-600' : 'bg-[#5B8EFF] hover:bg-[#4A7AEE]'
                   }`}
                 >
@@ -510,7 +510,7 @@ Check it out: cognaralearn.com`
                 <button
                   type="button"
                   onClick={() => setTestimonialSubmitted(true)}
-                  className="text-[11px] text-[#8B95B3] hover:text-[#F0F4FF] font-bold uppercase tracking-wider block text-center py-2"
+                  className="text-[11px] text-text-2 hover:text-text-1 font-bold uppercase tracking-wider block text-center py-2"
                 >
                   Skip for now
                 </button>
@@ -523,7 +523,7 @@ Check it out: cognaralearn.com`
               <span className="text-[11px] font-mono font-bold block">
                 Story Saved!
               </span>
-              <p className="text-xs text-[#8B95B3] mt-1 font-semibold">
+              <p className="text-xs text-text-2 mt-1 font-semibold">
                 Your testimonial has been submitted for verification. Thank you for motivating other learners!
               </p>
             </div>
@@ -554,12 +554,12 @@ Check it out: cognaralearn.com`
         <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col select-none">
           {/* Top Actions */}
           <div className="flex items-center justify-between p-5 relative z-10">
-            <span className="text-xs font-mono font-bold text-[#8B95B3]">
+            <span className="text-xs font-mono font-bold text-text-2">
               Zoom View
             </span>
             <button
               onClick={() => setIsZoomed(false)}
-              className="p-2.5 bg-[#111520] border border-[#1E2540] hover:bg-[#1E2540] text-[#8B95B3] hover:text-white rounded-lg transition cursor-pointer"
+              className="p-2.5 bg-surface border border-border hover:bg-[#1E2540] text-text-2 hover:text-text-1 rounded-lg transition cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
@@ -567,7 +567,7 @@ Check it out: cognaralearn.com`
 
           {/* Certificate Zoom Container */}
           <div className="flex-1 flex items-center justify-center p-4 overflow-auto">
-            <div className="relative w-full max-w-4xl aspect-[1200/850] rounded-lg overflow-hidden border border-[#1E2540] shadow-2xl">
+            <div className="relative w-full max-w-4xl aspect-[1200/850] rounded-lg overflow-hidden border border-border shadow-2xl">
               <Image
                 src={pngUrl}
                 alt="Zoomed Cognara Certificate"
@@ -578,10 +578,10 @@ Check it out: cognaralearn.com`
           </div>
 
           {/* Bottom Actions */}
-          <div className="p-6 flex items-center justify-between gap-4 border-t border-[#1E2540] bg-[#0A0C14]">
+          <div className="p-6 flex items-center justify-between gap-4 border-t border-border bg-bg">
             <Button
               onClick={handleDownloadPNG}
-              className={`flex-1 h-12 text-white font-bold text-xs uppercase tracking-wider rounded-xl ${
+              className={`flex-1 h-12 text-text-1 font-bold text-xs uppercase tracking-wider rounded-xl ${
                 isGoalCompletion
                   ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-500'
                   : 'bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA]'
@@ -595,7 +595,7 @@ Check it out: cognaralearn.com`
             {isNativeShareAvailable && (
               <Button
                 onClick={handleNativeShare}
-                className="flex-1 h-12 bg-[#111520] hover:bg-[#1E2540] text-white font-bold text-xs uppercase tracking-wider rounded-xl border border-[#1E2540]"
+                className="flex-1 h-12 bg-surface hover:bg-[#1E2540] text-text-1 font-bold text-xs uppercase tracking-wider rounded-xl border border-border"
               >
                 <Share2 className="h-4 w-4 mr-2" />
                 Share

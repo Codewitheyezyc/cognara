@@ -95,6 +95,31 @@ export default function OnboardingPage() {
         }
         setUserId(user.id)
 
+        // Pending plan check for new Pro users
+        if (typeof window !== 'undefined') {
+          const pendingPlan = sessionStorage.getItem('pending_plan')
+          if (pendingPlan && (pendingPlan === 'pro_monthly' || pendingPlan === 'pro_annual' || pendingPlan === 'pro_yearly')) {
+            const plan = pendingPlan === 'pro_annual' || pendingPlan === 'pro_yearly' ? 'annual' : 'monthly'
+            try {
+              const res = await fetch('/api/paystack/initialize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plan }),
+              })
+              const data = await res.json()
+              if (data.authorization_url) {
+                window.location.href = data.authorization_url
+                return
+              } else {
+                sessionStorage.removeItem('pending_plan')
+              }
+            } catch (err) {
+              console.error('Pending plan payment launch failed:', err)
+              sessionStorage.removeItem('pending_plan')
+            }
+          }
+        }
+
         // Prepopulate with existing data if any
         const { data: profile } = await supabase
           .from('profiles')
@@ -364,17 +389,17 @@ export default function OnboardingPage() {
 
   if (isLoadingUser) {
     return (
-      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#0A0C14] text-[#F0F4FF]">
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-bg text-text-1">
         <div className="animate-pulse flex flex-col items-center space-y-4">
           <Logo className="h-8 w-8" />
-          <span className="font-heading text-lg font-semibold tracking-wide text-[#8B95B3]">Loading your profile...</span>
+          <span className="font-heading text-lg font-semibold tracking-wide text-text-2">Loading your profile...</span>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-[#0A0C14] px-4 py-8">
+    <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-bg px-4 py-8">
       {/* Premium background radial glows */}
       <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-indigo-600/10 blur-[120px] pointer-events-none animate-pulse" />
       <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[450px] h-[450px] rounded-full bg-violet-600/10 blur-[130px] pointer-events-none" />
@@ -386,13 +411,13 @@ export default function OnboardingPage() {
         {step !== 3 && step !== 4 && (
           <div className="flex flex-col items-center mb-8 text-center animate-fadeIn">
             <Logo className="h-10 w-10 mb-2 filter drop-shadow-[0_0_12px_rgba(91,142,255,0.4)]" />
-            <h1 className="font-heading text-2xl font-bold tracking-tight text-[#F0F4FF]">Cognara</h1>
+            <h1 className="font-heading text-2xl font-bold tracking-tight text-text-1">Cognara</h1>
             <p className="text-xs uppercase tracking-widest text-[#5B8EFF] mt-1 font-semibold">AI Achievement Platform</p>
           </div>
         )}
 
         {/* Wizard step cards */}
-        <div className="rounded-xl border border-[#1E2540] bg-[#111520]/80 backdrop-blur-md p-6 sm:p-8 shadow-2xl shadow-black/40">
+        <div className="rounded-xl border border-border bg-surface/80 backdrop-blur-md p-6 sm:p-8 shadow-2xl shadow-black/40">
           
           {errorMsg && step !== 3 && (
             <div className="mb-5 rounded-lg bg-[#F87171]/10 p-3 text-xs text-[#F87171] border border-[#F87171]/20 flex items-start space-x-2 animate-fadeIn">
@@ -410,18 +435,18 @@ export default function OnboardingPage() {
                     <CheckCircle2 className="h-8 w-8" strokeWidth={1.5} />
                   </div>
                   <div className="space-y-2">
-                    <h3 className="font-heading text-lg font-bold text-[#F0F4FF]">Goal Saved Successfully!</h3>
-                    <p className="text-xs text-[#8B95B3] max-w-sm mx-auto leading-relaxed">
+                    <h3 className="font-heading text-lg font-bold text-text-1">Goal Saved Successfully!</h3>
+                    <p className="text-xs text-text-2 max-w-sm mx-auto leading-relaxed">
                       Your goal has been written to your profile:
                     </p>
-                    <div className="bg-[#171C2E] border border-[#1E2540] rounded-lg p-3 text-sm text-[#F0F4FF] italic font-medium max-w-md mx-auto">
+                    <div className="bg-surface-alt border border-border rounded-lg p-3 text-sm text-text-1 italic font-medium max-w-md mx-auto">
                       &quot;{successGoal}&quot;
                     </div>
                   </div>
                   <div className="pt-4">
                     <Button
                       onClick={proceedToStep2}
-                      className="w-full h-12 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] text-[#0A0C14] hover:text-white font-bold rounded-lg shadow-[0_0_20px_rgba(91,142,255,0.25)] flex items-center justify-center gap-1.5 transition-all duration-200"
+                      className="w-full h-12 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] text-[#0A0C14] hover:text-text-1 font-bold rounded-lg shadow-[0_0_20px_rgba(91,142,255,0.25)] flex items-center justify-center gap-1.5 transition-all duration-200"
                     >
                       <span>Continue to Context Questions</span>
                       <ChevronRight className="h-4 w-4" />
@@ -433,12 +458,12 @@ export default function OnboardingPage() {
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-mono uppercase tracking-widest text-[#5B8EFF] bg-[#5B8EFF]/10 px-2.5 py-1 rounded-full font-bold">Redesign Onboarding</span>
-                      <span className="text-xs font-mono text-[#8B95B3]">Step 1 of 4</span>
+                      <span className="text-xs font-mono text-text-2">Step 1 of 4</span>
                     </div>
-                    <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-[#F0F4FF] tracking-tight mt-3">
+                    <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-text-1 tracking-tight mt-3">
                       What do you want to achieve?
                     </h2>
-                    <p className="text-sm text-[#8B95B3] leading-relaxed">
+                    <p className="text-sm text-text-2 leading-relaxed">
                       Define the goal you want to reach. Cognara will use this to outline your roadmap, tailor lessons, and keep you accountable.
                     </p>
                   </div>
@@ -453,14 +478,14 @@ export default function OnboardingPage() {
                         setGoalText(e.target.value)
                         setErrorMsg(null)
                       }}
-                      className="w-full p-4 bg-[#171C2E] border border-[#1E2540] focus:border-[#5B8EFF] focus:ring-1 focus:ring-[#5B8EFF] rounded-lg text-sm text-[#F0F4FF] placeholder-[#4A5272] outline-none resize-none transition-all duration-200 leading-relaxed font-sans"
+                      className="w-full p-4 bg-surface-alt border border-border focus:border-[#5B8EFF] focus:ring-1 focus:ring-[#5B8EFF] rounded-lg text-sm text-text-1 placeholder-[#4A5272] outline-none resize-none transition-all duration-200 leading-relaxed font-sans"
                       disabled={isSubmittingGoal}
                       autoFocus
                     />
                   </div>
 
                   <div className="space-y-2.5">
-                    <label className="text-xs font-semibold text-[#8B95B3] uppercase tracking-wider">Suggested Goals:</label>
+                    <label className="text-xs font-semibold text-text-2 uppercase tracking-wider">Suggested Goals:</label>
                     <div className="flex flex-wrap gap-2">
                       {SUGGESTED_GOALS.map((chip) => {
                         const isSelected = selectedChip === chip.label
@@ -472,7 +497,7 @@ export default function OnboardingPage() {
                             className={`px-3 py-1.5 text-xs rounded-full border transition-all duration-150 cursor-pointer ${
                               isSelected
                                 ? 'bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] text-[#0A0C14] border-transparent font-bold shadow-[0_0_12px_rgba(91,142,255,0.25)]'
-                                : 'bg-[#171C2E] hover:bg-[#1E2540] border-[#1E2540] hover:border-[#8B95B3] text-[#8B95B3] hover:text-[#F0F4FF]'
+                                : 'bg-surface-alt hover:bg-[#1E2540] border-border hover:border-[#8B95B3] text-text-2 hover:text-text-1'
                             }`}
                             disabled={isSubmittingGoal}
                           >
@@ -487,7 +512,7 @@ export default function OnboardingPage() {
                     <Button
                       type="submit"
                       disabled={isSubmittingGoal}
-                      className="w-full h-12 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-[#0A0C14] hover:text-white font-bold rounded-lg shadow-[0_0_20px_rgba(91,142,255,0.25)] transition-all duration-200 flex items-center justify-center gap-2"
+                      className="w-full h-12 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-[#0A0C14] hover:text-text-1 font-bold rounded-lg shadow-[0_0_20px_rgba(91,142,255,0.25)] transition-all duration-200 flex items-center justify-center gap-2"
                     >
                       {isSubmittingGoal ? (
                         <>
@@ -513,30 +538,30 @@ export default function OnboardingPage() {
                     <CheckCircle2 className="h-8 w-8" strokeWidth={1.5} />
                   </div>
                   <div className="space-y-2">
-                    <h3 className="font-heading text-lg font-bold text-[#F0F4FF]">Context Preferences Saved!</h3>
-                    <p className="text-xs text-[#8B95B3] max-w-sm mx-auto leading-relaxed">
+                    <h3 className="font-heading text-lg font-bold text-text-1">Context Preferences Saved!</h3>
+                    <p className="text-xs text-text-2 max-w-sm mx-auto leading-relaxed">
                       We have written your answers directly to your profile:
                     </p>
                     
-                    <div className="bg-[#171C2E] border border-[#1E2540] rounded-lg p-4 text-left text-xs space-y-2 max-w-sm mx-auto mt-2">
-                      <div className="flex justify-between text-[#8B95B3]">
+                    <div className="bg-surface-alt border border-border rounded-lg p-4 text-left text-xs space-y-2 max-w-sm mx-auto mt-2">
+                      <div className="flex justify-between text-text-2">
                         <span>Experience Level:</span>
-                        <span className="text-[#F0F4FF] font-semibold">{successContext.level}</span>
+                        <span className="text-text-1 font-semibold">{successContext.level}</span>
                       </div>
-                      <div className="flex justify-between text-[#8B95B3]">
+                      <div className="flex justify-between text-text-2">
                         <span>Occupation/Background:</span>
-                        <span className="text-[#F0F4FF] font-semibold">{successContext.occupation}</span>
+                        <span className="text-text-1 font-semibold">{successContext.occupation}</span>
                       </div>
-                      <div className="flex justify-between text-[#8B95B3]">
+                      <div className="flex justify-between text-text-2">
                         <span>Study Time:</span>
-                        <span className="text-[#F0F4FF] font-semibold">{successContext.minutes} mins / day</span>
+                        <span className="text-text-1 font-semibold">{successContext.minutes} mins / day</span>
                       </div>
                     </div>
                   </div>
                   <div className="pt-4">
                     <Button
                       onClick={proceedToStep3}
-                      className="w-full h-12 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] text-[#0A0C14] hover:text-white font-bold rounded-lg shadow-[0_0_20px_rgba(91,142,255,0.25)] flex items-center justify-center gap-1.5 transition-all duration-200"
+                      className="w-full h-12 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] text-[#0A0C14] hover:text-text-1 font-bold rounded-lg shadow-[0_0_20px_rgba(91,142,255,0.25)] flex items-center justify-center gap-1.5 transition-all duration-200"
                     >
                       <span>Build My Roadmap</span>
                       <Sparkles className="h-4 w-4" />
@@ -545,14 +570,14 @@ export default function OnboardingPage() {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  <div className="flex items-center justify-between text-xs font-mono text-[#8B95B3] border-b border-[#1E2540]/30 pb-3">
+                  <div className="flex items-center justify-between text-xs font-mono text-text-2 border-b border-border/30 pb-3">
                     <span>Step 2 of 4 — Calibration</span>
                     <span className="text-[#5B8EFF] font-semibold">Question {subStep} of 3</span>
                   </div>
 
                   {subStep === 1 && (
                     <div className="space-y-4 animate-page-enter">
-                      <h3 className="font-heading text-lg sm:text-xl font-bold text-[#F0F4FF] leading-snug">
+                      <h3 className="font-heading text-lg sm:text-xl font-bold text-text-1 leading-snug">
                         How familiar are you with &quot;{goalText || 'your goal'}&quot;?
                       </h3>
                       <div className="space-y-2.5 mt-2">
@@ -563,8 +588,8 @@ export default function OnboardingPage() {
                             onClick={() => handleQ1Select(opt.value)}
                             className={`w-full text-left p-4 rounded-lg border text-sm transition-all duration-150 cursor-pointer ${
                               q1Selection === opt.value
-                                ? 'bg-[#171C2E] border-[#5B8EFF] text-[#F0F4FF] font-medium'
-                                : 'bg-[#171C2E]/40 border-[#1E2540] text-[#8B95B3] hover:text-[#F0F4FF] hover:border-[#8B95B3]'
+                                ? 'bg-surface-alt border-[#5B8EFF] text-text-1 font-medium'
+                                : 'bg-surface-alt/40 border-border text-text-2 hover:text-text-1 hover:border-[#8B95B3]'
                             }`}
                           >
                             {opt.label}
@@ -576,7 +601,7 @@ export default function OnboardingPage() {
 
                   {subStep === 2 && (
                     <div className="space-y-4 animate-page-enter">
-                      <h3 className="font-heading text-lg sm:text-xl font-bold text-[#F0F4FF] leading-snug">
+                      <h3 className="font-heading text-lg sm:text-xl font-bold text-text-1 leading-snug">
                         What describes you best?
                       </h3>
                       <div className="space-y-2.5 mt-2">
@@ -587,8 +612,8 @@ export default function OnboardingPage() {
                             onClick={() => handleQ2Select(opt.value)}
                             className={`w-full text-left p-4 rounded-lg border text-sm transition-all duration-150 cursor-pointer ${
                               q2Selection === opt.value
-                                ? 'bg-[#171C2E] border-[#5B8EFF] text-[#F0F4FF] font-medium'
-                                : 'bg-[#171C2E]/40 border-[#1E2540] text-[#8B95B3] hover:text-[#F0F4FF] hover:border-[#8B95B3]'
+                                ? 'bg-surface-alt border-[#5B8EFF] text-text-1 font-medium'
+                                : 'bg-surface-alt/40 border-border text-text-2 hover:text-text-1 hover:border-[#8B95B3]'
                             }`}
                           >
                             {opt.label}
@@ -600,14 +625,14 @@ export default function OnboardingPage() {
 
                   {subStep === 3 && (
                     <div className="space-y-4 animate-page-enter">
-                      <h3 className="font-heading text-lg sm:text-xl font-bold text-[#F0F4FF] leading-snug">
+                      <h3 className="font-heading text-lg sm:text-xl font-bold text-text-1 leading-snug">
                         How much time can you dedicate per day?
                       </h3>
                       <div className="space-y-2.5 mt-2">
                         {isSubmittingContext ? (
                           <div className="flex flex-col items-center justify-center py-8 space-y-3">
                             <Loader2 className="h-8 w-8 text-[#5B8EFF] animate-spin" />
-                            <span className="text-xs text-[#8B95B3]">Saving preferences to Supabase...</span>
+                            <span className="text-xs text-text-2">Saving preferences to Supabase...</span>
                           </div>
                         ) : (
                           Q3_OPTIONS.map((opt) => (
@@ -617,8 +642,8 @@ export default function OnboardingPage() {
                               onClick={() => handleQ3Select(opt.value)}
                               className={`w-full text-left p-4 rounded-lg border text-sm transition-all duration-150 cursor-pointer ${
                                 q3Selection === opt.value
-                                  ? 'bg-[#171C2E] border-[#5B8EFF] text-[#F0F4FF] font-medium'
-                                  : 'bg-[#171C2E]/40 border-[#1E2540] text-[#8B95B3] hover:text-[#F0F4FF] hover:border-[#8B95B3]'
+                                  ? 'bg-surface-alt border-[#5B8EFF] text-text-1 font-medium'
+                                  : 'bg-surface-alt/40 border-border text-text-2 hover:text-text-1 hover:border-[#8B95B3]'
                               }`}
                             >
                               {opt.label}
@@ -634,7 +659,7 @@ export default function OnboardingPage() {
                       <button
                         type="button"
                         onClick={() => setSubStep(prev => prev - 1)}
-                        className="text-xs text-[#8B95B3] hover:text-[#F0F4FF] flex items-center gap-1 transition duration-150 cursor-pointer font-medium"
+                        className="text-xs text-text-2 hover:text-text-1 flex items-center gap-1 transition duration-150 cursor-pointer font-medium"
                       >
                         <ArrowLeft className="h-3 w-3" />
                         <span>Back</span>
@@ -659,13 +684,13 @@ export default function OnboardingPage() {
                   </div>
 
                   {/* Dynamic Progress Bar */}
-                  <div className="w-full max-w-xs h-2 bg-[#171C2E] border border-[#1E2540] rounded-full overflow-hidden relative">
+                  <div className="w-full max-w-xs h-2 bg-surface-alt border border-border rounded-full overflow-hidden relative">
                     <div className="h-full bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] rounded-full absolute top-0 left-0 w-1/3 animate-[loading-bar_1.6s_infinite_linear]" />
                   </div>
 
                   {/* Rotating Loading Text Messages */}
                   <div className="h-6">
-                    <p className="text-sm font-medium text-[#8B95B3] tracking-wide animate-pulse">
+                    <p className="text-sm font-medium text-text-2 tracking-wide animate-pulse">
                       {LOADING_MESSAGES[loadingMsgIndex]}
                     </p>
                   </div>
@@ -678,8 +703,8 @@ export default function OnboardingPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <h3 className="font-heading text-lg font-bold text-[#F0F4FF]">Roadmap Generation Failed</h3>
-                    <p className="text-xs text-[#8B95B3] max-w-sm mx-auto leading-relaxed">
+                    <h3 className="font-heading text-lg font-bold text-text-1">Roadmap Generation Failed</h3>
+                    <p className="text-xs text-text-2 max-w-sm mx-auto leading-relaxed">
                       {roadmapError}
                     </p>
                   </div>
@@ -687,7 +712,7 @@ export default function OnboardingPage() {
                   <div className="pt-2 flex flex-col gap-2">
                     <Button
                       onClick={triggerRoadmapGeneration}
-                      className="w-full h-11 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] text-[#0A0C14] hover:text-white font-bold rounded-lg transition-all duration-200"
+                      className="w-full h-11 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] text-[#0A0C14] hover:text-text-1 font-bold rounded-lg transition-all duration-200"
                     >
                       Try Again
                     </Button>
@@ -695,7 +720,7 @@ export default function OnboardingPage() {
                     <button
                       type="button"
                       onClick={() => setStep(2)}
-                      className="text-xs text-[#8B95B3] hover:text-[#F0F4FF] transition font-medium"
+                      className="text-xs text-text-2 hover:text-text-1 transition font-medium"
                     >
                       Go Back to Preferences
                     </button>
@@ -709,31 +734,31 @@ export default function OnboardingPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <h3 className="font-heading text-lg font-bold text-[#F0F4FF]">Roadmap Generated!</h3>
-                    <p className="text-xs text-[#8B95B3] max-w-sm mx-auto leading-relaxed">
+                    <h3 className="font-heading text-lg font-bold text-text-1">Roadmap Generated!</h3>
+                    <p className="text-xs text-text-2 max-w-sm mx-auto leading-relaxed">
                       We have custom-built your personalized learning path based on your goals and preferences:
                     </p>
 
                    {successRoadmap && (
-                      <div className="bg-[#171C2E] border border-[#1E2540] rounded-lg p-4 text-left text-xs space-y-2 max-w-sm mx-auto mt-2 leading-relaxed">
-                        <div className="flex justify-between text-[#8B95B3]">
+                      <div className="bg-surface-alt border border-border rounded-lg p-4 text-left text-xs space-y-2 max-w-sm mx-auto mt-2 leading-relaxed">
+                        <div className="flex justify-between text-text-2">
                           <span>Goal:</span>
-                          <span className="text-[#F0F4FF] font-semibold truncate max-w-[200px]">{successRoadmap.goal}</span>
+                          <span className="text-text-1 font-semibold truncate max-w-[200px]">{successRoadmap.goal}</span>
                         </div>
-                        <div className="flex justify-between text-[#8B95B3]">
+                        <div className="flex justify-between text-text-2">
                           <span>Duration:</span>
-                          <span className="text-[#F0F4FF] font-semibold">{successRoadmap.estimated_weeks} Weeks</span>
+                          <span className="text-text-1 font-semibold">{successRoadmap.estimated_weeks} Weeks</span>
                         </div>
-                        <div className="flex justify-between text-[#8B95B3]">
+                        <div className="flex justify-between text-text-2">
                           <span>Phases:</span>
-                          <span className="text-[#F0F4FF] font-semibold">{(successRoadmap.phases || []).length} Phases</span>
+                          <span className="text-text-1 font-semibold">{(successRoadmap.phases || []).length} Phases</span>
                         </div>
                       </div>
                     )}
                   </div>
 
-                  <div className="border-t border-[#1E2540]/60 pt-4 mt-2">
-                    <p className="text-xs text-[#8B95B3] flex items-center justify-center gap-1">
+                  <div className="border-t border-border/60 pt-4 mt-2">
+                    <p className="text-xs text-text-2 flex items-center justify-center gap-1">
                       <Sparkles className="h-3.5 w-3.5 text-[#5B8EFF]" />
                       Your roadmap is ready — tap the button below to see it
                     </p>
@@ -753,10 +778,10 @@ export default function OnboardingPage() {
                   <Map className="h-4 w-4" />
                   <span className="text-[10px] font-mono uppercase tracking-widest font-bold">Your Personalised Roadmap</span>
                 </div>
-                <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-[#F0F4FF] tracking-tight leading-tight">
+                <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-text-1 tracking-tight leading-tight">
                   Your roadmap is ready{userName ? `, ${userName.split(' ')[0]}` : ''}.&nbsp;✨
                 </h2>
-                <p className="text-sm text-[#8B95B3] leading-relaxed">
+                <p className="text-sm text-text-2 leading-relaxed">
                   Here is your path to <span className="text-[#A78BFA] font-semibold">{successRoadmap.goal || goalText}</span>
                 </p>
                 <div className="mt-2 inline-flex items-center gap-1.5 bg-[#5B8EFF]/10 border border-[#5B8EFF]/20 text-[#5B8EFF] text-[11px] font-semibold rounded-full px-3 py-1">
@@ -773,7 +798,7 @@ export default function OnboardingPage() {
                     <div key={phase.phase_number} className={`rounded-xl border overflow-hidden transition-all duration-200 ${
                       isPhase1
                         ? 'border-[#5B8EFF]/40 bg-gradient-to-br from-[#111a30] to-[#12102a] shadow-[0_0_20px_rgba(91,142,255,0.08)]'
-                        : 'border-[#1E2540] bg-[#0d1020]/60 opacity-60'
+                        : 'border-border bg-[#0d1020]/60 opacity-60'
                     }`}>
                       {/* Phase Header */}
                       <div className={`flex items-start justify-between p-4 ${
@@ -784,23 +809,23 @@ export default function OnboardingPage() {
                           <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
                             isPhase1
                               ? 'bg-gradient-to-br from-[#5B8EFF] to-[#A78BFA] text-white shadow-[0_0_12px_rgba(91,142,255,0.35)]'
-                              : 'bg-[#1E2540] text-[#4A5272]'
+                              : 'bg-[#1E2540] text-text-3'
                           }`}>
                             {phase.phase_number}
                           </div>
                           <div className="space-y-0.5">
                             <p className={`text-[10px] font-mono uppercase tracking-wider font-bold ${
-                              isPhase1 ? 'text-[#5B8EFF]' : 'text-[#4A5272]'
+                              isPhase1 ? 'text-[#5B8EFF]' : 'text-text-3'
                             }`}>
                               Phase {phase.phase_number}
                             </p>
                             <h3 className={`font-heading font-bold text-sm leading-snug ${
-                              isPhase1 ? 'text-[#F0F4FF]' : 'text-[#4A5272]'
+                              isPhase1 ? 'text-text-1' : 'text-text-3'
                             }`}>
                               {phase.phase_name}
                             </h3>
                             <p className={`text-[11px] ${
-                              isPhase1 ? 'text-[#8B95B3]' : 'text-[#3A4262]'
+                              isPhase1 ? 'text-text-2' : 'text-[#3A4262]'
                             }`}>
                               {phase.estimated_weeks} week{phase.estimated_weeks !== 1 ? 's' : ''}
                             </p>
@@ -827,28 +852,28 @@ export default function OnboardingPage() {
                             const moduleKey = `p${phase.phase_number}-m${mod.module_number}`
                             const isOpen = expandedModuleKey === moduleKey
                             return (
-                              <div key={mod.module_number} className="rounded-lg border border-[#1E2540] bg-[#0D1020]/80 overflow-hidden">
+                              <div key={mod.module_number} className="rounded-lg border border-border bg-[#0D1020]/80 overflow-hidden">
                                 {/* Module tap row */}
                                 <button
                                   type="button"
                                   onClick={() => setExpandedModuleKey(isOpen ? null : moduleKey)}
-                                  className="w-full flex items-center justify-between px-3 py-2.5 text-left cursor-pointer hover:bg-[#171C2E] transition-colors"
+                                  className="w-full flex items-center justify-between px-3 py-2.5 text-left cursor-pointer hover:bg-surface-alt transition-colors"
                                 >
                                   <div className="flex items-center gap-2">
                                     <div className="w-5 h-5 rounded-md bg-[#5B8EFF]/15 flex items-center justify-center text-[10px] font-bold text-[#5B8EFF]">
                                       {mod.module_number}
                                     </div>
-                                    <span className="text-xs font-semibold text-[#C8D0E8]">{mod.module_name}</span>
+                                    <span className="text-xs font-semibold text-text-2">{mod.module_name}</span>
                                   </div>
                                   {isOpen
                                     ? <ChevronUp className="h-3.5 w-3.5 text-[#5B8EFF] flex-shrink-0" />
-                                    : <ChevronDown className="h-3.5 w-3.5 text-[#4A5272] flex-shrink-0" />}
+                                    : <ChevronDown className="h-3.5 w-3.5 text-text-3 flex-shrink-0" />}
                                 </button>
                                 {/* Topics list */}
                                 {isOpen && (
-                                  <div className="px-3 pb-3 pt-1 space-y-1.5 border-t border-[#1E2540] animate-fadeIn">
+                                  <div className="px-3 pb-3 pt-1 space-y-1.5 border-t border-border animate-fadeIn">
                                     {(mod.topics || []).map((topic: string, topicIdx: number) => (
-                                      <div key={topicIdx} className="flex items-center gap-2 text-[11px] text-[#8B95B3]">
+                                      <div key={topicIdx} className="flex items-center gap-2 text-[11px] text-text-2">
                                         <div className="w-1 h-1 rounded-full bg-[#5B8EFF]/50 flex-shrink-0"></div>
                                         <span>{topic}</span>
                                       </div>
@@ -888,7 +913,7 @@ export default function OnboardingPage() {
           <div className="max-w-lg mx-auto pointer-events-auto">
             <Button
               onClick={proceedToStep4}
-              className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.35)] transition-all duration-200 flex items-center justify-center gap-2 text-base"
+              className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-text-1 font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.35)] transition-all duration-200 flex items-center justify-center gap-2 text-base"
             >
               <Sparkles className="h-4.5 w-4.5" />
               <span>View My Roadmap →</span>
@@ -909,7 +934,7 @@ export default function OnboardingPage() {
                 }
               }}
               disabled={isLoadingFirstLesson}
-              className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.35)] transition-all duration-200 flex items-center justify-center gap-2 text-base disabled:opacity-70"
+              className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-text-1 font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.35)] transition-all duration-200 flex items-center justify-center gap-2 text-base disabled:opacity-70"
             >
               {isLoadingFirstLesson ? (
                 <><Loader2 className="h-4 w-4 animate-spin" /><span>Preparing your first lesson...</span></>

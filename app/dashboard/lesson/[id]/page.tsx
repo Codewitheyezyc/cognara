@@ -819,15 +819,15 @@ export default function LessonPage() {
       />
 
       {/* Full-screen focus container */}
-      <div className="min-h-screen bg-[#0A0C14] pb-40">
+      <div className="min-h-screen bg-bg text-text-1 pb-40">
 
         {/* Minimal lesson header */}
-        <div className="sticky top-0 z-30 bg-[#0A0C14]/95 backdrop-blur-md border-b border-[#1E2540]/60">
+        <div className="sticky top-0 z-30 bg-bg/95 backdrop-blur-md border-b border-border">
           <div className="max-w-[720px] mx-auto px-4 h-14 flex items-center justify-between">
             {/* Back arrow */}
             <Link
               href="/dashboard/path"
-              className="inline-flex items-center gap-1.5 text-[#8B95B3] hover:text-[#F0F4FF] transition-colors text-xs font-semibold group"
+              className="inline-flex items-center gap-1.5 text-text-2 hover:text-text-1 transition-colors text-xs font-semibold group"
             >
               <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
               <span className="hidden sm:inline">My Path</span>
@@ -835,16 +835,16 @@ export default function LessonPage() {
 
             {/* Phase · Module breadcrumb */}
             <div className="flex flex-col items-center">
-              <p className="text-[10px] font-mono uppercase tracking-widest text-[#4A5272] font-bold">
+              <p className="text-[10px] font-mono uppercase tracking-widest text-text-3 font-bold">
                 Phase {phaseNumber}{phaseTitle ? ` · ${phaseTitle}` : ''}
               </p>
-              <p className="text-[11px] font-semibold text-[#8B95B3] truncate max-w-[160px] sm:max-w-[280px] mt-0.5">
+              <p className="text-[11px] font-semibold text-text-2 truncate max-w-[160px] sm:max-w-[280px] mt-0.5">
                 {lessonTitle}
               </p>
             </div>
 
             {/* Reading time */}
-            <div className="text-[10px] text-[#4A5272] font-medium">
+            <div className="text-[10px] text-text-3 font-medium">
               {displayEstimatedMinutes} min read
             </div>
           </div>
@@ -868,7 +868,7 @@ export default function LessonPage() {
 
           {/* End-of-lesson block — only shown after scrolling to bottom */}
           <div
-            className="mt-12 border-t border-[#1E2540] pt-8 space-y-6"
+            className="mt-12 border-t border-border pt-8 space-y-6"
             style={{
               opacity: hasReachedBottom ? 1 : 0,
               transform: hasReachedBottom ? 'translateY(0)' : 'translateY(20px)',
@@ -878,12 +878,12 @@ export default function LessonPage() {
           >
             {/* Completion message */}
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#34D399]/10 border border-[#34D399]/25 flex items-center justify-center shrink-0">
-                <CheckCircle2 className="h-4 w-4 text-[#34D399]" />
+              <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
               </div>
               <div>
-                <p className="text-[13px] font-bold text-[#F0F4FF]">You have reached the end of this lesson</p>
-                <p className="text-[11px] text-[#8B95B3] mt-0.5">Great work — here is what you just learned:</p>
+                <p className="text-[13px] font-bold text-text-1">You have reached the end of this lesson</p>
+                <p className="text-[11px] text-text-2 mt-0.5">Great work — here is what you just learned:</p>
               </div>
             </div>
 
@@ -891,9 +891,9 @@ export default function LessonPage() {
             {content.key_takeaways && content.key_takeaways.length > 0 && (
               <ul className="space-y-2 pl-2">
                 {content.key_takeaways.slice(0, 3).map((takeaway, idx) => (
-                  <li key={idx} className="flex items-start gap-2.5 text-[13px] text-[#C8D0E8] leading-relaxed">
-                    <div className="w-5 h-5 rounded-full bg-[#5B8EFF]/15 flex items-center justify-center shrink-0 mt-0.5">
-                      <span className="text-[10px] font-bold text-[#5B8EFF]">{idx + 1}</span>
+                  <li key={idx} className="flex items-start gap-2.5 text-[13px] text-text-2 leading-relaxed">
+                    <div className="w-5 h-5 rounded-full bg-primary/15 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="text-[10px] font-bold text-primary">{idx + 1}</span>
                     </div>
                     {takeaway}
                   </li>
@@ -916,7 +916,7 @@ export default function LessonPage() {
             <Button
               onClick={handleTakeQuiz}
               disabled={isOffline}
-              className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.3)] transition-all duration-200 flex items-center justify-center gap-2 text-[15px] disabled:opacity-50"
+              className="w-full h-13 bg-gradient-to-r from-primary to-accent hover:from-primary/95 hover:to-accent/95 text-white font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.3)] transition-all duration-200 flex items-center justify-center gap-2 text-[15px] disabled:opacity-50"
             >
               <span>Take the Quiz →</span>
             </Button>
@@ -925,7 +925,7 @@ export default function LessonPage() {
             <button
               type="button"
               onClick={() => setIsSparkOpen(true)}
-              className="w-full text-[12px] text-[#8B95B3] hover:text-[#A78BFA] transition-colors font-medium flex items-center justify-center gap-1.5"
+              className="w-full text-[12px] text-text-2 hover:text-primary transition-colors font-medium flex items-center justify-center gap-1.5"
             >
               <Sparkles className="h-3.5 w-3.5" />
               Ask Spark before I continue

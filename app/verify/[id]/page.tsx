@@ -105,7 +105,7 @@ export default async function VerifyPage({ params }: VerifyPageProps) {
   // State 2: Certificate ID not found
   if (!cert) {
     return (
-      <div className="min-h-screen bg-[#0A0C14] text-[#F0F4FF] overflow-x-hidden flex flex-col items-center justify-center p-6 select-none relative">
+      <div className="min-h-screen bg-bg text-text-1 overflow-x-hidden flex flex-col items-center justify-center p-6 select-none relative">
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
           <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-rose-500/5 to-primary/5 blur-[120px] opacity-40" />
         </div>
@@ -114,7 +114,7 @@ export default async function VerifyPage({ params }: VerifyPageProps) {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 cursor-pointer hover:opacity-90">
             <Logo className="h-6 w-6" />
-            <span className="font-heading text-xl font-bold tracking-tight text-white">Cognara</span>
+            <span className="font-heading text-xl font-bold tracking-tight text-text-1">Cognara</span>
           </Link>
 
           {/* Error Indicator */}
@@ -122,10 +122,10 @@ export default async function VerifyPage({ params }: VerifyPageProps) {
             <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 text-2xl font-bold mx-auto">
               ✗
             </div>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-white">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-text-1">
               Certificate Not Found
             </h2>
-            <p className="text-xs sm:text-sm text-[#8B95B3] leading-relaxed font-semibold">
+            <p className="text-xs sm:text-sm text-text-2 leading-relaxed font-semibold">
               This certificate ID does not match any record in our system.<br /><br />
               If you believe this is an error, please contact us at{' '}
               <a href="mailto:hello@cognaralearn.com" className="text-primary hover:underline">
@@ -138,7 +138,7 @@ export default async function VerifyPage({ params }: VerifyPageProps) {
           <Link href="/" className="w-full">
             <Button
               variant="outline"
-              className="w-full h-12 border border-[#1E2540] hover:bg-surface-alt text-text-1 font-bold rounded-xl text-xs"
+              className="w-full h-12 border border-border hover:bg-surface-alt text-text-1 font-bold rounded-xl text-xs"
             >
               Go to Cognara →
             </Button>

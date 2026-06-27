@@ -14,6 +14,7 @@ import { useToast } from '@/components/ui/toast'
 import { SoundEffects } from '@/lib/sound'
 import { Logo } from '@/components/ui/Logo'
 import { ProfileDropdown } from '@/components/dashboard/ProfileDropdown'
+import QuestsWidget from '@/components/dashboard/QuestsWidget'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -1260,63 +1261,8 @@ export default function DashboardPage() {
         </section>
       )}
 
-      {/* SECTION 4 — DAILY QUEST */}
-      {dailyQuest && (
-        <section className="border border-border/60 bg-surface/40 p-5 rounded-2xl space-y-4">
-          <div className="flex justify-between items-start">
-            <div className="space-y-1">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-accent font-bold block">
-                Daily Quest
-              </span>
-              <h4 className="text-[14px] font-bold text-text-1">{dailyQuest.title}</h4>
-              <p className="text-xs text-text-2">{dailyQuest.description}</p>
-            </div>
-            <div className="text-right shrink-0">
-              <span className="text-xs font-mono font-extrabold text-primary">Reward: +{dailyQuest.xpReward} CXP</span>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between text-[10px] text-text-2 font-mono">
-              <span>Quest Progress</span>
-              <span>{dailyQuest.progress} / {dailyQuest.target}</span>
-            </div>
-            <div className="w-full h-1.5 bg-border rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-300"
-                style={{ width: `${(dailyQuest.progress / dailyQuest.target) * 100}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="pt-1">
-            {dailyQuest.claimed ? (
-              <span className="text-xs font-bold text-emerald-500 flex items-center gap-1.5 select-none">
-                <CheckCircle2 className="h-3.5 w-3.5" /> Quest Complete
-              </span>
-            ) : dailyQuest.completed ? (
-              <Button
-                onClick={handleClaimQuest}
-                disabled={isClaiming}
-                className="h-9 px-4 bg-gradient-to-br from-primary to-accent text-white text-xs font-bold rounded-xl shadow-md cursor-pointer"
-              >
-                {isClaiming ? 'Claiming...' : 'Claim Reward ⚡'}
-              </Button>
-            ) : (
-              <Button
-                onClick={() => {
-                  const targetElement = document.querySelector('section')
-                  targetElement?.scrollIntoView({ behavior: 'smooth' })
-                }}
-                variant="ghost"
-                className="h-9 px-4 bg-surface-alt/50 hover:bg-border/60 border border-border text-text-2 hover:text-text-1 text-xs font-semibold rounded-xl cursor-pointer"
-              >
-                Start Quest
-              </Button>
-            )}
-          </div>
-        </section>
-      )}
+      {/* SECTION 4 — QUESTS WIDGET */}
+      <QuestsWidget isPro={profile?.subscription_tier !== 'free'} />
 
       {/* SECTION 5 — QUICK STATS */}
       <section className="border-t border-border/40 pt-6 space-y-3">

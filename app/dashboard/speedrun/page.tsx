@@ -17,7 +17,8 @@ import {
   Sparkles, 
   Play, 
   ArrowRight,
-  TrendingUp
+  TrendingUp,
+  Lock
 } from 'lucide-react'
 import Link from 'next/link'
 import { QuizQuestion } from '@/types/ai'
@@ -30,6 +31,9 @@ export default function SpeedRunPage() {
   const [gameState, setGameState] = useState<'loading' | 'instructions' | 'countdown' | 'playing' | 'gameover'>('loading')
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [currentIdx, setCurrentIdx] = useState(0)
+  
+  // Pro Subscription check
+  const [isProUser, setIsProUser] = useState<boolean | null>(null)
   
   // Stats & Progress
   const [timeLeft, setTimeLeft] = useState(60.0) // 60 seconds
@@ -68,6 +72,22 @@ export default function SpeedRunPage() {
         return
       }
       setUserId(user.id)
+
+      // Fetch user profile to check subscription status
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('subscription_tier')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      const isPro = profile?.subscription_tier !== 'free'
+      setIsProUser(isPro)
+
+      if (!isPro) {
+        // Stop here and show the locked paywall screen
+        setGameState('instructions')
+        return
+      }
 
       // Fetch speedrun questions
       const res = await fetch('/api/speedrun/questions')
@@ -272,6 +292,46 @@ export default function SpeedRunPage() {
 
   // Instructions/Pre-start Screen
   if (gameState === 'instructions') {
+    if (isProUser === false) {
+      return (
+        <div className="max-w-2xl mx-auto py-8 px-4 animate-page-enter">
+          <div className="flex items-center space-x-2 text-text-3 mb-6">
+            <Link href="/dashboard" className="flex items-center space-x-1.5 hover:text-text-1 transition-colors text-xs font-semibold">
+              <ArrowLeft className="h-4 w-4" />
+              <span>Dashboard</span>
+            </Link>
+          </div>
+
+          <div className="relative rounded-[16px] border border-border bg-surface p-8 md:p-12 overflow-hidden shadow-2xl flex flex-col items-center text-center space-y-6">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-50 pointer-events-none" />
+            
+            {/* Lock Icon */}
+            <div className="relative p-4 bg-primary/10 border border-primary/20 rounded-2xl text-primary animate-bounce-subtle">
+              <Lock className="h-8 w-8" />
+            </div>
+
+            <div className="space-y-2">
+              <h2 className="text-xl sm:text-2xl font-black text-text-1 font-heading tracking-tight">
+                Speedrun Mode is a Pro Feature ⚡
+              </h2>
+              <p className="text-text-2 text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
+                Unlock fast-paced daily diagnostic quizzes to test your cognitive retention and boost your learning rate!
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                window.location.href = '/#pricing'
+              }}
+              className="px-6 py-2.5 bg-gradient-to-r from-primary to-accent hover:from-primary/95 hover:to-accent/95 text-white font-bold rounded-xl text-xs shadow-md transition hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+            >
+              Upgrade to Pro
+            </button>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className="max-w-2xl mx-auto py-8 px-4 animate-page-enter">
         <div className="flex items-center space-x-2 text-text-3 mb-6">

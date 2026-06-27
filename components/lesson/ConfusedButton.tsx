@@ -10,8 +10,6 @@ interface ConfusedButtonProps {
   subject: string
   depthLevel: number
   children: React.ReactNode
-  /** Optional element (e.g. BookmarkButton) rendered to the left of the Confused pill in the header row */
-  bookmarkSlot?: React.ReactNode
   isPro?: boolean
   onUpgradePrompt?: () => void
 }
@@ -22,7 +20,6 @@ export function ConfusedButton({
   subject,
   depthLevel,
   children,
-  bookmarkSlot,
   isPro = false,
   onUpgradePrompt,
 }: ConfusedButtonProps) {
@@ -139,116 +136,17 @@ export function ConfusedButton({
 
   return (
     <div className="space-y-3 w-full">
-      {/* Header row: heading | [bookmark icon] [confused pill] */}
+      {/* Header row: heading | [bookmark icon] */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 w-full">
         <h3 className="font-heading text-base sm:text-lg font-semibold text-text-1 min-w-0 flex-1">
           {sectionHeading}
         </h3>
 
         <div className="flex items-center gap-1.5 flex-shrink-0 pt-0.5 sm:self-start self-start sm:mt-0 mt-1 flex-wrap">
-          {/* BookmarkButton injected from parent — rendered inline, no z-index clash */}
-          {bookmarkSlot}
-
-          {/* Remaining Count Badge */}
-          {isPro && sectionClicks < 3 && lessonClicks < 10 && dailyRemaining !== 0 && (
-            <span className="text-[10px] text-text-3 font-mono">
-              {dailyRemaining !== null ? `${dailyRemaining} left today` : '15 left today'}
-            </span>
-          )}
-
-          {/* Confused? pill */}
-          {sectionClicks < 3 && (
-            <button
-              type="button"
-              onClick={handleConfusedClick}
-              disabled={isPro && (status === 'loading' || status === 'resolved' || cooldown > 0 || lessonClicks >= 10 || dailyRemaining === 0)}
-              className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-all duration-200 cursor-pointer flex-shrink-0 flex items-center gap-1 ${
-                !isPro
-                  ? 'text-text-3 border-border hover:bg-surface-alt hover:text-text-2'
-                  : status === 'idle' && cooldown === 0 && lessonClicks < 10 && dailyRemaining !== 0
-                  ? 'text-text-3 border-border hover:bg-surface-alt hover:text-text-2'
-                  : status === 'loading'
-                  ? 'text-primary border-primary/30 bg-primary/10 animate-pulse-subtle'
-                  : status === 'success'
-                  ? 'text-primary border-primary/30 bg-primary/10'
-                  : status === 'resolved'
-                  ? 'text-success border-success/30 bg-success/10 font-semibold cursor-default'
-                  : 'text-text-3 border-border opacity-50 cursor-not-allowed'
-              }`}
-              style={{
-                borderColor: isPro && status === 'resolved' ? 'rgba(52,211,153,0.3)' : undefined,
-                color: isPro && status === 'resolved' ? 'var(--color-success)' : undefined,
-              }}
-            >
-              {!isPro && (
-                <>
-                  <Lock className="h-3 w-3" />
-                  <span>Confused?</span>
-                </>
-              )}
-              {isPro && cooldown > 0 && `Wait ${cooldown}s`}
-              {isPro && cooldown === 0 && lessonClicks >= 10 && 'Session limit reached'}
-              {isPro && cooldown === 0 && dailyRemaining === 0 && 'Limit reached'}
-              {isPro && cooldown === 0 && lessonClicks < 10 && dailyRemaining !== 0 && (
-                <>
-                  {status === 'idle' && 'Confused? 💡'}
-                  {status === 'loading' && 'Thinking...'}
-                  {status === 'success' && 'Thinking...'}
-                  {status === 'resolved' && '✓ Clearer now'}
-                </>
-              )}
-            </button>
-          )}
         </div>
       </div>
 
       {children}
-
-      {/* Section-specific limit warning */}
-      {sectionClicks >= 3 && (
-        <div className="text-xs text-text-3 bg-surface-alt/40 border border-border p-3.5 rounded-lg leading-relaxed mt-2">
-          ℹ️ You've seen 3 explanations for this section. Try re-reading it or move to the next part.
-        </div>
-      )}
-
-      {/* Daily limit warning */}
-      {isPro && dailyRemaining === 0 && (
-        <div className="text-xs text-accent bg-accent/5 border border-accent/20 p-3.5 rounded-lg leading-relaxed mt-2">
-          🔒 You've used your daily explanation limit. Come back tomorrow for more.
-        </div>
-      )}
-
-      {status === 'success' && sectionClicks < 3 && (
-        <div
-          className="animate-slideDown space-y-3"
-          style={{
-            background: 'rgba(91,142,255,0.06)',
-            border: '1px solid rgba(91,142,255,0.2)',
-            borderLeft: '3px solid var(--color-primary)',
-            borderRadius: '10px',
-            padding: '16px 20px',
-          }}
-        >
-          <div className="flex items-center space-x-2 text-primary">
-            <span className="text-sm">💡</span>
-            <span className="text-xs font-semibold uppercase tracking-wider">
-              Let me explain this differently
-            </span>
-          </div>
-
-          <p className="text-text-2 text-sm leading-relaxed whitespace-pre-line">
-            {explanation}
-          </p>
-
-          <button
-            type="button"
-            onClick={handleGotItClick}
-            className="h-8 px-4 bg-primary hover:bg-primary/95 border border-primary border-b-[3px] border-b-blue-700 text-white rounded-lg text-xs font-bold active:translate-y-[1.5px] active:border-b-[1.5px] transition-all cursor-pointer shadow-sm select-none"
-          >
-            Got it! ✓
-          </button>
-        </div>
-      )}
     </div>
   )
 }

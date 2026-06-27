@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Menu, X, Share2, PlusSquare } from 'lucide-react'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { Logo } from '@/components/ui/Logo'
+import { createClient } from '@/lib/supabase/client'
 
 interface LandingHeaderProps {
   mobileMenuOpen: boolean
@@ -18,6 +19,7 @@ export function LandingHeader({
   handleScrollToSection
 }: LandingHeaderProps) {
   const [isScrolled, setIsScrolled] = React.useState(false)
+  const [hasSession, setHasSession] = React.useState<boolean | null>(null)
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -26,6 +28,13 @@ export function LandingHeader({
     window.addEventListener('scroll', handleScroll)
     handleScroll()
     return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  React.useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getSession().then((res: any) => {
+      setHasSession(!!res.data?.session)
+    })
   }, [])
 
   return (
@@ -66,9 +75,15 @@ export function LandingHeader({
             >
               Pricing
             </a>
-            <Link href="/login" className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
-              Log In
-            </Link>
+            {hasSession ? (
+              <Link href="/dashboard" className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
+                Dashboard
+              </Link>
+            ) : (
+              <Link href="/login" className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
+                Log In
+              </Link>
+            )}
           </nav>
 
           <div className="flex items-center space-x-4">
@@ -76,7 +91,14 @@ export function LandingHeader({
 
             {/* Desktop Action Area */}
             <div className="hidden md:flex items-center space-x-4">
-              {!isScrolled ? (
+              {hasSession ? (
+                <Link
+                  href="/dashboard"
+                  className="h-9 px-4 inline-flex items-center justify-center rounded-md font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)]"
+                >
+                  Go to Dashboard →
+                </Link>
+              ) : !isScrolled ? (
                 // Only show Log In link above the fold
                 <Link 
                   href="/login" 
@@ -97,7 +119,14 @@ export function LandingHeader({
 
             {/* Mobile Action/Menu Area */}
             <div className="md:hidden flex items-center space-x-2">
-              {!isScrolled ? (
+              {hasSession ? (
+                <Link
+                  href="/dashboard"
+                  className="h-8 px-3 inline-flex items-center justify-center rounded-md font-bold text-[10px] uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)]"
+                >
+                  Go to Dashboard →
+                </Link>
+              ) : !isScrolled ? (
                 // Only show Log In above the fold on mobile
                 <Link 
                   href="/login" 
@@ -169,20 +198,32 @@ export function LandingHeader({
           </nav>
           
           <div className="flex flex-col gap-3 pt-4 border-t border-border/40">
-            <Link 
-              href="/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full h-11 border border-border bg-surface hover:bg-surface-alt text-text-1 flex items-center justify-center rounded-lg font-bold text-xs uppercase tracking-wider"
-            >
-              Sign In
-            </Link>
-            <Link 
-              href="/signup"
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full h-11 bg-primary hover:bg-primary-hover text-white flex items-center justify-center rounded-lg font-bold text-xs uppercase tracking-wider"
-            >
-              Sign Up
-            </Link>
+            {hasSession ? (
+              <Link 
+                href="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full h-11 bg-primary hover:bg-primary-hover text-white flex items-center justify-center rounded-lg font-bold text-xs uppercase tracking-wider"
+              >
+                Go to Dashboard →
+              </Link>
+            ) : (
+              <>
+                <Link 
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full h-11 border border-border bg-surface hover:bg-surface-alt text-text-1 flex items-center justify-center rounded-lg font-bold text-xs uppercase tracking-wider"
+                >
+                  Sign In
+                </Link>
+                <Link 
+                  href="/signup"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full h-11 bg-primary hover:bg-primary-hover text-white flex items-center justify-center rounded-lg font-bold text-xs uppercase tracking-wider"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

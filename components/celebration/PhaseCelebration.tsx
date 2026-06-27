@@ -148,7 +148,7 @@ export function PhaseCelebration({
 
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0A0C14] text-[#F0F4FF] flex flex-col items-center justify-center p-6 overflow-y-auto animate-fade-in-celebrate">
+    <div className="fixed inset-0 z-50 bg-bg text-text-1 flex flex-col items-center justify-center p-6 overflow-y-auto animate-fade-in-celebrate">
       {/* Self-contained CSS Animations */}
       <style>{`
         @keyframes drawRing {
@@ -217,7 +217,7 @@ export function PhaseCelebration({
               className="animate-draw-ring"
             />
           </svg>
-          <div className="w-24 h-24 rounded-full bg-[#111520] border border-[#1E2540] flex items-center justify-center text-4xl shadow-2xl z-10 animate-scale-up-delayed">
+          <div className="w-24 h-24 rounded-full bg-surface border border-border flex items-center justify-center text-4xl shadow-2xl z-10 animate-scale-up-delayed">
             🏆
           </div>
         </div>
@@ -227,49 +227,49 @@ export function PhaseCelebration({
           <span className="text-[11px] font-mono font-black uppercase tracking-widest text-[#5B8EFF] bg-[#5B8EFF]/10 border border-[#5B8EFF]/20 px-3.5 py-1 rounded-full">
             Milestone Reached
           </span>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-text-1 leading-tight">
             Phase {phaseNumber} Complete.
           </h1>
           <div className="space-y-1">
             <p className="text-base font-bold text-[#A78BFA]">{phaseName}</p>
-            <p className="text-xs text-[#8B95B3] font-mono tracking-wide">{goalName}</p>
+            <p className="text-xs text-text-2 font-mono tracking-wide">{goalName}</p>
           </div>
         </div>
 
         {/* Stats Row */}
-        <div className="grid grid-cols-3 gap-2 w-full max-w-sm py-4 border-y border-[#1E2540]/60 animate-slide-up-1 text-center">
+        <div className="grid grid-cols-3 gap-2 w-full max-w-sm py-4 border-y border-border/60 animate-slide-up-1 text-center">
           <div>
-            <p className="text-[10px] text-[#8B95B3] font-bold uppercase tracking-wider">Lessons</p>
-            <p className="text-lg font-black text-white font-mono mt-0.5">{lessonsCount}</p>
+            <p className="text-[10px] text-text-2 font-bold uppercase tracking-wider">Lessons</p>
+            <p className="text-lg font-black text-text-1 font-mono mt-0.5">{lessonsCount}</p>
           </div>
           <div>
-            <p className="text-[10px] text-[#8B95B3] font-bold uppercase tracking-wider">Quizzes</p>
-            <p className="text-lg font-black text-white font-mono mt-0.5">{quizzesCount}</p>
+            <p className="text-[10px] text-text-2 font-bold uppercase tracking-wider">Quizzes</p>
+            <p className="text-lg font-black text-text-1 font-mono mt-0.5">{quizzesCount}</p>
           </div>
           <div>
-            <p className="text-[10px] text-[#8B95B3] font-bold uppercase tracking-wider">CXP Logged</p>
+            <p className="text-[10px] text-text-2 font-bold uppercase tracking-wider">CXP Logged</p>
             <p className="text-lg font-black text-[#5B8EFF] font-mono mt-0.5">+{cxpEarned}</p>
           </div>
         </div>
 
         {/* Encouragement */}
-        <p className="text-xs sm:text-sm text-[#C8D0E8] leading-relaxed max-w-md animate-slide-up-1 font-medium">
+        <p className="text-xs sm:text-sm text-text-2 leading-relaxed max-w-md animate-slide-up-1 font-medium">
           &ldquo;{firstName}, you just completed the {phaseName} phase of your {goalName} journey. That is real progress.&rdquo;
         </p>
 
         {/* MIDDLE SECTION: What Comes Next */}
         {nextPhaseNumber ? (
-          <div className="w-full bg-[#111520]/80 border border-[#1E2540] rounded-2xl p-5 text-left space-y-2.5 animate-slide-up-1">
+          <div className="w-full bg-surface/80 border border-border rounded-2xl p-5 text-left space-y-2.5 animate-slide-up-1">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] font-mono uppercase tracking-widest text-[#8B95B3] font-bold">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-text-2 font-bold">
                 Up Next
               </span>
             </div>
-            <h4 className="text-sm sm:text-base font-extrabold text-white">
+            <h4 className="text-sm sm:text-base font-extrabold text-text-1">
               Phase {nextPhaseNumber} Unlocked: {nextPhaseName}
             </h4>
-            <p className="text-xs text-[#8B95B3] leading-relaxed font-medium">
+            <p className="text-xs text-text-2 leading-relaxed font-medium">
               {nextPhaseDescription}
             </p>
           </div>
@@ -278,10 +278,10 @@ export function PhaseCelebration({
             <span className="text-[10px] font-mono uppercase tracking-widest text-[#A78BFA] font-bold block">
               Final Milestone Complete
             </span>
-            <h4 className="text-sm sm:text-base font-extrabold text-white">
+            <h4 className="text-sm sm:text-base font-extrabold text-text-1">
               Roadmap Completed! 🎉
             </h4>
-            <p className="text-xs text-[#8B95B3] leading-relaxed font-medium">
+            <p className="text-xs text-text-2 leading-relaxed font-medium">
               You have completed all phases in this roadmap. You are ready to achieve your next big goal.
             </p>
           </div>
@@ -291,7 +291,7 @@ export function PhaseCelebration({
         <div className="flex flex-col gap-3 w-full pt-4 animate-slide-up-2">
           <Button
             onClick={onClaimCertificate}
-            className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-extrabold text-[14px] rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.25)] transition duration-150 active:scale-[0.99] cursor-pointer"
+            className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-text-1 font-extrabold text-[14px] rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.25)] transition duration-150 active:scale-[0.99] cursor-pointer"
           >
             Claim My Certificate
           </Button>
@@ -299,14 +299,14 @@ export function PhaseCelebration({
           <Button
             onClick={onContinue}
             variant="ghost"
-            className="w-full h-13 bg-[#111520]/50 hover:bg-[#1E2540]/60 border border-[#1E2540] text-[#8B95B3] hover:text-[#F0F4FF] font-bold text-[13px] rounded-xl transition duration-150 cursor-pointer"
+            className="w-full h-13 bg-surface/50 hover:bg-surface-alt border border-border text-text-2 hover:text-text-1 font-bold text-[13px] rounded-xl transition duration-150 cursor-pointer"
           >
             {nextPhaseNumber ? `Continue to Phase ${nextPhaseNumber} →` : 'Continue to Dashboard →'}
           </Button>
 
           {/* Referral Nudge */}
-          <div className="pt-4 border-t border-[#1E2540] text-center space-y-1.5 mt-2">
-            <p className="text-[11px] text-[#8B95B3]">Enjoying Cognara?</p>
+          <div className="pt-4 border-t border-border text-center space-y-1.5 mt-2">
+            <p className="text-[11px] text-text-2">Enjoying Cognara?</p>
             <Button
               onClick={handleShareReferral}
               variant="outline"

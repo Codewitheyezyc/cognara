@@ -3,18 +3,20 @@
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { BookOpen, Download, Trash2, ArrowLeft, Clock, Sparkles, ChevronRight, BookOpenCheck } from 'lucide-react'
+import { useToast } from '@/components/ui/toast'
+import { BookOpen, Download, Trash2, ArrowLeft, Clock, Sparkles, ChevronRight, BookOpenCheck, Bookmark } from 'lucide-react'
 import { GeneratedLesson } from '@/types/ai'
 import { CodeBlock } from '@/components/lesson/CodeBlock'
 import { Callout } from '@/components/lesson/Callout'
 import { LessonTable } from '@/components/lesson/LessonTable'
 
-interface DownloadedLessonEntry {
+interface SavedLessonEntry {
   id: string
   title: string
   subject: string
   depthLevel: number
-  lesson: GeneratedLesson
+  lesson?: GeneratedLesson
+  state: 'downloaded' | 'saved'
   downloadedAt: string
 }
 
@@ -153,24 +155,33 @@ function formatLessonText(text: string) {
 
 export default function DownloadsPage() {
   const router = useRouter()
-  const [downloads, setDownloads] = useState<Record<string, DownloadedLessonEntry>>({})
+  const { toast } = useToast()
+  const [downloads, setDownloads] = useState<Record<string, SavedLessonEntry>>({})
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    // Load from local storage
+  const loadSavedLessons = () => {
     if (typeof window !== 'undefined') {
       try {
         const stored = localStorage.getItem('cognara_downloaded_lessons')
         if (stored) {
           setDownloads(JSON.parse(stored))
+        } else {
+          setDownloads({})
         }
       } catch (err) {
-        console.error('Failed to load downloaded lessons:', err)
+        console.error('Failed to load saved lessons:', err)
       } finally {
         setLoading(false)
       }
     }
+  }
+
+  useEffect(() => {
+    loadSavedLessons()
+
+    window.addEventListener('storage', loadSavedLessons)
+    return () => window.removeEventListener('storage', loadSavedLessons)
   }, [])
 
   const handleDelete = (lessonId: string, e: React.MouseEvent) => {
@@ -180,19 +191,23 @@ export default function DownloadsPage() {
       delete updated[lessonId]
       setDownloads(updated)
       localStorage.setItem('cognara_downloaded_lessons', JSON.stringify(updated))
+      toast('Lesson removed from Saved Lessons.')
+      window.dispatchEvent(new Event('storage'))
     } catch (err) {
       console.error('Failed to delete lesson:', err)
     }
   }
 
   const handleClearAll = () => {
-    if (window.confirm('Are you sure you want to delete all offline downloaded lessons?')) {
+    if (window.confirm('Are you sure you want to clear your saved lessons shelf?')) {
       try {
         localStorage.removeItem('cognara_downloaded_lessons')
         setDownloads({})
         setSelectedLessonId(null)
+        toast('Saved lessons shelf cleared.')
+        window.dispatchEvent(new Event('storage'))
       } catch (err) {
-        console.error('Failed to clear downloaded lessons:', err)
+        console.error('Failed to clear saved lessons:', err)
       }
     }
   }
@@ -205,7 +220,7 @@ export default function DownloadsPage() {
     return (
       <div className="py-20 flex flex-col items-center justify-center space-y-4">
         <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-        <p className="text-text-3 text-sm font-mono">Loading downloads cache...</p>
+        <p className="text-text-3 text-sm font-mono">Loading saved lessons shelf...</p>
       </div>
     )
   }
@@ -214,6 +229,20 @@ export default function DownloadsPage() {
   if (selectedLessonId && downloads[selectedLessonId]) {
     const entry = downloads[selectedLessonId]
     const { title, subject, depthLevel, lesson } = entry
+
+    if (!lesson) {
+      return (
+        <div className="py-20 text-center space-y-4">
+          <p className="text-text-2 text-sm">This lesson is saved as reference and requires an active connection.</p>
+          <button 
+            onClick={() => setSelectedLessonId(null)} 
+            className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg cursor-pointer"
+          >
+            Back to Shelf
+          </button>
+        </div>
+      )
+    }
 
     return (
       <div className="max-w-[720px] mx-auto pb-16 animate-page-enter">
@@ -501,11 +530,11 @@ export default function DownloadsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-border pb-4 gap-4">
         <div>
           <div className="flex items-center space-x-2 text-primary">
-            <Download className="h-5 w-5" strokeWidth={1.5} />
-            <h1 className="font-heading text-2xl font-bold text-text-1">In-App Offline Shelf</h1>
+            <Bookmark className="h-5 w-5" strokeWidth={1.5} />
+            <h1 className="font-heading text-2xl font-bold text-text-1">Saved Lessons Shelf</h1>
           </div>
           <p className="text-text-2 text-sm mt-1">
-            Read your downloaded lessons offline inside the app with zero connection.
+            Manage your bookmarked lessons and downloaded offline guides.
           </p>
         </div>
 
@@ -520,13 +549,30 @@ export default function DownloadsPage() {
         )}
       </div>
 
-      {/* Grid list of downloaded lessons */}
+      {/* Grid list of saved/downloaded lessons */}
       {downloadList.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {downloadList.map((item) => (
             <div
               key={item.id}
-              onClick={() => setSelectedLessonId(item.id)}
+              onClick={() => {
+                const isSavedOnly = item.state === 'saved'
+                const isOfflineMode = typeof window !== 'undefined' && !window.navigator.onLine
+
+                if (isSavedOnly) {
+                  if (isOfflineMode) {
+                    toast('This lesson is saved as reference and requires an internet connection to read.', 'error')
+                  } else {
+                    router.push(`/dashboard/lesson/${item.id}`)
+                  }
+                } else {
+                  if (isOfflineMode) {
+                    setSelectedLessonId(item.id)
+                  } else {
+                    router.push(`/dashboard/lesson/${item.id}`)
+                  }
+                }
+              }}
               className="p-5 bg-surface border border-border/80 hover:border-primary/45 rounded-xl transition duration-150 flex flex-col justify-between cursor-pointer group shadow-sm hover:shadow-[0_0_20px_rgba(91,142,255,0.05)] relative overflow-hidden"
             >
               {/* Highlight left border glow */}
@@ -537,9 +583,23 @@ export default function DownloadsPage() {
                   <span className="inline-flex items-center px-2 py-0.5 border border-primary/20 bg-primary/5 text-primary text-[9px] font-mono font-bold uppercase tracking-wider rounded">
                     {item.subject || 'Development'}
                   </span>
-                  <span className="text-[9px] text-text-3 font-mono">
-                    {depthLabels[item.depthLevel] || 'Beginner'}
-                  </span>
+                  
+                  <div className="flex items-center space-x-1.5">
+                    {item.state === 'saved' ? (
+                      <span className="inline-flex items-center gap-1 text-[9px] text-purple-500 font-bold bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded">
+                        <Bookmark className="h-2.5 w-2.5" />
+                        Reference
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[9px] text-emerald-500 font-bold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
+                        <Download className="h-2.5 w-2.5" />
+                        Offline
+                      </span>
+                    )}
+                    <span className="text-[9px] text-text-3 font-mono">
+                      {depthLabels[item.depthLevel] || 'Beginner'}
+                    </span>
+                  </div>
                 </div>
 
                 <h3 className="font-heading text-base font-bold text-text-1 group-hover:text-primary transition-colors line-clamp-1">
@@ -557,7 +617,7 @@ export default function DownloadsPage() {
                   {item.lesson?.estimated_minutes || 5}m read
                 </span>
                 <span className="text-primary hover:underline font-bold inline-flex items-center gap-0.5">
-                  Read Offline <ChevronRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+                  {item.state === 'saved' ? 'Open Lesson' : 'Read Offline'} <ChevronRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
                 </span>
               </div>
 
@@ -565,7 +625,7 @@ export default function DownloadsPage() {
               <button
                 onClick={(e) => handleDelete(item.id, e)}
                 className="absolute top-4 right-4 p-1.5 border border-border hover:border-error/20 hover:text-error hover:bg-error/5 rounded-md text-text-3 transition-colors cursor-pointer"
-                title="Remove download"
+                title="Remove item"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
@@ -576,13 +636,13 @@ export default function DownloadsPage() {
         /* Empty State */
         <div className="flex flex-col items-center justify-center text-center p-12 bg-surface-alt/20 border border-border/80 rounded-2xl max-w-xl mx-auto space-y-6">
           <div className="p-4 bg-primary/10 border border-primary/20 rounded-2xl text-primary">
-            <Download className="h-10 w-10 animate-bounce" strokeWidth={1.5} />
+            <Bookmark className="h-10 w-10 animate-bounce" strokeWidth={1.5} />
           </div>
           
           <div className="space-y-1.5">
-            <h3 className="font-heading text-lg font-bold text-text-1">Your downloads shelf is empty</h3>
+            <h3 className="font-heading text-lg font-bold text-text-1">Your saved lessons shelf is empty</h3>
             <p className="text-xs text-text-2 leading-relaxed max-w-sm">
-              Any lesson you download from your learning roadmap path will stay cached right here, so you can study without network distractions.
+              Bookmark lessons for reference or download them offline to study without distractions.
             </p>
           </div>
 

@@ -141,35 +141,32 @@ export function SparkDrawer({
 
       {/* Drawer sheet */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 flex flex-col"
+        className="fixed bottom-0 left-0 right-0 z-50 flex flex-col bg-surface border-t border-border shadow-2xl"
         style={{
           height: '72vh',
           maxHeight: '600px',
-          background: 'linear-gradient(180deg, #0f1322 0%, #0A0C14 100%)',
-          borderTop: '1px solid rgba(91,142,255,0.22)',
           borderRadius: '20px 20px 0 0',
-          boxShadow: '0 -8px 48px rgba(0,0,0,0.55)',
           transform: visible ? 'translateY(0)' : 'translateY(100%)',
           transition: 'transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)',
         }}
       >
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1 shrink-0">
-          <div className="w-10 h-1 rounded-full bg-[#1E2540]" />
+          <div className="w-10 h-1 rounded-full bg-border" />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#171D38] shrink-0">
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-border shrink-0">
           <div className="flex items-center gap-2.5">
             <Spark emotion="idle" size={30} />
             <div>
-              <p className="text-[13px] font-bold text-[#F0F4FF] leading-tight">Ask Spark</p>
-              <p className="text-[10px] text-[#5B8EFF] font-medium truncate max-w-[200px]">{lessonTitle}</p>
+              <p className="text-[13px] font-bold text-text-1 leading-tight">Ask Spark</p>
+              <p className="text-[10px] text-primary font-medium truncate max-w-[200px]">{lessonTitle}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-[#141A30] hover:bg-[#1E2540] flex items-center justify-center text-[#8B95B3] hover:text-[#F0F4FF] transition-colors"
+            className="w-8 h-8 rounded-full bg-surface-alt hover:bg-border text-text-2 hover:text-text-1 flex items-center justify-center transition-colors"
             aria-label="Close Spark"
           >
             <X className="h-3.5 w-3.5" />
@@ -191,8 +188,8 @@ export function SparkDrawer({
               <div
                 className={`max-w-[82%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed ${
                   msg.role === 'spark'
-                    ? 'bg-[#0F1525] border border-[#1E2A4A] text-[#C8D0E8] rounded-tl-sm'
-                    : 'bg-gradient-to-br from-[#5B8EFF] to-[#7B6EFF] text-white rounded-tr-sm'
+                    ? 'bg-surface-alt border border-border text-text-1 rounded-tl-sm'
+                    : 'bg-gradient-to-br from-primary to-accent text-white rounded-tr-sm'
                 }`}
               >
                 {msg.content}
@@ -205,10 +202,10 @@ export function SparkDrawer({
               <div className="shrink-0 mt-0.5">
                 <Spark emotion="thinking" size={22} />
               </div>
-              <div className="bg-[#0F1525] border border-[#1E2A4A] rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#5B8EFF] animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-[#5B8EFF] animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-[#5B8EFF] animate-bounce" style={{ animationDelay: '300ms' }} />
+              <div className="bg-surface-alt border border-border rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
             </div>
           )}
@@ -216,8 +213,8 @@ export function SparkDrawer({
         </div>
 
         {/* Input */}
-        <div className="shrink-0 px-4 py-3 border-t border-[#171D38]">
-          <div className="flex items-center gap-2 bg-[#0F1525] border border-[#1E2A4A] rounded-xl px-3.5 py-2.5 focus-within:border-[#5B8EFF]/50 transition-colors">
+        <div className="shrink-0 px-4 py-3 border-t border-border">
+          <div className="flex items-center gap-2 bg-surface-alt border border-border rounded-xl px-3.5 py-2.5 focus-within:border-primary/50 transition-colors">
             <input
               ref={inputRef}
               type="text"
@@ -226,7 +223,7 @@ export function SparkDrawer({
               onKeyDown={handleKeyDown}
               placeholder="Ask anything about this lesson..."
               disabled={isLoading}
-              className="flex-1 bg-transparent text-[#F0F4FF] placeholder-[#3A4262] text-[13px] outline-none border-none disabled:opacity-50"
+              className="flex-1 bg-transparent text-text-1 placeholder-text-3 text-[13px] outline-none border-none disabled:opacity-50"
             />
             <button
               onClick={handleSend}

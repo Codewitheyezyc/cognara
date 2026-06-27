@@ -99,6 +99,17 @@ export function LandingFooter() {
         </div>
       </div>
 
+      {/* Crawlable SEO Metadata - subtle to users, visible to engines */}
+      <section className="max-w-6xl mx-auto mt-6 text-[9.5px] text-text-3/60 leading-relaxed font-semibold select-none text-left">
+        <p>
+          Cognara (cognaralearn.com) is an AI Achievement Platform 
+          built by CreedTech. Cognara helps learners in Nigeria 
+          and across Africa achieve their learning goals through 
+          personalised AI-generated roadmaps, adaptive lessons, 
+          and daily accountability. Available at cognaralearn.com.
+        </p>
+      </section>
+
       {isDownloadModalOpen && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
