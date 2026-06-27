@@ -111,17 +111,19 @@ export default function OnboardingPage() {
           if (profile.main_roadmap) setSuccessRoadmap(profile.main_roadmap)
         }
 
-        // Check if there is a referral source in sessionStorage and sync it
+        // Check if there is a referral source in sessionStorage or localStorage and sync it
         if (typeof window !== 'undefined') {
-          const refSource = sessionStorage.getItem('referral_source')
+          const refSource = sessionStorage.getItem('referral_source') || localStorage.getItem('cognara_referral_code')
           if (refSource) {
             await supabase
               .from('profiles')
               .update({ referral_source: refSource })
               .eq('id', user.id)
             sessionStorage.removeItem('referral_source')
+            localStorage.removeItem('cognara_referral_code')
           }
         }
+
       } catch (err) {
         console.error('[Onboarding] Error checking user session:', err)
       } finally {

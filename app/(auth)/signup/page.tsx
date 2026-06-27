@@ -93,17 +93,30 @@ export default function SignupPage() {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [userEmail, setUserEmail] = useState('')
 
-  // Capture referral certificate info if present
+  const [referralCode, setReferralCode] = useState<string | null>(null)
+
+  // Capture referral certificate or user code if present
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search)
       const ref = searchParams.get('ref')
       const cert = searchParams.get('cert')
-      if (ref === 'certificate' && cert) {
+      
+      if (ref && ref.startsWith('CGN-')) {
+        localStorage.setItem('cognara_referral_code', ref)
+        sessionStorage.setItem('referral_source', ref)
+        setReferralCode(ref)
+      } else if (ref === 'certificate' && cert) {
         sessionStorage.setItem('referral_source', `certificate:${cert}`)
+      } else {
+        const stored = localStorage.getItem('cognara_referral_code')
+        if (stored) {
+          setReferralCode(stored)
+        }
       }
     }
   }, [])
+
 
   const {
     register,
@@ -145,6 +158,9 @@ export default function SignupPage() {
       if (error) {
         setErrorMsg(error.message)
       } else if (signUpData?.user) {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('cognara_referral_code')
+        }
         // If email confirmation is enabled, session will be null.
         // We show the "check your email" view.
         if (!signUpData.session) {
@@ -156,6 +172,7 @@ export default function SignupPage() {
           router.refresh()
         }
       }
+
     } catch (err) {
       setErrorMsg('An unexpected error occurred. Please try again.')
       console.error(err)
@@ -230,6 +247,13 @@ export default function SignupPage() {
         <p className="text-sm text-text-2">Your mind. Your path. Your era.</p>
         <h2 className="mt-4 font-heading text-xl font-semibold text-text-1">Create an account</h2>
       </div>
+
+      {referralCode && (
+        <div className="mt-5 p-3.5 bg-gradient-to-r from-amber-500/10 to-amber-600/15 border border-amber-500/30 text-amber-500 rounded-xl text-xs font-semibold leading-relaxed text-center animate-fade-in-celebrate">
+          🎉 You were invited by a Cognara learner.<br />
+          Sign up free and complete your first lesson to earn <span className="font-extrabold text-amber-400 font-mono">+100 bonus CXP</span>.
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
         {errorMsg && (
