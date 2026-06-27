@@ -54,6 +54,8 @@ export default function MarketingPage() {
         <TestimonialsSection />
         <ComparisonSection />
         <PricingSection />
+        <FaqSection />
+        <ContactSection />
         <FinalCtaSection />
         {/*
         <DashboardPreview />
@@ -63,7 +65,6 @@ export default function MarketingPage() {
         <SparkShowcase />
         <OfflinePwa />
         <WhyCognara />
-        <FaqSection />
         */}
       </main>
 

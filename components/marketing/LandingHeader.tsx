@@ -135,26 +135,7 @@ export function LandingHeader({
             >
               How It Works
             </a>
-            <a 
-              href="#features" 
-              onClick={(e) => {
-                setMobileMenuOpen(false)
-                handleScrollToSection(e, 'features')
-              }}
-              className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
-            >
-              Features
-            </a>
-            <a 
-              href="#offline-pwa" 
-              onClick={(e) => {
-                setMobileMenuOpen(false)
-                handleScrollToSection(e, 'offline-pwa')
-              }}
-              className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
-            >
-              Offline App
-            </a>
+
             <a 
               href="#pricing" 
               onClick={(e) => {

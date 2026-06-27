@@ -95,45 +95,45 @@ export function HeroSection() {
         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl blur-3xl pointer-events-none z-0" />
         
         {/* Mockup Frame */}
-        <div className="relative z-10 bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden min-h-[380px] flex flex-col transition-all duration-300">
+        <div className="relative z-10 bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden min-h-[460px] sm:min-h-[400px] flex flex-col transition-all duration-300">
           {/* Browser header */}
-          <div className="flex items-center justify-between px-4 py-3.5 border-b border-border bg-bg/50 select-none">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-bg/55 select-none">
             <div className="flex items-center space-x-1.5">
-              <span className="w-3 h-3 rounded-full bg-rose-500/80" />
-              <span className="w-3 h-3 rounded-full bg-amber-500/80" />
-              <span className="w-3 h-3 rounded-full bg-emerald-500/80" />
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
             </div>
-            <div className="text-[10px] font-mono text-text-3 font-bold tracking-widest uppercase">
+            <div className="text-[9px] sm:text-[10px] font-mono text-text-3 font-bold tracking-wider sm:tracking-widest uppercase">
               {activeStep === 0 && 'STEP 1: DEFINE YOUR GOAL'}
               {activeStep === 1 && 'STEP 2: ROADMAP GENERATION'}
               {activeStep === 2 && 'STEP 3: ACTIVE LEARNING'}
             </div>
-            <div className="w-12" /> {/* spacer to balance controls */}
+            <div className="w-10" /> {/* spacer to balance controls */}
           </div>
 
           {/* Mockup Content Area */}
-          <div className="flex-1 p-6 flex flex-col justify-center relative bg-surface-alt/10">
+          <div className="flex-1 p-4 sm:p-6 flex flex-col justify-center relative bg-surface-alt/10">
             
             {/* STEP 1: Text Input with Typing Animation */}
             <div 
-              className={`w-full max-w-md mx-auto space-y-6 transition-all duration-500 absolute inset-x-6 top-1/2 -translate-y-1/2 ${
+              className={`w-full max-w-md mx-auto space-y-4 sm:space-y-6 transition-all duration-500 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-4 sm:px-6 ${
                 activeStep === 0 ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-95 pointer-events-none'
               }`}
             >
-              <div className="text-center space-y-2">
-                <h4 className="text-base font-extrabold text-text-1">What do you want to achieve?</h4>
-                <p className="text-xs text-text-2">Define your goal. Cognara compiles your custom curriculum.</p>
+              <div className="text-center space-y-1.5">
+                <h4 className="text-sm sm:text-base font-extrabold text-text-1">What do you want to achieve?</h4>
+                <p className="text-[11px] sm:text-xs text-text-2">Define your goal. Cognara compiles your custom curriculum.</p>
               </div>
-              <div className="space-y-4">
-                <div className="relative h-13 w-full bg-surface border border-border rounded-xl px-4 flex items-center shadow-inner text-left">
-                  <span className="text-text-1 text-sm font-semibold">
+              <div className="space-y-3">
+                <div className="relative h-11 sm:h-13 w-full bg-surface border border-border rounded-xl px-4 flex items-center shadow-inner text-left">
+                  <span className="text-text-1 text-xs sm:text-sm font-semibold">
                     {typedGoal}
                   </span>
-                  <span className="w-[2px] h-5 bg-primary ml-1 animate-pulse" />
+                  <span className="w-[2px] h-4 sm:h-5 bg-primary ml-1 animate-pulse" />
                 </div>
                 <button
                   type="button"
-                  className="w-full h-12 bg-primary text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 cursor-default select-none shadow-sm opacity-90"
+                  className="w-full h-10 sm:h-12 bg-primary text-white rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 cursor-default select-none shadow-sm opacity-90"
                 >
                   Build My Roadmap →
                 </button>
@@ -142,87 +142,87 @@ export function HeroSection() {
 
             {/* STEP 2: Roadmap Appears with Phases */}
             <div 
-              className={`w-full max-w-md mx-auto space-y-4 transition-all duration-500 absolute inset-x-6 top-1/2 -translate-y-1/2 ${
+              className={`w-full max-w-md mx-auto space-y-3 sm:space-y-4 transition-all duration-500 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-4 sm:px-6 ${
                 activeStep === 1 ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-95 pointer-events-none'
               }`}
             >
-              <div className="text-left space-y-1">
-                <h4 className="text-sm font-extrabold text-text-1">Your Roadmap: Social Media Strategist</h4>
-                <p className="text-[10px] text-text-3 font-mono">Estimated completion: 6 weeks at 30m/day</p>
+              <div className="text-left space-y-0.5">
+                <h4 className="text-xs sm:text-sm font-extrabold text-text-1">Your Roadmap: Social Media Strategist</h4>
+                <p className="text-[9px] sm:text-[10px] text-text-3 font-mono">Estimated completion: 6 weeks at 30m/day</p>
               </div>
               
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {/* Phase 1 (Active) */}
-                <div className="p-3.5 bg-surface border border-border rounded-xl space-y-2.5 shadow-sm text-left">
-                  <div className="flex items-center justify-between border-b border-border/40 pb-1.5">
+                <div className="p-2.5 sm:p-3.5 bg-surface border border-border rounded-xl space-y-2 sm:space-y-2.5 shadow-sm text-left">
+                  <div className="flex items-center justify-between border-b border-border/40 pb-1 sm:pb-1.5">
                     <span className="text-xs font-bold text-text-1">Phase 1: Foundations of Content</span>
-                    <span className="text-[9px] font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full uppercase tracking-wider">Active</span>
+                    <span className="text-[8px] sm:text-[9px] font-bold text-emerald-400 bg-emerald-400/10 px-1.5 sm:px-2 py-0.5 rounded-full uppercase tracking-wider">Active</span>
                   </div>
-                  <div className="space-y-1.5 pl-1">
-                    <div className="flex items-center gap-2 text-xs text-text-2">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                  <div className="space-y-1 sm:space-y-1.5 pl-0.5">
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-text-2">
+                      <CheckCircle2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-emerald-400 shrink-0" />
                       <span>Audience Personas & Channels</span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-text-2">
-                      <div className="h-3.5 w-3.5 rounded-full border-2 border-border flex items-center justify-center shrink-0" />
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-text-2">
+                      <div className="h-3 w-3 sm:h-3.5 sm:w-3.5 rounded-full border-2 border-border flex items-center justify-center shrink-0" />
                       <span>Copywriting & Storytelling</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Phase 2 (Locked) */}
-                <div className="p-3.5 bg-surface/40 border border-border/40 rounded-xl flex items-center justify-between opacity-60 text-left">
+                <div className="p-2.5 sm:p-3.5 bg-surface/40 border border-border/40 rounded-xl flex items-center justify-between opacity-60 text-left">
                   <span className="text-xs font-bold text-text-3">Phase 2: Growth & Advertising</span>
-                  <Lock className="h-3.5 w-3.5 text-text-3" />
+                  <Lock className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-text-3" />
                 </div>
 
                 {/* Phase 3 (Locked) */}
-                <div className="p-3.5 bg-surface/40 border border-border/40 rounded-xl flex items-center justify-between opacity-60 text-left">
+                <div className="p-2.5 sm:p-3.5 bg-surface/40 border border-border/40 rounded-xl flex items-center justify-between opacity-60 text-left">
                   <span className="text-xs font-bold text-text-3">Phase 3: Brand Mastery & Analytics</span>
-                  <Lock className="h-3.5 w-3.5 text-text-3" />
+                  <Lock className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-text-3" />
                 </div>
               </div>
             </div>
 
             {/* STEP 3: First Lesson Opens */}
             <div 
-              className={`w-full max-w-lg mx-auto space-y-4 transition-all duration-500 absolute inset-x-6 top-1/2 -translate-y-1/2 ${
+              className={`w-full max-w-lg mx-auto space-y-3 sm:space-y-4 transition-all duration-500 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-4 sm:px-6 ${
                 activeStep === 2 ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-95 pointer-events-none'
               }`}
             >
               {/* Lesson Header */}
-              <div className="flex items-center justify-between border-b border-border/60 pb-2">
+              <div className="flex items-center justify-between border-b border-border/60 pb-1.5 sm:pb-2">
                 <div className="text-left">
-                  <span className="text-[9px] font-mono text-text-3 uppercase tracking-wider block">Phase 1 · Module 1.1</span>
-                  <h4 className="text-sm font-extrabold text-text-1">Audience Personas & Channels</h4>
+                  <span className="text-[8px] sm:text-[9px] font-mono text-text-3 uppercase tracking-wider block">Phase 1 · Module 1.1</span>
+                  <h4 className="text-xs sm:text-sm font-extrabold text-text-1">Audience Personas & Channels</h4>
                 </div>
-                <span className="text-[10px] font-semibold text-text-3">5 min read</span>
+                <span className="text-[9px] sm:text-[10px] font-semibold text-text-3">5 min read</span>
               </div>
 
               {/* Lesson Content Area */}
-              <div className="space-y-3 text-left">
+              <div className="space-y-2 sm:space-y-3 text-left">
                 {/* Scroll progress bar */}
                 <div className="w-full bg-border h-1 rounded-full overflow-hidden">
                   <div className="bg-gradient-to-r from-primary to-accent h-full w-[60%] rounded-full" />
                 </div>
                 
-                <div className="space-y-2">
-                  <p className="text-xs text-text-2 leading-relaxed font-medium">
+                <div className="space-y-1 sm:space-y-2">
+                  <p className="text-[11px] sm:text-xs text-text-2 leading-relaxed font-medium">
                     To design high-converting content, you must first define your target audience personas. Who are they? What are their pain points? Which channels do they spend their time on?
                   </p>
-                  <p className="text-xs text-text-2 leading-relaxed font-medium">
+                  <p className="text-[11px] sm:text-xs text-text-2 leading-relaxed font-medium hidden sm:block">
                     Start by selecting a primary social channel (e.g., LinkedIn for B2B professionals, Instagram or TikTok for consumers).
                   </p>
                 </div>
 
                 {/* Spark Mascot Bubble */}
-                <div className="flex items-start gap-2.5 bg-primary/5 border border-primary/20 rounded-xl p-3 mt-4">
+                <div className="flex items-start gap-2 sm:gap-2.5 bg-primary/5 border border-primary/20 rounded-xl p-2.5 sm:p-3 mt-2 sm:mt-4">
                   <div className="shrink-0 p-1 bg-surface border border-border rounded-lg shadow-sm">
-                    <Spark emotion="wave" size={24} />
+                    <Spark emotion="wave" size={20} />
                   </div>
                   <div className="space-y-0.5 text-left">
-                    <span className="text-[9px] font-mono font-bold text-primary uppercase tracking-wider block">Spark (AI Mentor)</span>
-                    <p className="text-[11px] text-text-2 leading-relaxed font-semibold">
+                    <span className="text-[8px] sm:text-[9px] font-mono font-bold text-primary uppercase tracking-wider block">Spark (AI Mentor)</span>
+                    <p className="text-[10px] sm:text-[11px] text-text-2 leading-relaxed font-semibold">
                       &ldquo;Choose one channel first. Master it before expanding. Focus beats volume!&rdquo;
                     </p>
                   </div>

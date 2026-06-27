@@ -901,6 +901,17 @@ export default function LessonPage() {
               </ul>
             )}
 
+            {/* If user is reviewing a completed lesson and is free, show heart refill option */}
+            {!isPro && isCompleted && heartsCount < 3 && (
+              <Button
+                onClick={handleRefillHeartReview}
+                disabled={hasRefilledThisSession || isCompleting}
+                className="w-full h-13 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-[0_0_24px_rgba(16,185,129,0.25)] transition-all duration-200 flex items-center justify-center gap-2 text-[15px] disabled:opacity-50"
+              >
+                <span>{hasRefilledThisSession ? 'Heart Refilled! ❤️' : 'Refill 1 Heart ❤️ (Review Complete)'}</span>
+              </Button>
+            )}
+
             {/* Primary CTA — Take the Quiz */}
             <Button
               onClick={handleTakeQuiz}

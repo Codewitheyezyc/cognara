@@ -1384,71 +1384,83 @@ export default function ProfilePage() {
                     {isSavingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Set New'}
                   </Button>
                 </div>
+              </div>
+            </div>
 
-                {/* Notification Preferences */}
-                <div className="p-4 rounded-xl bg-[#1E2540]/25 border border-[#2E3750]/60 space-y-4">
-                  <h4 className="text-xs font-bold text-[#8B95B3] uppercase tracking-wider flex items-center gap-1.5 mb-2">
-                    <Bell className="h-3.5 w-3.5" />
-                    Notification Preferences
-                  </h4>
-
-                  {/* Toggle 1: Daily mission reminder */}
-                  <div className="flex items-center justify-between py-2 border-b border-[#1E2540]/55">
-                    <div>
-                      <p className="text-xs font-bold text-white">Daily mission reminder</p>
-                      <p className="text-[10.5px] text-[#8B95B3] mt-0.5">Receive reminders at your study hour</p>
-                    </div>
-                    <button
-                      onClick={() => handleToggleNotification('reminder_enabled', profile?.reminder_enabled)}
-                      className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
-                        profile?.reminder_enabled ? 'bg-[#5B8EFF]' : 'bg-[#1A2035]'
-                      }`}
-                    >
-                      <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
-                        profile?.reminder_enabled ? 'translate-x-5' : 'translate-x-0'
-                      }`} />
-                    </button>
+            {/* NOTIFICATION PREFERENCES CARD */}
+            <div className="p-6 bg-[#111520] border border-[#1E2540] rounded-2xl shadow-xl space-y-6">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-[#5B8EFF] flex items-center gap-2 border-b border-[#1E2540] pb-3">
+                <Bell className="h-4.5 w-4.5" />
+                Notification Preferences
+              </h3>
+              
+              <div className="space-y-4">
+                {/* Toggle 1: Daily mission reminder */}
+                <div className="flex items-center justify-between py-2.5 border-b border-[#1E2540]/55">
+                  <div>
+                    <p className="text-xs font-bold text-white">Daily mission reminder</p>
+                    <p className="text-[10.5px] text-[#8B95B3] mt-0.5">Receive reminders at your study hour</p>
                   </div>
-
-                  {/* Toggle 2: Streak alerts */}
-                  <div className="flex items-center justify-between py-2 border-b border-[#1E2540]/55">
-                    <div>
-                      <p className="text-xs font-bold text-white">Streak alerts</p>
-                      <p className="text-[10.5px] text-[#8B95B3] mt-0.5">Alerts when your active streak is at risk</p>
-                    </div>
-                    <button
-                      onClick={() => handleToggleNotification('achievement_notifications', profile?.achievement_notifications)}
-                      className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
-                        profile?.achievement_notifications ? 'bg-[#5B8EFF]' : 'bg-[#1A2035]'
-                      }`}
-                    >
-                      <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
-                        profile?.achievement_notifications ? 'translate-x-5' : 'translate-x-0'
-                      }`} />
-                    </button>
-                  </div>
-
-                  {/* Toggle 3: Weekly progress summary */}
-                  <div className="flex items-center justify-between py-2">
-                    <div>
-                      <p className="text-xs font-bold text-white">Weekly progress summary</p>
-                      <p className="text-[10.5px] text-[#8B95B3] mt-0.5">Recap of your weekly lessons completed</p>
-                    </div>
-                    <button
-                      onClick={() => handleToggleNotification('weekly_summary_enabled', profile?.weekly_summary_enabled)}
-                      className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
-                        profile?.weekly_summary_enabled ? 'bg-[#5B8EFF]' : 'bg-[#1A2035]'
-                      }`}
-                    >
-                      <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
-                        profile?.weekly_summary_enabled ? 'translate-x-5' : 'translate-x-0'
-                      }`} />
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => handleToggleNotification('reminder_enabled', profile?.reminder_enabled)}
+                    className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
+                      profile?.reminder_enabled ? 'bg-[#5B8EFF]' : 'bg-[#1A2035]'
+                    }`}
+                  >
+                    <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                      profile?.reminder_enabled ? 'translate-x-5' : 'translate-x-0'
+                    }`} />
+                  </button>
                 </div>
 
+                {/* Toggle 2: Streak alerts */}
+                <div className="flex items-center justify-between py-2.5 border-b border-[#1E2540]/55">
+                  <div>
+                    <p className="text-xs font-bold text-white">Streak alerts</p>
+                    <p className="text-[10.5px] text-[#8B95B3] mt-0.5">Alerts when your active streak is at risk</p>
+                  </div>
+                  <button
+                    onClick={() => handleToggleNotification('achievement_notifications', profile?.achievement_notifications)}
+                    className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
+                      profile?.achievement_notifications ? 'bg-[#5B8EFF]' : 'bg-[#1A2035]'
+                    }`}
+                  >
+                    <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                      profile?.achievement_notifications ? 'translate-x-5' : 'translate-x-0'
+                    }`} />
+                  </button>
+                </div>
+
+                {/* Toggle 3: Weekly progress summary */}
+                <div className="flex items-center justify-between py-2.5">
+                  <div>
+                    <p className="text-xs font-bold text-white">Weekly progress summary</p>
+                    <p className="text-[10.5px] text-[#8B95B3] mt-0.5">Recap of your weekly lessons completed</p>
+                  </div>
+                  <button
+                    onClick={() => handleToggleNotification('weekly_summary_enabled', profile?.weekly_summary_enabled)}
+                    className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
+                      profile?.weekly_summary_enabled ? 'bg-[#5B8EFF]' : 'bg-[#1A2035]'
+                    }`}
+                  >
+                    <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                      profile?.weekly_summary_enabled ? 'translate-x-5' : 'translate-x-0'
+                    }`} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* PLAN SUBSCRIPTION & ACCOUNT ACTIONS */}
+            <div className="p-6 bg-[#111520] border border-[#1E2540] rounded-2xl shadow-xl space-y-6">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-[#5B8EFF] flex items-center gap-2 border-b border-[#1E2540] pb-3">
+                <Shield className="h-4.5 w-4.5" />
+                Plan Subscription
+              </h3>
+
+              <div className="space-y-6">
                 {/* Subscription status */}
-                <div className="p-4 rounded-xl bg-gradient-to-br from-[#1E2540]/30 to-[#5B8EFF]/5 border border-[#2E3750] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="p-5 rounded-2xl bg-gradient-to-br from-[#1E2540]/30 to-[#5B8EFF]/5 border border-[#2E3750] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="space-y-1">
                     <span className="text-[9.5px] font-mono font-bold text-[#A78BFA] uppercase tracking-wider flex items-center gap-1">
                       <Shield className="h-3 w-3" />
@@ -1464,13 +1476,13 @@ export default function ProfilePage() {
                   {profile?.subscription_tier === 'pro_monthly' || profile?.subscription_tier === 'pro_yearly' ? (
                     <button
                       onClick={() => toast('Subscription billing portal coming soon!', 'info')}
-                      className="h-9 px-4 bg-[#1E2540] hover:bg-[#2E3750] border border-[#2E3750] text-white font-bold rounded-lg text-xs transition cursor-pointer"
+                      className="h-10 px-5 bg-[#1E2540] hover:bg-[#2E3750] border border-[#2E3750] text-white font-bold rounded-xl text-xs transition cursor-pointer"
                     >
                       Manage Subscription
                     </button>
                   ) : (
-                    <Link href="/dashboard/settings">
-                      <Button className="h-9 px-4 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-lg text-xs shadow-md">
+                    <Link href="/dashboard/settings" className="w-full sm:w-auto">
+                      <Button className="w-full sm:w-auto h-10 px-5 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-xl text-xs shadow-md shadow-[#5B8EFF]/15 active:scale-[0.99] transition duration-150">
                         Upgrade to Pro
                       </Button>
                     </Link>
@@ -1478,12 +1490,12 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Logout & Danger Area */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <div className="flex flex-col sm:flex-row gap-4 pt-2">
                   <button
                     onClick={handleLogout}
-                    className="flex-1 h-11 border border-[#1E2540] bg-[#1E2540]/25 hover:bg-[#1E2540]/55 text-[#F0F4FF] hover:text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition cursor-pointer"
+                    className="flex-1 h-12 bg-[#1A2035] hover:bg-[#222B45] border border-[#2E3750] text-[#C8D0E8] hover:text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2.5 transition active:scale-[0.99] cursor-pointer shadow-sm"
                   >
-                    <LogOut className="h-4 w-4" />
+                    <LogOut className="h-4.5 w-4.5" />
                     Log Out
                   </button>
                   <button
@@ -1491,9 +1503,9 @@ export default function ProfilePage() {
                       setDeleteConfirmText('')
                       setShowDeleteConfirm(true)
                     }}
-                    className="flex-1 h-11 border border-red-500/20 hover:border-red-500/40 bg-red-500/5 hover:bg-red-500/10 text-red-400 hover:text-red-500 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition cursor-pointer"
+                    className="flex-1 h-12 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/20 hover:border-rose-500/45 text-rose-400 hover:text-rose-500 font-bold rounded-xl text-xs flex items-center justify-center gap-2.5 transition active:scale-[0.99] cursor-pointer"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-4.5 w-4.5" />
                     Delete Account
                   </button>
                 </div>
@@ -1588,9 +1600,10 @@ export default function ProfilePage() {
                       key={idx}
                       className={`relative w-8 h-8 rounded-full flex items-center justify-center text-[10.5px] font-mono font-bold select-none transition-all duration-200 ${
                         day.isActive
-                          ? 'bg-gradient-to-br from-[#5B8EFF] to-[#A78BFA] text-white shadow-md shadow-[#5B8EFF]/25'
+                          ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-md shadow-emerald-500/25'
                           : 'bg-[#1E2540]/20 border border-[#1E2540]/55 text-[#8B95B3]/60'
                       } ${day.isToday ? 'ring-2 ring-white ring-offset-2 ring-offset-[#111520]' : ''}`}
+
                       title={day.dateStr}
                     >
                       {day.dayNum}

@@ -48,18 +48,19 @@ export function FinalCtaSection() {
           </p>
 
           {/* Action Area */}
-          <div className="pt-4 space-y-3.5 w-full max-w-sm">
+          <div className="pt-4 space-y-5 w-full max-w-sm">
             <Link href="/signup" className="w-full">
               <Button
                 className="w-full h-13 bg-white hover:bg-neutral-100 text-[#3D6AFF] hover:text-[#2d5aef] font-extrabold text-base rounded-xl transition duration-150 cursor-pointer shadow-lg active:scale-[0.98]"
               >
-                Start free today — no payment required to start
+                Start free today
               </Button>
             </Link>
-            <span className="text-[11px] text-white/80 font-bold uppercase tracking-wider block">
+            <span className="text-[11px] text-white/80 font-bold uppercase tracking-wider block mt-6">
               Takes 2 minutes. Your roadmap is waiting.
             </span>
           </div>
+
         </div>
       </div>
     </section>

@@ -294,6 +294,8 @@ Until all six conditions are met, the feature is not released.
 | 9. Simple experience, sophisticated system | The user feels progress, not complexity |
 | 10. Build for the user who recommends | Word of mouth is built into every product decision |
 
+CXP represents learning achievement. It is spent on things that remove barriers to continued learning. It is never spent on things that distract from learning or that replace a subscription.
+
 ---
 
 *Document 03 of the Cognara Blueprint.*

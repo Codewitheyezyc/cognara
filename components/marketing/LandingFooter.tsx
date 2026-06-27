@@ -32,7 +32,7 @@ export function LandingFooter() {
               <a href="#pricing" className="hover:text-text-1 transition">Pricing</a>
             </li>
             <li>
-              <a href="#download" className="hover:text-text-1 transition">Download app</a>
+              <a href="#faq" className="hover:text-text-1 transition">FAQ</a>
             </li>
           </ul>
         </div>

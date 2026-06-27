@@ -496,7 +496,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { label: 'Home', href: '/dashboard', icon: Home },
     { label: 'My Path', href: '/dashboard/path', icon: Map },
     { label: 'Progress', href: '/dashboard/progress', icon: BarChart2 },
-    { label: 'Invite Friends', href: '/dashboard/refer', icon: Gift },
     { label: 'Downloads', href: '/dashboard/downloads', icon: Download },
     { label: 'Profile', href: '/dashboard/profile', icon: User },
   ]
@@ -513,7 +512,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="flex min-h-screen bg-bg text-text-1">
       {/* 1. Desktop Sidebar Navigation — hidden in lesson focus mode */}
       {!isLessonPage && (
-      <aside className="hidden md:flex flex-col w-[260px] bg-surface border-r border-border h-screen sticky top-0 overflow-y-auto animate-page-enter">
+      <aside className="hidden md:flex flex-col w-[260px] bg-surface border-r border-border h-screen fixed left-0 top-0 overflow-y-auto z-30 animate-page-enter">
         {/* Brand Banner */}
         <div className="h-16 flex items-center px-6 border-b border-border space-x-2">
           <Logo className="h-5 w-5" />
@@ -617,11 +616,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
       )}
-
       {/* 2. Main content viewport */}
-      <div className={`flex-1 flex flex-col min-w-0 ${isLessonPage ? '' : 'pb-16 md:pb-0'}`}>
-        {/* Unified Topbar/Navbar — hidden entirely in lesson focus mode and on the main dashboard */}
-        {!isLessonPage && pathname !== '/dashboard' && (
+      <div className={`flex-1 flex flex-col min-w-0 ${!isLessonPage ? 'md:pl-[260px]' : ''} ${isLessonPage ? '' : 'pb-16 md:pb-0'}`}>
+        {/* Unified Topbar/Navbar — hidden entirely in lesson focus mode */}
+        {!isLessonPage && (
         <header className="h-16 bg-surface border-b border-border sticky top-0 z-40">
           <div className="max-w-7xl w-full mx-auto px-4 md:px-8 flex items-center justify-between h-full">
             {/* Logo visible on all viewports for consistent branding */}
@@ -631,7 +629,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           
           {/* Command Search Box for desktop */}
-          {pathname !== '/dashboard' && (
           <button 
             onClick={() => setIsSearchOpen(true)}
             className="hidden md:flex items-center space-x-2 text-text-3 bg-surface-alt/75 border border-border/85 rounded-[8px] px-3 py-1.5 w-64 hover:border-border transition-all cursor-pointer focus:outline-none"
@@ -643,11 +640,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               ⌘K
             </kbd>
           </button>
-          )}
-
+ 
           <div className="flex items-center space-x-2 sm:space-x-3">
             {/* Search trigger button visible on mobile only */}
-            {pathname !== '/dashboard' && (
             <button 
               onClick={() => setIsSearchOpen(true)}
               className="md:hidden p-1.5 text-text-3 hover:text-text-1 hover:bg-surface-alt rounded-full transition cursor-pointer focus:outline-none shrink-0"
@@ -655,10 +650,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             >
               <Search className="h-4 w-4" strokeWidth={2} />
             </button>
-            )}
-
+ 
             {/* Desktop Stats Group (Hidden on mobile) */}
-            {pathname !== '/dashboard' && (
             <div className="hidden md:flex items-center space-x-2 sm:space-x-3">
               {isFree ? (
                 <button
@@ -744,7 +737,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 );
               })()}
             </div>
-            )}
 
             {/* Notification Bell */}
             <div className="relative" ref={notificationsRef}>

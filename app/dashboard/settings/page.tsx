@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
@@ -18,9 +19,14 @@ export default function SettingsPage() {
   const router = useRouter()
   const { toast } = useToast()
 
+  const [mounted, setMounted] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const [loading, setLoading] = useState(true)
   const [updatingAccount, setUpdatingAccount] = useState(false)
   const [processingPrivacy, setProcessingPrivacy] = useState(false)
@@ -704,7 +710,7 @@ export default function SettingsPage() {
       </div>
 
       {/* MODAL 1: DELETE ALL LEARNING DATA */}
-      {showDeleteDataModal && (
+      {showDeleteDataModal && mounted && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
           <div className="bg-surface border border-border rounded-lg max-w-md w-full p-6 shadow-2xl animate-page-enter space-y-4">
             <div className="flex items-center gap-2.5 text-error">
@@ -723,11 +729,12 @@ export default function SettingsPage() {
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* MODAL 2: DELETE ACCOUNT PERMANENTLY */}
-      {showDeleteAccountModal && (
+      {showDeleteAccountModal && mounted && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
           <div className="bg-surface border border-border rounded-lg max-w-md w-full p-6 shadow-2xl animate-page-enter space-y-4">
             <div className="flex items-center gap-2.5 text-error">
@@ -765,7 +772,8 @@ export default function SettingsPage() {
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

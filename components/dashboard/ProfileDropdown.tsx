@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { 
   User, Settings, BarChart2, Map, HelpCircle, 
-  Megaphone, LogOut, Sun, Moon, Sparkles 
+  Megaphone, LogOut, Sun, Moon, Sparkles, Gift 
 } from 'lucide-react'
 
 interface ProfileDropdownProps {
@@ -141,6 +141,16 @@ export function ProfileDropdown({ profile, email, recentBadgeEmoji, onSignOut }:
               <Settings className="h-4 w-4 text-text-2" strokeWidth={2} />
               <span>Settings</span>
             </Link>
+
+            <Link
+              href="/dashboard/refer"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-text-1 hover:bg-surface rounded-md transition duration-100"
+            >
+              <Gift className="h-4 w-4 text-text-2" strokeWidth={2} />
+              <span>Invite Friends</span>
+            </Link>
+
 
             <Link
               href="/dashboard/progress"

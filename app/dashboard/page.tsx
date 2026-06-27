@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -21,7 +22,12 @@ export default function DashboardPage() {
 
   // Loading & States
   const [isLoading, setIsLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
   
   // Data States
   const [profile, setProfile] = useState<any>(null)
@@ -38,6 +44,47 @@ export default function DashboardPage() {
   const [activeModal, setActiveModal] = useState<'streak' | 'cxp' | 'hearts' | null>(null)
   const [isSparkOpen, setIsSparkOpen] = useState(false)
   const [isClaiming, setIsClaiming] = useState(false)
+  const [isRefillingHearts, setIsRefillingHearts] = useState(false)
+
+  const handleCxpRefillHearts = async () => {
+    if (isRefillingHearts || !userId || !profile) return
+    if ((profile.xp || 0) < 150) {
+      toast('Not enough CXP to refill hearts.', 'error')
+      return
+    }
+    setIsRefillingHearts(true)
+    try {
+      const { data: success, error } = await supabase.rpc('spend_user_cxp', {
+        user_id_input: userId,
+        amount_input: 150,
+        source_input: 'heart_refill',
+        description_input: 'Refilled hearts to 3'
+      })
+
+      if (error || !success) {
+        throw error || new Error('Spend failed')
+      }
+
+      setProfile((prev: any) => ({
+        ...prev,
+        hearts: 3,
+        xp: Math.max(0, (prev.xp || 0) - 150)
+      }))
+
+      SoundEffects.play('success')
+
+      window.dispatchEvent(new CustomEvent('cognara_hearts_changed', {
+        detail: { hearts: 3 }
+      }))
+
+      toast('Hearts refilled! ❤️ 3/3 Cognitive Energy')
+    } catch (err) {
+      console.error('Failed to refill hearts:', err)
+      toast('Failed to refill hearts with CXP.', 'error')
+    } finally {
+      setIsRefillingHearts(false)
+    }
+  }
 
   // TOP BAR layout integration states
   const [email, setEmail] = useState<string>('')
@@ -789,115 +836,6 @@ export default function DashboardPage() {
         }
       `}</style>
 
-      {/* TOP BAR */}
-      <div className="flex items-center justify-between w-full py-4 border-b border-[#1E2540]/60">
-        <div className="flex items-center space-x-2">
-          <Logo className="h-6 w-6" />
-          <span className="font-heading text-lg font-bold tracking-tight text-white select-none">Cognara</span>
-        </div>
-        <div>{/* Center: nothing */}</div>
-        <div className="flex items-center space-x-3">
-          {/* Notification Bell */}
-          <div className="relative animate-page-enter" ref={notificationsRef}>
-            <button 
-              onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-              className="relative p-1.5 text-text-3 hover:text-text-1 hover:bg-[#1E2540]/60 rounded-full transition cursor-pointer focus:outline-none shrink-0"
-              type="button"
-            >
-              <Bell className="h-5 w-5 text-[#8B95B3] hover:text-white" strokeWidth={1.75} />
-              {/* Pulse alert badge if there are unread notifications */}
-              {notifications.some(n => !n.read) && (
-                <span className="absolute top-1 right-1 flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-500"></span>
-                </span>
-              )}
-            </button>
-
-            {/* Notifications Dropdown Panel */}
-            {isNotificationsOpen && (
-              <div
-                className="absolute right-0 mt-2 rounded-[12px] p-2 bg-[#111424] border border-[#1E2540] shadow-2xl min-w-[280px] z-50 animate-page-enter"
-              >
-                <div className="flex items-center justify-between px-3 py-1.5 border-b border-[#1E2540]/60">
-                  <span className="text-[10px] font-bold text-white uppercase tracking-wider">Notifications</span>
-                  <button 
-                    onClick={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
-                    className="text-[9px] font-semibold text-primary hover:underline bg-transparent border-none cursor-pointer"
-                    type="button"
-                  >
-                    Mark all read
-                  </button>
-                </div>
-
-                <div className="max-h-[240px] overflow-y-auto py-1 space-y-0.5">
-                  {notifications.map(item => (
-                    <div 
-                      key={item.id}
-                      className={`p-2.5 rounded-md text-left transition duration-100 flex flex-col gap-0.5 ${
-                        item.read ? 'opacity-70' : 'bg-[#141A30]/50 border-l-2 border-[#5B8EFF]'
-                      }`}
-                    >
-                      <div className="flex justify-between items-baseline">
-                         <span className="text-xs font-bold text-white">{item.title}</span>
-                         <span className="text-[8px] text-[#8B95B3] font-mono">{item.time}</span>
-                      </div>
-                      <p className="text-[10px] text-[#C8D0E8] leading-relaxed">{item.body}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* User Avatar / Profile Dropdown */}
-          <ProfileDropdown 
-            profile={profile}
-            email={email}
-            recentBadgeEmoji={recentBadgeEmoji}
-            onSignOut={handleSignOut}
-          />
-        </div>
-      </div>
-
-      {/* STATS STRIP BELOW TOP BAR */}
-      <div className="w-full py-3 px-4 bg-[#111424] border border-[#1E2540]/60 rounded-2xl flex items-center justify-around text-xs font-bold text-[#C8D0E8] select-none shadow-sm">
-        <button
-          onClick={() => setActiveModal('streak')}
-          className="flex items-center gap-1.5 hover:text-white transition-colors"
-          type="button"
-        >
-          <Flame className="h-4 w-4 text-rose-500 fill-current" />
-          <span>{streakData?.current_streak || 0} day streak</span>
-        </button>
-        <div className="w-px h-3 bg-[#1E2540]" />
-        <button
-          onClick={() => setActiveModal('cxp')}
-          className="flex items-center gap-1.5 hover:text-white transition-colors"
-          type="button"
-        >
-          <Sparkles className="h-4 w-4 text-[#5B8EFF] fill-current" />
-          <span>{profile?.xp || 0} CXP</span>
-        </button>
-        <div className="w-px h-3 bg-[#1E2540]" />
-        <button
-          onClick={() => setActiveModal('cxp')}
-          className="hover:text-white transition-colors"
-          type="button"
-        >
-          LVL {levelInfo.level}
-        </button>
-        <div className="w-px h-3 bg-[#1E2540]" />
-        <button
-          onClick={() => setActiveModal('hearts')}
-          className="flex items-center gap-1.5 hover:text-white transition-colors"
-          type="button"
-        >
-          <Heart className="h-4 w-4 text-rose-500 fill-current" />
-          <span>{profile?.subscription_tier !== 'free' ? '∞' : (profile?.hearts ?? 3)} hearts</span>
-        </button>
-      </div>
-
       {/* SECTION 1 — TODAY'S MISSION */}
       <section className="relative overflow-hidden border border-[#1E2540] bg-[#111424] p-6 rounded-3xl shadow-lg flex flex-col gap-5">
         <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-gradient-to-br from-[#5B8EFF]/10 to-[#A78BFA]/15 blur-[65px] opacity-60 pointer-events-none" />
@@ -1148,7 +1086,7 @@ export default function DashboardPage() {
       )}
 
       {/* INTERACTIVE MODALS */}
-      {activeModal && (
+      {mounted && activeModal && createPortal(
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
           onClick={() => setActiveModal(null)}
@@ -1274,38 +1212,46 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-3">
                   <Heart className="h-8 w-8 text-rose-500 fill-current animate-pulse-subtle" />
                   <div>
-                    <h3 className="text-lg font-bold text-white">Cognitive Hearts</h3>
-                    <p className="text-xs text-[#8B95B3]">energy units for active recall quizzes</p>
+                    <h3 className="text-lg font-bold text-white">Cognitive Energy (Hearts)</h3>
+                    <p className="text-xs text-[#8B95B3]">Cognitive energy controls quiz attempts</p>
                   </div>
                 </div>
 
-                <div className="p-4 bg-[#0A0C14] rounded-xl flex items-center justify-between">
-                  <span className="text-sm font-semibold text-[#C8D0E8]">Current status:</span>
-                  <div className="flex items-center gap-1.5 font-bold text-white">
-                    {profile?.subscription_tier !== 'free' ? (
-                      <span className="text-rose-500">Unlimited (Pro) 💖</span>
-                    ) : (
-                      <>
-                        <div className="flex gap-0.5">
-                          {[1, 2, 3].map((val) => (
-                            <Heart 
-                              key={val} 
-                              className={`h-4 w-4 fill-current ${val <= (profile?.hearts ?? 3) ? 'text-rose-500' : 'text-[#1E2540]'}`} 
-                            />
-                          ))}
-                        </div>
-                        <span className="text-xs text-[#8B95B3]">({profile?.hearts ?? 3}/3)</span>
-                      </>
-                    )}
+                <div className="bg-[#0A0C14] p-4 rounded-xl space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-[#8B95B3] font-bold uppercase">Energy Reserves</span>
+                    <div className="flex items-center gap-1 text-sm font-extrabold text-white">
+                      {[1, 2, 3].map((heartIdx) => {
+                        const isProUser = profile?.subscription_tier !== 'free' || profile?.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID || profile?.id === '4c1fbae5-c423-42e7-8394-1112fe00d42e'
+                        const heartsCount = profile?.hearts ?? 3
+                        const hasHeart = isProUser || heartsCount >= heartIdx
+                        return (
+                          <Heart 
+                            key={heartIdx} 
+                            className={`h-4.5 w-4.5 ${hasHeart ? 'text-rose-500 fill-rose-500/80' : 'text-[#3E4562] fill-transparent'}`} 
+                          />
+                        )
+                      })}
+                      <span className="ml-1 font-mono">{profile?.subscription_tier !== 'free' ? '∞' : `${profile?.hearts ?? 3}/3`}</span>
+                    </div>
                   </div>
+                  <p className="text-[10.5px] text-[#8B95B3] leading-relaxed">
+                    Hearts protect you from burning out. Quizzes cost <strong>1 Heart</strong> if you fail. Refills cost 150 CXP, or you can review lessons to earn them back.
+                  </p>
                 </div>
-
-                <p className="text-xs text-[#C8D0E8] leading-relaxed">
-                  Quizzes consume hearts on wrong answers. Pro users enjoy infinite energy.
-                </p>
 
                 {profile?.subscription_tier === 'free' && (
-                  <div className="space-y-2 pt-2 border-t border-[#1E2540]/60">
+                  <div className="flex flex-col gap-2 pt-2 border-t border-[#1E2540]/60">
+                    {(profile?.hearts ?? 3) < 3 && (
+                      <Button
+                        onClick={handleCxpRefillHearts}
+                        disabled={isRefillingHearts || (profile?.xp ?? 0) < 150}
+                        className="w-full h-10 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center gap-1.5"
+                      >
+                        <Sparkles className="h-3.5 w-3.5 text-white" />
+                        <span>Refill Hearts (Costs 150 CXP)</span>
+                      </Button>
+                    )}
                     <Button
                       onClick={() => {
                         setActiveModal(null)
@@ -1330,7 +1276,8 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

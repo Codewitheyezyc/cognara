@@ -1,10 +1,11 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Flame, Shield } from 'lucide-react'
+import { Flame, Shield, Sparkles } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast'
 import { useRouter } from 'next/navigation'
+import { SoundEffects } from '@/lib/sound'
 
 interface StreakVitalsProps {
   initialStreak: {
@@ -51,15 +52,37 @@ export default function StreakVitals({ initialStreak, isPro }: StreakVitalsProps
       if (!user) throw new Error('Unauthorized')
 
       if (!isPro) {
-        toast('Upgrade to Pro to restore your streak!')
-        router.push('/dashboard/settings')
-        return
-      }
+        // Fetch user profile to verify they have at least 300 CXP
+        const { data: profileRow } = await supabase
+          .from('profiles')
+          .select('xp')
+          .eq('id', user.id)
+          .maybeSingle()
 
-      if (streak.shields_available <= 0) {
-        toast('No shields available this month.')
-        router.push('/dashboard/settings')
-        return
+        const currentXp = profileRow?.xp || 0
+        if (currentXp < 300) {
+          toast(`Need 300 CXP to restore streak. (You have ${currentXp} CXP)`)
+          router.push('/dashboard/settings')
+          return
+        }
+
+        // Spend 300 CXP
+        const { data: success, error: spendError } = await supabase.rpc('spend_user_cxp', {
+          user_id_input: user.id,
+          amount_input: 300,
+          source_input: 'streak_repair',
+          description_input: 'Restored broken streak'
+        })
+
+        if (spendError || !success) {
+          throw spendError || new Error('Failed to spend CXP')
+        }
+      } else {
+        if (streak.shields_available <= 0) {
+          toast('No shields available this month.')
+          router.push('/dashboard/settings')
+          return
+        }
       }
 
       // Set last activity to yesterday so they preserve their current streak count
@@ -67,25 +90,37 @@ export default function StreakVitals({ initialStreak, isPro }: StreakVitalsProps
       yesterday.setDate(yesterday.getDate() - 1)
       const yesterdayStr = yesterday.toISOString().split('T')[0]
 
+      const updateData: any = {
+        last_activity_at: yesterdayStr,
+      }
+      if (isPro) {
+        updateData.shields_available = streak.shields_available - 1
+        updateData.shields_used_this_month = streak.shields_used_this_month + 1
+      }
+
       const { error } = await supabase
         .from('streaks')
-        .update({
-          shields_available: streak.shields_available - 1,
-          shields_used_this_month: streak.shields_used_this_month + 1,
-          last_activity_at: yesterdayStr,
-        })
+        .update(updateData)
         .eq('user_id', user.id)
 
       if (error) throw error
 
-      setStreak(prev => ({
-        ...prev,
-        shields_available: prev.shields_available - 1,
-        shields_used_this_month: prev.shields_used_this_month + 1,
-        last_activity_at: yesterdayStr,
-      }))
+      setStreak(prev => {
+        const nextData = {
+          ...prev,
+          last_activity_at: yesterdayStr,
+        }
+        if (isPro) {
+          nextData.shields_available = prev.shields_available - 1
+          nextData.shields_used_this_month = prev.shields_used_this_month + 1
+        }
+        return nextData
+      })
 
-      toast('Streak restored successfully! 🛡️')
+      SoundEffects.play('success')
+      window.dispatchEvent(new Event('cognara_xp_gained'))
+
+      toast(isPro ? 'Streak restored successfully! 🛡️' : 'Streak restored with 300 CXP! 🔥')
       router.refresh()
     } catch (err: any) {
       console.error(err)
@@ -127,13 +162,13 @@ export default function StreakVitals({ initialStreak, isPro }: StreakVitalsProps
             disabled={loading}
             className={`mt-1.5 text-[9px] font-bold py-0.5 px-1.5 rounded border transition-all w-fit cursor-pointer ${
               !isPro
-                ? 'bg-primary/10 border-primary/20 text-primary hover:bg-primary/20'
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20'
                 : streak.shields_available > 0
                 ? 'bg-accent-warm/10 border-accent-warm/20 text-accent-warm hover:bg-accent-warm/20'
                 : 'bg-surface-alt border-border text-text-3 cursor-not-allowed'
             }`}
           >
-            {!isPro ? 'Restore — Pro' : streak.shields_available > 0 ? 'Restore 🛡️' : 'No shields'}
+            {!isPro ? 'Restore (300 CXP) 🔥' : streak.shields_available > 0 ? 'Restore 🛡️' : 'No shields'}
           </button>
         )}
       </div>

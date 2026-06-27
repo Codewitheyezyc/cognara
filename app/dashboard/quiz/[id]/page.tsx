@@ -93,6 +93,7 @@ export default function QuizPage() {
   // Profile context
   const [userId, setUserId] = useState<string | null>(null)
   const [profile, setProfile] = useState<any>(null)
+  const [isRefillingHearts, setIsRefillingHearts] = useState(false)
 
   // Phase completion states
   const [activeLesson, setActiveLesson] = useState<any>(null)
@@ -140,7 +141,7 @@ export default function QuizPage() {
         // Fetch profile with main_goal and name
         const { data: profRow } = await supabase
           .from('profiles')
-          .select('name, subscription_tier, hearts, main_goal')
+          .select('name, subscription_tier, hearts, main_goal, xp')
           .eq('id', user.id)
           .maybeSingle()
           
@@ -429,6 +430,45 @@ export default function QuizPage() {
     timerRef.current = setInterval(() => {
       setTimeSpentSecs((prev) => prev + 1)
     }, 1000)
+  }
+
+  const handleCxpRefillHearts = async () => {
+    if (isRefillingHearts || !userId || !profile) return
+    if ((profile.xp || 0) < 150) {
+      toast('Not enough CXP to refill hearts.', 'error')
+      return
+    }
+    setIsRefillingHearts(true)
+    try {
+      const { data: success, error } = await supabase.rpc('spend_user_cxp', {
+        user_id_input: userId,
+        amount_input: 150,
+        source_input: 'heart_refill',
+        description_input: 'Refilled hearts to 3'
+      })
+
+      if (error || !success) {
+        throw error || new Error('Spend failed')
+      }
+
+      setHearts(3)
+      setProfile((prev: any) => prev ? { ...prev, hearts: 3, xp: Math.max(0, (prev.xp || 0) - 150) } : null)
+
+      SoundEffects.play('success')
+
+      window.dispatchEvent(new CustomEvent('cognara_hearts_changed', {
+        detail: { hearts: 3 }
+      }))
+
+      toast('Hearts refilled! ❤️ 3/3 Cognitive Energy')
+      setErrorMsg('')
+      handleRetryQuiz()
+    } catch (err) {
+      console.error('Failed to refill hearts:', err)
+      toast('Failed to refill hearts with CXP.', 'error')
+    } finally {
+      setIsRefillingHearts(false)
+    }
   }
 
   // Save certificate as unclaimed in Supabase
@@ -1044,35 +1084,43 @@ export default function QuizPage() {
           <div className="flex flex-col gap-3 w-full">
             <Button
               onClick={() => router.push(`/dashboard/lesson/${lessonId}`)}
-              className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-xl shadow-[0_0_20px_rgba(91,142,255,0.25)]"
+              className="w-full h-13 bg-[#1E2540] hover:bg-[#2E3750] border border-[#2E3750] text-[#F0F4FF] font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition active:scale-[0.99]"
             >
               Review Lesson
             </Button>
+            
+            {(profile?.xp ?? 0) >= 150 ? (
+              <Button
+                onClick={handleCxpRefillHearts}
+                disabled={isRefillingHearts}
+                className="w-full h-13 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.25)] flex items-center justify-center gap-2 cursor-pointer transition active:scale-[0.99]"
+              >
+                <Sparkles className="h-4 w-4 fill-current animate-pulse text-white" />
+                Refill & Retry (150 CXP)
+              </Button>
+            ) : (
+              <div className="space-y-2">
+                <Button
+                  disabled={true}
+                  className="w-full h-13 bg-[#1E2540]/30 border border-[#1E2540]/55 text-[#8B95B3]/50 font-bold rounded-xl text-xs flex items-center justify-center gap-2"
+                >
+                  Need 150 CXP to refill (You have {profile?.xp ?? 0} CXP)
+                </Button>
+                <Button
+                  onClick={() => router.push('/dashboard/path?reentry=true')}
+                  className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-xl shadow-[0_0_20px_rgba(91,142,255,0.25)] flex items-center justify-center gap-2 cursor-pointer transition active:scale-[0.99]"
+                >
+                  Review Completed Lessons (+1 Heart)
+                </Button>
+              </div>
+            )}
+
             <Button
-              onClick={async () => {
-                setIsLoading(true);
-                try {
-                  if (userId) {
-                    await supabase.from('profiles').update({ hearts: 3 }).eq('id', userId)
-                  }
-                  setHearts(3)
-                  if (profile) {
-                    setProfile((prev: any) => ({ ...prev, hearts: 3 }))
-                  }
-                  window.dispatchEvent(new CustomEvent('cognara_hearts_changed', {
-                    detail: { hearts: 3 }
-                  }))
-                  handleRetryQuiz()
-                } catch (err) {
-                  console.error(err)
-                } finally {
-                  setIsLoading(false);
-                }
-              }}
+              onClick={() => router.push('/dashboard/settings')}
               variant="ghost"
-              className="w-full h-13 bg-[#141A30]/50 hover:bg-[#1E2540]/60 border border-[#1E2540] text-[#8B95B3] hover:text-[#F0F4FF] rounded-xl text-[13px] font-bold"
+              className="w-full h-13 bg-[#141A30]/50 hover:bg-[#1E2540]/60 border border-[#1E2540] text-[#8B95B3] hover:text-[#F0F4FF] rounded-xl text-[13px] font-bold cursor-pointer transition active:scale-[0.99]"
             >
-              Try Quiz Again
+              Upgrade to Pro (Infinite Hearts)
             </Button>
           </div>
         </div>
