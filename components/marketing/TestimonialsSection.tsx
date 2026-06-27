@@ -39,12 +39,12 @@ export function TestimonialsSection() {
         Real people. Real goals. Real progress.
       </h2>
 
-      {/* Testimonials Container: Horizontal scroll on mobile, Grid on desktop */}
-      <div className="flex md:grid md:grid-cols-3 gap-6 mt-12 overflow-x-auto pb-4 md:pb-0 snap-x snap-mandatory scrollbar-none">
+      {/* Testimonials Container: Single column on mobile, Grid on desktop */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-12">
         {testimonials.map((t) => (
           <div
             key={t.id}
-            className="snap-center shrink-0 w-[280px] sm:w-[320px] md:w-auto bg-surface border border-border rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-primary/20 transition-all duration-200"
+            className="w-full bg-surface border border-border rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-primary/20 transition-all duration-200"
           >
             {/* Top Info */}
             <div className="space-y-3">

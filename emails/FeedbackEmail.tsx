@@ -3,7 +3,6 @@ import {
   Text, Button, Hr, Preview, Img
 } from '@react-email/components'
 import * as React from 'react'
-import { COGNARA_ICON_BASE64 } from '@/lib/email/iconBase64'
 
 interface FeedbackEmailProps {
   userName: string

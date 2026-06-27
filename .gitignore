@@ -54,3 +54,7 @@ next-env.d.ts
 # markdown folder
 /markdown/
 
+# Large base64 encoded asset files (flagged as high-entropy by secret scanners)
+lib/email/iconBase64.ts
+lib/email/*Base64.ts
+
