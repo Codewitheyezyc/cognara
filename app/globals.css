@@ -185,12 +185,14 @@
   html {
     font-size: var(--text-base, 15px);
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    overflow-x: hidden;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading font-semibold tracking-tight;

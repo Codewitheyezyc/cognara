@@ -28,7 +28,7 @@ export function FinalCtaSection() {
   const learnersCount = userCount !== null ? userCount : 41
 
   return (
-    <section className="py-16 md:py-24 max-w-5xl mx-auto px-4 scroll-mt-24">
+    <section className="py-16 md:py-24 w-full max-w-5xl mx-auto px-4 scroll-mt-24 overflow-hidden">
       {/* Banner Container: Rich Indigo/Violet Gradient */}
       <div className="relative bg-gradient-to-br from-[#3D6AFF] to-[#7C5CFA] rounded-3xl p-8 md:p-16 text-center shadow-2xl overflow-hidden select-none">
         {/* Glow effects inside banner */}
