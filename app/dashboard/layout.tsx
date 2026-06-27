@@ -4,13 +4,14 @@ import React, { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Home, Map, BarChart2, Flame, Search, Bell, Bookmark, Download, Sparkles, Heart, User } from 'lucide-react'
+import { Home, Map, BarChart2, Flame, Search, Bell, Bookmark, Download, Sparkles, Heart, User, X } from 'lucide-react'
 import { ProfileDropdown } from '@/components/dashboard/ProfileDropdown'
 import { Logo } from '@/components/ui/Logo'
 import { LessonPreviewModal } from '@/components/dashboard/LessonPreviewModal'
 import { useToast } from '@/components/ui/toast'
 import { getLevelInfo } from '@/lib/leveling'
 import { LevelUpModal } from '@/components/mascot/LevelUpModal'
+
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -22,6 +23,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isOffline, setIsOffline] = useState(false)
   const [levelUpInfo, setLevelUpInfo] = useState<{ oldLevel: number; newLevel: number; rankName: string } | null>(null)
   const [isLevelUpOpen, setIsLevelUpOpen] = useState(false)
+  const [referralNotification, setReferralNotification] = useState<any | null>(null)
+  const [showReferralBanner, setShowReferralBanner] = useState(false)
+
 
   // Paystack transaction verification listener
   useEffect(() => {
@@ -199,6 +203,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         setStreak(streakData.current_streak || 0)
       }
 
+      // Fetch unread referral notifications
+      try {
+        const { data: refNotifs } = await supabase
+          .from('cognara_notifications')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('type', 'referral_converted')
+          .eq('is_read', false)
+          .order('created_at', { ascending: false })
+
+        if (!active) return
+        if (refNotifs && refNotifs.length > 0) {
+          const currentNotif = refNotifs[0]
+          setReferralNotification(currentNotif)
+          setShowReferralBanner(true)
+          
+          // Automatically hide after 5 seconds
+          setTimeout(async () => {
+            setShowReferralBanner(false)
+            await supabase
+              .from('cognara_notifications')
+              .update({ is_read: true })
+              .eq('id', currentNotif.id)
+          }, 5000)
+        }
+      } catch (notifErr) {
+        console.error('Error fetching referral notifications:', notifErr)
+      }
+
+
       // Fetch active roadmap progress and lessons
       try {
         const { data: activeGoal } = await supabase
@@ -280,7 +314,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [supabase, pathname])
 
+  const handleDismissBanner = async () => {
+    setShowReferralBanner(false)
+    if (referralNotification) {
+      await supabase
+        .from('cognara_notifications')
+        .update({ is_read: true })
+        .eq('id', referralNotification.id)
+    }
+  }
+
   // Listen for global XP gains and level ups
+
   useEffect(() => {
     const handleXpGained = (e: Event) => {
       const detail = (e as CustomEvent).detail
@@ -877,12 +922,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
         )}
 
+        {/* Referral Notification Banner */}
+        {showReferralBanner && referralNotification && (
+          <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white px-6 py-3.5 text-xs font-bold text-center sticky top-[108px] md:top-16 z-50 flex items-center justify-between gap-4 animate-fadeIn shadow-lg border-b border-amber-500/30">
+            <div className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2">
+              <span className="text-sm">🎉</span>
+              <span>
+                <strong className="text-white text-sm sm:text-base font-extrabold">{referralNotification.title}</strong>
+                <span className="mx-2 hidden sm:inline">·</span>
+                <span className="text-[#FAFAFA] font-medium block sm:inline">{referralNotification.message}</span>
+              </span>
+              <Link href="/dashboard/profile" className="underline font-black hover:text-amber-100 sm:ml-2">
+                View my referrals →
+              </Link>
+            </div>
+            <button 
+              onClick={handleDismissBanner}
+              className="p-1 hover:bg-white/10 rounded-full cursor-pointer transition shrink-0 focus:outline-none"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
+
         {isOffline && (
           <div className="bg-amber-500 text-black px-4 py-2.5 text-xs font-semibold text-center sticky top-[108px] md:top-16 z-30 flex items-center justify-center gap-1.5 animate-fadeIn shadow-md">
             <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
             <span>You are offline. Downloaded lessons are still available. <Link href="/dashboard/downloads" className="underline font-bold hover:opacity-80">Navigate to your Downloads page.</Link></span>
           </div>
         )}
+
 
         {/* Page Inner Content */}
         <main className="flex-grow p-4 md:p-8 max-w-7xl w-full mx-auto">

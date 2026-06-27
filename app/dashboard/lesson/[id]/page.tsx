@@ -449,6 +449,25 @@ export default function LessonPage() {
         setStatus('completed')
         setShowCelebration(true)
 
+        // Check if this is the user's very first completed lesson
+        try {
+          const { count, error: countErr } = await supabase
+            .from('lesson_progress')
+            .select('lesson_id', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('status', 'completed')
+
+          if (!countErr && count === 1) {
+            fetch('/api/referral/convert', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: user.id })
+            }).catch(err => console.error('Referral api trigger failed:', err))
+          }
+        } catch (cntErr) {
+          console.error('Error checking first lesson completed count:', cntErr)
+        }
+
         // Award +100 XP
         try {
           const { data: xpData, error: xpError } = await supabase.rpc('add_xp', {
@@ -541,6 +560,26 @@ export default function LessonPage() {
             completed_at: new Date().toISOString(),
           }, { onConflict: 'user_id,lesson_id' })
           setStatus('completed')
+
+          // Check if this is the user's very first completed lesson
+          try {
+            const { count, error: countErr } = await supabase
+              .from('lesson_progress')
+              .select('lesson_id', { count: 'exact', head: true })
+              .eq('user_id', user.id)
+              .eq('status', 'completed')
+
+            if (!countErr && count === 1) {
+              fetch('/api/referral/convert', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id })
+              }).catch(err => console.error('Referral api trigger failed:', err))
+            }
+          } catch (cntErr) {
+            console.error('Error checking first lesson completed count:', cntErr)
+          }
+
           // Award XP silently
           try {
             const { data: xpData } = await supabase.rpc('add_xp', { user_id: user.id, amount: 100 })

@@ -99,6 +99,10 @@ export default function QuizPage() {
   const [showPhaseCompleteScreen, setShowPhaseCompleteScreen] = useState(false)
   const [phaseCompleteData, setPhaseCompleteData] = useState<any>(null)
 
+  const [hasWelcomeBonus, setHasWelcomeBonus] = useState(false)
+  const [showWelcomeBonusAnim, setShowWelcomeBonusAnim] = useState(false)
+
+
   // Certificate Generation States
   const [isGeneratingCert, setIsGeneratingCert] = useState(false)
   const [showFriendlyError, setShowFriendlyError] = useState(false)
@@ -144,6 +148,23 @@ export default function QuizPage() {
         if (profRow) {
           setHearts(profRow.hearts ?? 3)
         }
+
+        // Check if user is eligible for referral welcome bonus animation
+        try {
+          const { data: welcomeEvent } = await supabase
+            .from('cognara_cxp_events')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('source', 'referral_welcome_bonus')
+            .maybeSingle()
+
+          if (welcomeEvent && !sessionStorage.getItem('referral_welcome_bonus_shown')) {
+            setHasWelcomeBonus(true)
+          }
+        } catch (eventErr) {
+          console.error('Failed to query welcome bonus event status:', eventErr)
+        }
+
 
         if (profRow && profRow.subscription_tier === 'free' && (profRow.hearts ?? 3) <= 0) {
           setErrorMsg('OUT_OF_HEARTS')
@@ -342,6 +363,19 @@ export default function QuizPage() {
         // Trigger float-up XP animation
         setShowXpAnim(true)
         setTimeout(() => setShowXpAnim(false), 2400)
+
+        // Trigger welcome bonus animation if eligible
+        if (hasWelcomeBonus) {
+          setTimeout(() => {
+            setShowWelcomeBonusAnim(true)
+            setTimeout(() => {
+              setShowWelcomeBonusAnim(false)
+              setHasWelcomeBonus(false)
+              sessionStorage.setItem('referral_welcome_bonus_shown', 'true')
+            }, 2400)
+          }, 1200)
+        }
+
 
         // Play sound on completion
         SoundEffects.play(result.passed ? 'achievement' : 'success')
@@ -1194,6 +1228,21 @@ export default function QuizPage() {
             </div>
           </div>
         )}
+
+        {/* Floating Referral Welcome Bonus Animation */}
+        {showWelcomeBonusAnim && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+            <div className="animate-floatUpAndFade flex flex-col items-center" style={{ animationDelay: '100ms' }}>
+              <span className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-500 drop-shadow-[0_0_24px_rgba(245,158,11,0.5)]">
+                +100 CXP Welcome Bonus 🎉
+              </span>
+              <span className="text-[10px] font-bold text-amber-500 mt-1.5 tracking-widest uppercase text-center block">
+                — You were referred by a friend
+              </span>
+            </div>
+          </div>
+        )}
+
 
         {/* Header */}
         <div className="space-y-2">
