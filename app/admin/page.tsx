@@ -44,6 +44,67 @@ export default function AdminOverview() {
   const [adminTestimonials, setAdminTestimonials] = useState<any[]>([])
   const [loadingTestimonials, setLoadingTestimonials] = useState(true)
 
+  // User management states
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchedUser, setSearchedUser] = useState<any | null>(null)
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [searchError, setSearchError] = useState<string | null>(null)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [isRegenerating, setIsRegenerating] = useState(false)
+  const [regResult, setRegResult] = useState<any | null>(null)
+  const [regError, setRegError] = useState<string | null>(null)
+
+  const handleUserSearch = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!searchQuery.trim()) return
+    setSearchLoading(true)
+    setSearchError(null)
+    setSearchedUser(null)
+    setRegResult(null)
+    setRegError(null)
+    try {
+      const res = await fetch(`/api/admin/users/search?q=${encodeURIComponent(searchQuery.trim())}`)
+      if (res.ok) {
+        const data = await res.json()
+        setSearchedUser(data.user)
+      } else {
+        const data = await res.json()
+        setSearchError(data.error || 'Failed to find user')
+      }
+    } catch (err) {
+      setSearchError('An error occurred during search')
+    } finally {
+      setSearchLoading(false)
+    }
+  }
+
+  const handleForceRegenerate = async () => {
+    if (!searchedUser) return
+    setIsRegenerating(true)
+    setRegResult(null)
+    setRegError(null)
+    try {
+      const res = await fetch('/api/admin/users/regenerate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: searchedUser.id })
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        setRegResult(data)
+        // Refresh searchedUser phase count
+        setSearchedUser((prev: any) => prev ? { ...prev, phaseCount: data.newPhaseCount, version: 'Upgraded (v3)' } : null)
+      } else {
+        setRegError(data.error || 'Failed to regenerate roadmap')
+      }
+    } catch (err: any) {
+      setRegError(err.message || 'An error occurred')
+    } finally {
+      setIsRegenerating(false)
+      setShowConfirmModal(false)
+    }
+  }
+
   const fetchTestimonials = async () => {
     try {
       const res = await fetch('/api/admin/testimonials')
@@ -277,6 +338,159 @@ export default function AdminOverview() {
           </div>
         </div>
       </div>
+
+      {/* USER MANAGEMENT SECTION */}
+      <div className="bg-surface rounded-2xl border border-border p-6 space-y-4">
+        <div>
+          <h2 className="text-sm font-bold text-text-1">User Management</h2>
+          <p className="text-[11px] text-text-2">Search users and force regenerate their custom roadmaps</p>
+        </div>
+
+        <form onSubmit={handleUserSearch} className="flex gap-2 max-w-md">
+          <input
+            type="text"
+            placeholder="Enter user ID or email"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 px-3 py-2 bg-surface-alt border border-border rounded-xl text-xs text-text-1 focus:outline-none focus:ring-1 focus:ring-primary"
+          />
+          <button
+            type="submit"
+            disabled={searchLoading}
+            className="px-4 py-2 bg-primary hover:bg-primary/95 disabled:opacity-50 text-white font-bold text-xs rounded-xl transition cursor-pointer"
+          >
+            {searchLoading ? 'Searching...' : 'Find User'}
+          </button>
+        </form>
+
+        {searchError && (
+          <p className="text-xs text-rose-500">{searchError}</p>
+        )}
+
+        {searchedUser && (
+          <div className="border border-border/80 rounded-xl p-4 bg-surface-alt/20 space-y-4 max-w-xl">
+            <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-xs">
+              <div>
+                <span className="text-text-3 block text-[10px]">User Name</span>
+                <span className="font-semibold text-text-1">{searchedUser.name}</span>
+              </div>
+              <div>
+                <span className="text-text-3 block text-[10px]">User Email</span>
+                <span className="font-semibold text-text-1">{searchedUser.email}</span>
+              </div>
+              <div className="col-span-2">
+                <span className="text-text-3 block text-[10px]">Current Goal</span>
+                <span className="font-semibold text-text-1">{searchedUser.goal}</span>
+              </div>
+              <div>
+                <span className="text-text-3 block text-[10px]">Current Phase Count</span>
+                <span className="font-semibold text-text-1">{searchedUser.phaseCount} phases</span>
+              </div>
+              <div>
+                <span className="text-text-3 block text-[10px]">Roadmap Version</span>
+                <span className="font-semibold text-text-1">{searchedUser.version}</span>
+              </div>
+              <div>
+                <span className="text-text-3 block text-[10px]">Roadmap Generated Date</span>
+                <span className="font-semibold text-text-1">
+                  {searchedUser.roadmapDate ? new Date(searchedUser.roadmapDate).toLocaleDateString() : 'N/A'}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 pt-2 border-t border-border/40">
+              <button
+                type="button"
+                onClick={() => {
+                  setRegResult(null)
+                  setRegError(null)
+                  setShowConfirmModal(true)
+                }}
+                className="px-3 py-1.5 border border-rose-500/30 text-rose-500 hover:bg-rose-500/5 text-xs font-bold rounded-lg transition cursor-pointer"
+              >
+                Force Regenerate Roadmap
+              </button>
+              <a
+                href={`/admin/users/${searchedUser.id}`}
+                className="px-3 py-1.5 bg-surface border border-border text-text-2 hover:text-text-1 text-xs font-bold rounded-lg transition"
+              >
+                View User Progress
+              </a>
+            </div>
+
+            {/* Regeneration Results Display */}
+            {regResult && (
+              <div className="p-3 border border-emerald-500/20 bg-emerald-500/5 rounded-lg space-y-1">
+                <p className="text-xs font-bold text-emerald-500">Roadmap regenerated successfully</p>
+                <div className="text-[11px] text-text-2 space-y-0.5">
+                  <p>Old phase count: 4</p>
+                  <p>New phase count: {regResult.newPhaseCount}</p>
+                  <p>Completed phases preserved: {regResult.preservedPhases}</p>
+                  <p>User continues from: Phase {regResult.userStartsFrom}</p>
+                </div>
+              </div>
+            )}
+
+            {regError && (
+              <div className="p-3 border border-rose-500/20 bg-rose-500/5 rounded-lg space-y-1">
+                <p className="text-xs font-bold text-rose-500">Regeneration failed. User's original roadmap and progress are intact.</p>
+                <p className="text-[11px] text-text-3">Snapshot saved for manual review.</p>
+                <p className="text-[10px] text-rose-400 italic">Error details: {regError}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* CONFIRMATION MODAL */}
+      {showConfirmModal && searchedUser && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-surface max-w-md w-full rounded-2xl border border-border p-6 shadow-2xl space-y-4 animate-scale-up">
+            <div className="space-y-1">
+              <h3 className="text-sm font-bold text-text-1">Force regenerate roadmap for {searchedUser.name}?</h3>
+              <p className="text-xs text-text-2">
+                This will trigger a clean roadmap regeneration using the latest LLM system prompts.
+              </p>
+            </div>
+
+            <div className="space-y-2 text-xs text-text-2 bg-surface-alt/30 p-3.5 rounded-xl border border-border/40">
+              <p className="flex items-center gap-2">
+                <span className="text-emerald-500">✓</span> Generate a new roadmap with current prompt quality
+              </p>
+              <p className="flex items-center gap-2">
+                <span className="text-emerald-500">✓</span> Preserve all completed phases and lessons
+              </p>
+              <p className="flex items-center gap-2">
+                <span className="text-emerald-500">✓</span> Preserve streak, CXP, and badges
+              </p>
+              <p className="flex items-center gap-2">
+                <span className="text-emerald-500">✓</span> Reset position to start of first incomplete phase
+              </p>
+              <p className="text-[10px] text-rose-500 font-bold mt-2">
+                ⚠ This cannot be undone.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 text-xs font-bold text-text-2 hover:text-text-1 transition bg-transparent border-none cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isRegenerating}
+                onClick={handleForceRegenerate}
+                className="px-4 py-2 bg-rose-500 hover:bg-rose-600 disabled:opacity-50 text-white font-bold text-xs rounded-xl transition shadow-lg cursor-pointer"
+              >
+                {isRegenerating ? 'Regenerating...' : 'Yes, regenerate'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* CHARTS SECTION */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
