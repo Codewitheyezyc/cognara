@@ -25,6 +25,8 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
+  const [showUpgradeBanner, setShowUpgradeBanner] = useState(false)
+  const [isUpgrading, setIsUpgrading] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -257,6 +259,12 @@ export default function DashboardPage() {
         }
         setRoadmap(roadmapRow)
 
+        // Detect legacy roadmap for upgrade banner
+        const QUALITY_UPDATE_DATE = new Date('2026-06-28T08:00:00.000Z')
+        const isOldRoadmap = roadmapRow.created_at && new Date(roadmapRow.created_at) < QUALITY_UPDATE_DATE
+        const shouldShowBanner = isOldRoadmap && !profRow.roadmap_upgraded && !profRow.roadmap_upgrade_dismissed && !profRow.upgrade_declined
+        setShowUpgradeBanner(!!shouldShowBanner)
+
         // 5. Fetch Sibling Phases & Lessons (in parallel)
         const [phasesRes, lessonsRes, progressRes, quizRes, streakRes] = await Promise.all([
           supabase.from('roadmap_phases').select('*').eq('roadmap_id', roadmapRow.id).order('phase_number', { ascending: true }),
@@ -415,6 +423,35 @@ export default function DashboardPage() {
     } finally {
       setIsClaiming(false)
     }
+  }
+
+  const handleDeclineUpgrade = async () => {
+    if (!userId) return
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          roadmap_upgrade_dismissed: true,
+          upgrade_declined: true
+        })
+        .eq('id', userId)
+
+      if (error) throw error
+      setShowUpgradeBanner(false)
+      toast('Upgrade banner dismissed. You can always upgrade later from your profile settings.')
+    } catch (err) {
+      console.error('Failed to decline upgrade:', err)
+      toast('Failed to save preference.', 'error')
+    }
+  }
+
+  const handleUpgradeRoadmap = async () => {
+    setIsUpgrading(true)
+    toast('Upgrade initiated! We are preparing your new roadmap...')
+    setTimeout(() => {
+      setIsUpgrading(false)
+      toast('Upgrade stub triggered successfully!')
+    }, 2000)
   }
 
   // 1. Check if streak broke since last login
@@ -1172,6 +1209,46 @@ export default function DashboardPage() {
           )}
         </div>
       </section>
+
+      {/* ROADMAP UPGRADE BANNER */}
+      {showUpgradeBanner && (
+        <div className="relative overflow-hidden border border-primary/20 bg-primary/5 p-5 rounded-2xl shadow-lg flex flex-col sm:flex-row items-start gap-4 animate-page-enter">
+          <div className="absolute right-0 bottom-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="shrink-0 flex items-center justify-center p-1.5 bg-surface rounded-xl border border-border shadow-inner mt-1">
+            <Spark emotion="happy" size={48} />
+          </div>
+          <div className="space-y-3 flex-grow min-w-0">
+            <div className="space-y-1">
+              <h3 className="text-sm font-extrabold text-text-1 flex items-center gap-1.5">
+                <span>Cognara has been significantly improved! ✨</span>
+              </h3>
+              <p className="text-xs text-text-2 leading-relaxed font-medium">
+                Your learning roadmap was generated with an earlier version of our system. We now build more comprehensive roadmaps with better structured content and more lessons per phase. Your progress, streak, and CXP are safe. Would you like to upgrade to the improved roadmap?
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <Button
+                onClick={handleUpgradeRoadmap}
+                disabled={isUpgrading}
+                className="h-9 px-4 bg-gradient-to-r from-primary to-accent hover:from-primary/95 hover:to-accent/95 text-white font-bold rounded-xl text-xs shadow-md cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {isUpgrading ? 'Upgrading...' : 'Upgrade my roadmap'}
+              </Button>
+              <Button
+                onClick={handleDeclineUpgrade}
+                variant="ghost"
+                disabled={isUpgrading}
+                className="h-9 px-4 bg-surface-alt/80 hover:bg-border/60 border border-border text-text-2 hover:text-text-1 text-xs font-semibold rounded-xl"
+              >
+                Keep my current roadmap
+              </Button>
+            </div>
+            <p className="text-[10px] text-text-3 font-semibold tracking-wide">
+              You can always upgrade later from your profile settings.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* 7 Day Streak Referral Nudge Card */}
       {streakData?.current_streak === 7 && !profile?.dismissed_streak_nudge && !dismissedStreakCard && (

@@ -20,9 +20,8 @@ CREATE POLICY "Allow public read access to technology versions"
   TO authenticated, anon 
   USING (true);
 
--- Seed initial stable version data
 INSERT INTO public.cognara_technology_versions (technology_name, current_stable_version, release_date, documentation_url, key_changes, domain) VALUES
-('Next.js', '15.1', '2024-12-01', 
+('Next.js', '16.2.7', '2024-12-01', 
  'https://nextjs.org/docs', 
  'App Router stable, Server Actions stable, Turbopack default', 'web_development'),
 
