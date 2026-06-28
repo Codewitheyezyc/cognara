@@ -15,6 +15,7 @@ import { SoundEffects } from '@/lib/sound'
 import { Logo } from '@/components/ui/Logo'
 import { ProfileDropdown } from '@/components/dashboard/ProfileDropdown'
 import QuestsWidget from '@/components/dashboard/QuestsWidget'
+const ROADMAP_UPGRADE_ENABLED = false
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -263,7 +264,7 @@ export default function DashboardPage() {
         const QUALITY_UPDATE_DATE = new Date('2026-06-28T08:00:00.000Z')
         const isOldRoadmap = roadmapRow.created_at && new Date(roadmapRow.created_at) < QUALITY_UPDATE_DATE
         const shouldShowBanner = isOldRoadmap && !profRow.roadmap_upgraded && !profRow.roadmap_upgrade_dismissed && !profRow.upgrade_declined
-        setShowUpgradeBanner(!!shouldShowBanner)
+        setShowUpgradeBanner(!!shouldShowBanner && ROADMAP_UPGRADE_ENABLED)
 
         // 5. Fetch Sibling Phases & Lessons (in parallel)
         const [phasesRes, lessonsRes, progressRes, quizRes, streakRes] = await Promise.all([

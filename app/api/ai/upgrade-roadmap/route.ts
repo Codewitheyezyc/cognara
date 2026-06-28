@@ -16,6 +16,8 @@ interface StandardizeResult {
 }
 
 export async function POST(request: Request) {
+  let newGoalId: string | null = null
+  let oldGoalId: string | null = null
   try {
     const supabase = await createClient()
 
@@ -26,7 +28,8 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { oldRoadmapId, oldGoalId } = body
+    const { oldRoadmapId, oldGoalId: inputOldGoalId } = body
+    oldGoalId = inputOldGoalId
 
     if (!oldRoadmapId || !oldGoalId) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 })
@@ -50,30 +53,105 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Goal or profile not found' }, { status: 404 })
     }
 
-    // 3. Fetch completed lessons from the old roadmap
-    const { data: oldProgress } = await supabase
-      .from('lesson_progress')
+    // 3. Take snapshot of old progress before generating anything
+    // Fetch all old roadmap phases
+    const { data: oldPhases } = await supabase
+      .from('roadmap_phases')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('roadmap_id', oldRoadmapId)
 
-    const completedProgressMap = new Map<string, any>()
-    oldProgress?.forEach(p => {
-      completedProgressMap.set(p.lesson_id, p)
-    })
-
+    // Fetch all old roadmap lessons
     const { data: oldLessons } = await supabase
       .from('lessons')
       .select('*')
       .eq('roadmap_id', oldRoadmapId)
-      .eq('user_id', user.id)
 
-    const completedLessonTitles = new Map<string, any>()
-    oldLessons?.forEach(l => {
-      const prog = completedProgressMap.get(l.id)
-      if (prog) {
-        completedLessonTitles.set(l.title.toLowerCase().trim(), prog)
-      }
+    const oldLessonIds = oldLessons?.map(l => l.id) || []
+    const { data: oldProgress } = oldLessonIds.length > 0 ? await supabase
+      .from('lesson_progress')
+      .select('*')
+      .in('lesson_id', oldLessonIds)
+      : { data: [] }
+
+    // Fetch quiz attempts for those lessons
+    const { data: oldQuizzes } = oldLessonIds.length > 0 ? await supabase
+      .from('quizzes')
+      .select('id, lesson_id')
+      .in('lesson_id', oldLessonIds)
+      : { data: [] }
+
+    const oldQuizIds = oldQuizzes?.map(q => q.id) || []
+    const { data: oldAttempts } = oldQuizIds.length > 0 ? await supabase
+      .from('quiz_attempts')
+      .select('*')
+      .in('quiz_id', oldQuizIds)
+      : { data: [] }
+
+    const progressMap = new Map<string, any>()
+    oldProgress?.forEach(p => progressMap.set(p.lesson_id, p))
+
+    const quizMap = new Map<string, any>()
+    oldQuizzes?.forEach(q => {
+      const attempts = oldAttempts?.filter(a => a.quiz_id === q.id) || []
+      const maxScore = attempts.length > 0 ? Math.max(...attempts.map(a => a.score)) : null
+      quizMap.set(q.lesson_id, maxScore)
     })
+
+    const oldLessonsByPhase = new Map<string, any[]>()
+    oldLessons?.forEach(l => {
+      if (!oldLessonsByPhase.has(l.phase_id)) {
+        oldLessonsByPhase.set(l.phase_id, [])
+      }
+      oldLessonsByPhase.get(l.phase_id)!.push(l)
+    })
+
+    const completedLessonsSnapshot = []
+    const phaseCompletionsSnapshot = []
+
+    for (const phase of oldPhases || []) {
+      const phaseLessons = oldLessonsByPhase.get(phase.id) || []
+      let completedInPhase = 0
+      
+      for (const lesson of phaseLessons) {
+        const prog = progressMap.get(lesson.id)
+        if (prog && prog.status === 'completed') {
+          completedInPhase++
+          completedLessonsSnapshot.push({
+            title: lesson.title,
+            phase_number: phase.phase_number,
+            started_at: prog.started_at,
+            completed_at: prog.completed_at,
+            time_spent_secs: prog.time_spent_secs,
+            quiz_score: quizMap.get(lesson.id) || null
+          })
+        }
+      }
+
+      phaseCompletionsSnapshot.push({
+        phase_number: phase.phase_number,
+        total_lessons: phaseLessons.length,
+        completed_lessons: completedInPhase
+      })
+    }
+
+    const snapshot = {
+      completedLessons: completedLessonsSnapshot,
+      phaseCompletions: phaseCompletionsSnapshot
+    }
+
+    // Save snapshot in table
+    const { error: snapshotError } = await supabase
+      .from('cognara_upgrade_snapshots')
+      .insert({
+        user_id: user.id,
+        goal_id: oldGoalId,
+        snapshot_data: snapshot
+      })
+
+    if (snapshotError) {
+      console.error('Failed to create upgrade snapshot:', snapshotError)
+      return NextResponse.json({ error: 'Failed to create safety snapshot before upgrade' }, { status: 500 })
+    }
 
     // 4. Generate new improved roadmap
     const goalText = oldGoal.goal_text
@@ -142,8 +220,9 @@ export async function POST(request: Request) {
 
     if (newGoalError || !newGoal) {
       console.error('Error inserting new goal:', newGoalError)
-      return NextResponse.json({ error: 'Failed to create new goal' }, { status: 500 })
+      throw new Error('Failed to create new goal')
     }
+    newGoalId = newGoal.id
 
     // Insert new roadmap
     const { data: newRoadmap, error: newRoadmapError } = await supabase
@@ -160,7 +239,7 @@ export async function POST(request: Request) {
 
     if (newRoadmapError || !newRoadmap) {
       console.error('Error inserting new roadmap:', newRoadmapError)
-      return NextResponse.json({ error: 'Failed to create new roadmap' }, { status: 500 })
+      throw new Error('Failed to create new roadmap')
     }
 
     // Insert phases and lessons (and map completed progress)
@@ -180,7 +259,7 @@ export async function POST(request: Request) {
 
       if (phaseError || !phaseData) {
         console.error('Error inserting new phase:', phaseError)
-        return NextResponse.json({ error: 'Failed to create roadmap phases' }, { status: 500 })
+        throw new Error('Failed to create roadmap phases')
       }
 
       const lessonInserts = []
@@ -205,36 +284,78 @@ export async function POST(request: Request) {
         const { data: insertedLessons, error: lessonsError } = await supabase
           .from('lessons')
           .insert(lessonInserts)
-          .select('id, title')
+          .select('id, title, order_index')
 
         if (lessonsError || !insertedLessons) {
           console.error('Error inserting new lessons:', lessonsError)
-          return NextResponse.json({ error: 'Failed to create lesson stubs' }, { status: 500 })
+          throw new Error('Failed to create lesson stubs')
         }
 
-        // Map completed progress
-        const progressInserts = []
-        for (const lesson of insertedLessons) {
-          const matchingOldProg = completedLessonTitles.get(lesson.title.toLowerCase().trim())
-          if (matchingOldProg) {
-            progressInserts.push({
-              user_id: user.id,
-              lesson_id: lesson.id,
-              status: matchingOldProg.status,
-              started_at: matchingOldProg.started_at,
-              completed_at: matchingOldProg.completed_at,
-              time_spent_secs: matchingOldProg.time_spent_secs
-            })
+        // Determine completions for this phase number
+        const snapPhase = snapshot.phaseCompletions.find(p => p.phase_number === phase.phase_number)
+        if (snapPhase && snapPhase.completed_lessons > 0) {
+          const isFullyCompleted = snapPhase.completed_lessons === snapPhase.total_lessons
+          let lessonsToMark = []
+
+          if (isFullyCompleted) {
+            lessonsToMark = insertedLessons
+          } else {
+            // Sort new lessons sequentially and take the first N completed lessons
+            const sortedNewLessons = [...insertedLessons].sort((a, b) => a.order_index - b.order_index)
+            lessonsToMark = sortedNewLessons.slice(0, snapPhase.completed_lessons)
           }
-        }
 
-        if (progressInserts.length > 0) {
-          const { error: progInsertError } = await supabase
-            .from('lesson_progress')
-            .insert(progressInserts)
+          if (lessonsToMark.length > 0) {
+            const progressInserts = []
+            for (const newLesson of lessonsToMark) {
+              // Try to find matching completion details from the snapshot by title or default
+              const oldCompleted = snapshot.completedLessons.find(
+                cl => cl.phase_number === phase.phase_number && cl.title.toLowerCase().trim() === newLesson.title.toLowerCase().trim()
+              ) || snapshot.completedLessons.find(
+                cl => cl.phase_number === phase.phase_number
+              )
 
-          if (progInsertError) {
-            console.error('Error inserting progress mappings:', progInsertError)
+              progressInserts.push({
+                user_id: user.id,
+                lesson_id: newLesson.id,
+                status: 'completed',
+                started_at: oldCompleted?.started_at || new Date().toISOString(),
+                completed_at: oldCompleted?.completed_at || new Date().toISOString(),
+                time_spent_secs: oldCompleted?.time_spent_secs || 600
+              })
+
+              // Insert quiz stubs
+              const { data: quizData } = await supabase
+                .from('quizzes')
+                .insert({
+                  lesson_id: newLesson.id,
+                  user_id: user.id,
+                  questions: []
+                })
+                .select('id')
+                .single()
+
+              if (quizData) {
+                await supabase
+                  .from('quiz_attempts')
+                  .insert({
+                    quiz_id: quizData.id,
+                    user_id: user.id,
+                    answers: [],
+                    score: oldCompleted?.quiz_score || 100,
+                    passed: true,
+                    time_spent_secs: 60
+                  })
+              }
+            }
+
+            const { error: progInsertError } = await supabase
+              .from('lesson_progress')
+              .insert(progressInserts)
+
+            if (progInsertError) {
+              console.error('Error inserting progress mappings:', progInsertError)
+            }
           }
         }
       }
@@ -243,6 +364,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, roadmapId: newRoadmap.id })
   } catch (err: any) {
     console.error('[API Roadmap Upgrade Error]', err)
+    // Rollback: reactivate old goal and delete new goal
+    const supabase = await createClient()
+    if (newGoalId) {
+      await supabase.from('learning_goals').delete().eq('id', newGoalId)
+    }
+    if (oldGoalId) {
+      await supabase.from('learning_goals').update({ is_active: true }).eq('id', oldGoalId)
+    }
     return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 })
   }
 }

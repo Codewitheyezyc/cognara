@@ -3,6 +3,8 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+
+const ROADMAP_UPGRADE_ENABLED = false
 import Link from 'next/link'
 import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
@@ -1096,7 +1098,7 @@ export default function ProfilePage() {
                   const isOldRoadmap = activeRoadmapObj && activeRoadmapObj.created_at && new Date(activeRoadmapObj.created_at) < QUALITY_UPDATE_DATE
                   const canUpgrade = isOldRoadmap && !profile?.roadmap_upgraded
 
-                  if (!canUpgrade) return null
+                  if (!ROADMAP_UPGRADE_ENABLED || !canUpgrade) return null
 
                   return (
                     <div className="mt-4 p-4 border border-primary/20 bg-primary/5 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
