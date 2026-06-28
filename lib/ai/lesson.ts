@@ -4,6 +4,49 @@ import { LESSON_SYSTEM_PROMPT, buildLessonUserMessage, isCodeSubject } from './p
 import { createClient } from '@/lib/supabase/server'
 import { getDomainFromSubject } from './lessonCache'
 
+function getDomainQualityRules(domain: string, techVersions: string): string {
+  const rules: Record<string, string> = {
+    'Technology': `
+      - Use latest stable versions only
+      ${techVersions ? techVersions : `
+      - Next.js: Use App Router exclusively (version 16.2.7)
+      - React: Functional components and hooks only`}
+      - Never use deprecated APIs or syntax
+    `,
+    'Business': `
+      - Use current market context in examples
+      - Reference relevant companies and case studies from today
+      - Teach frameworks currently respected in industry
+    `,
+    'Marketing': `
+      - Reflect current platform algorithm behavior
+      - Use content formats performing well in 2026
+      - Reference current marketing tools and platforms
+    `,
+    'Medicine': `
+      - Follow current clinical guidelines
+      - Use current medical terminology
+      - Always include professional consultation disclaimer: "Consult a qualified healthcare professional for personal medical decisions"
+    `,
+    'Finance': `
+      - Reflect current financial regulations
+      - Use current market context
+      - Always include appropriate financial disclaimers
+    `,
+    'Language': `
+      - Teach contemporary language usage
+      - Use current vocabulary and natural expressions
+      - Avoid archaic or overly formal forms
+    `
+  };
+
+  return rules[domain] || `
+    - Teach current best practices in this field
+    - Use relevant contemporary examples
+    - Reflect how this subject is practiced today
+  `;
+}
+
 const depthLabels = ["", "Like I'm 10", "Beginner", "Intermediate", "Advanced", "Expert"];
 
 export async function generateLesson(
@@ -40,7 +83,7 @@ export async function generateLesson(
   const isCode = isCodeSubject(subject)
   const domain = getDomainFromSubject(subject)
 
-  let versionContext = ''
+  let techVersions = ''
   if (domain === 'Technology') {
     try {
       const supabase = await createClient()
@@ -50,69 +93,35 @@ export async function generateLesson(
         .eq('domain', 'web_development')
 
       if (versions && versions.length > 0) {
-        versionContext = `
-TECHNOLOGY VERSION REQUIREMENTS:
-${versions.map(v => `- ${v.technology_name}: Use version ${v.current_stable_version} ONLY`).join('\n')}
-
-CRITICAL VERSION RULES:
-1. ALWAYS use the exact versions listed above.
-2. NEVER use older versions or teach deprecated syntax.
-3. If teaching Next.js — use App Router ONLY (not Pages Router — that is deprecated for new projects).
-4. If teaching React — use functional components and hooks ONLY (never class components).
-5. If code examples exist — every code example must use the versions specified above.
-6. If the user asks about or references an older version — acknowledge it exists but teach the current approach.
-
-NEXT.JS SPECIFIC RULE:
-ALWAYS teach Next.js using the App Router.
-NEVER use Pages Router syntax in examples.
-
-App Router key differences to always apply:
-- File structure: app/ directory not pages/
-- Layouts: layout.tsx not _app.tsx
-- Data fetching: async Server Components not getServerSideProps or getStaticProps
-- API routes: app/api/route.ts not pages/api/
-- Metadata: export const metadata not Head component
-- Server Actions for form handling
-`
+        techVersions = versions.map(v => `- ${v.technology_name}: Use version ${v.current_stable_version} ONLY`).join('\n      ')
       }
     } catch (err) {
       console.error('[generateLesson] Error querying technology versions:', err)
     }
-  } else {
-    const isBusiness = domain === 'Business'
-    const isMedicine = domain === 'Medicine'
-    const isLanguage = domain === 'Language'
-
-    let subjectRules = ''
-    if (isBusiness) {
-      subjectRules = `
-- Current marketing & algorithm best practices
-- Current platform features (not deprecated ones)
-- Current content formats that perform well
-- Current business strategy frameworks (not outdated models)
-- Current market context
-`
-    } else if (isMedicine) {
-      subjectRules = `
-- Current clinical guidelines
-- Current medical terminology
-- Note: Always recommend consulting a qualified professional for medical decisions
-`
-    } else if (isLanguage) {
-      subjectRules = `
-- Current usage — not archaic forms
-- Contemporary vocabulary
-`
-    }
-
-    versionContext = `
-CONTENT CURRENCY STANDARD (YEAR 2025):
-Teach this subject as it is understood, standard, and practiced in 2025.
-Do not teach outdated frameworks, deprecated tools, or superseded approaches.
-If a concept has evolved — teach the current understanding.
-${subjectRules}
-`
   }
+
+  const systemPromptAddition = `
+CONTENT QUALITY STANDARD — 2026:
+
+You are generating educational content for 2026.
+This standard applies regardless of subject or domain.
+
+ALWAYS teach:
+- The most current understanding of this subject
+- Methods and practices used by professionals TODAY
+- Tools and platforms currently in active use
+- Examples relevant to 2026 — not 5 years ago
+- Current terminology used in the industry
+
+NEVER teach:
+- Deprecated approaches even if they still work
+- Outdated examples when current ones exist
+- Tools or platforms that have been replaced
+- Frameworks superseded by better approaches
+
+DOMAIN-SPECIFIC ADDITIONS:
+${getDomainQualityRules(domain, techVersions)}
+`
 
   const baseSystemPrompt = LESSON_SYSTEM_PROMPT
     .replace(/{subject}/g, subject)
@@ -122,7 +131,7 @@ ${subjectRules}
     .replace('{depthLabel}', depthLabel)
     .replace('{isTechnical}', isCode ? 'YES' : 'NO')
 
-  const systemPrompt = `${baseSystemPrompt}\n\n${versionContext}`
+  const systemPrompt = `${baseSystemPrompt}\n\n${systemPromptAddition}`
 
   const userPrompt = buildLessonUserMessage({
     lessonTitle,
