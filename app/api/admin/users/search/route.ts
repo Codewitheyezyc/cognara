@@ -19,11 +19,19 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Query parameter "q" is required' }, { status: 400 })
     }
 
-    // 2. Find user in profiles by ID or Email
+    // 2. Find user in profiles by ID, Name, or Email (with UUID format check)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    const isUUID = uuidRegex.test(query)
+
+    let orFilter = `email.ilike.%${query}%,name.ilike.%${query}%`
+    if (isUUID) {
+      orFilter = `id.eq.${query}`
+    }
+
     const { data: profile } = await supabase
       .from('profiles')
       .select('*')
-      .or(`id.eq.${query},email.ilike.%${query}%`)
+      .or(orFilter)
       .maybeSingle()
 
     if (!profile) {

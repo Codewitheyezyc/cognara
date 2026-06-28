@@ -421,11 +421,10 @@ export default function AdminOverview() {
             {/* Regeneration Results Display */}
             {regResult && (
               <div className="p-3 border border-emerald-500/20 bg-emerald-500/5 rounded-lg space-y-1">
-                <p className="text-xs font-bold text-emerald-500">Roadmap regenerated successfully</p>
-                <div className="text-[11px] text-text-2 space-y-0.5">
-                  <p>Old phase count: 4</p>
-                  <p>New phase count: {regResult.newPhaseCount}</p>
-                  <p>Completed phases preserved: {regResult.preservedPhases}</p>
+                <p className="text-xs font-bold text-emerald-500">✓ Roadmap regenerated</p>
+                <div className="text-[11px] text-text-2 space-y-0.5 font-semibold">
+                  <p>Old phases: 4</p>
+                  <p>New phases: {regResult.newPhaseCount}</p>
                   <p>User continues from: Phase {regResult.userStartsFrom}</p>
                 </div>
               </div>
@@ -444,12 +443,15 @@ export default function AdminOverview() {
 
       {/* CONFIRMATION MODAL */}
       {showConfirmModal && searchedUser && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-surface max-w-md w-full rounded-2xl border border-border p-6 shadow-2xl space-y-4 animate-scale-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
+          <div className="relative bg-surface rounded-xl border border-border shadow-2xl p-6 mx-4 w-full max-w-md max-h-[90vh] overflow-y-auto space-y-4 animate-scale-up">
             <div className="space-y-1">
               <h3 className="text-sm font-bold text-text-1">Force regenerate roadmap for {searchedUser.name}?</h3>
               <p className="text-xs text-text-2">
                 This will trigger a clean roadmap regeneration using the latest LLM system prompts.
+              </p>
+              <p className="text-[10px] text-primary font-bold">
+                * Force regenerate always runs regardless of current version.
               </p>
             </div>
 

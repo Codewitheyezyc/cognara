@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
-const ROADMAP_UPGRADE_ENABLED = false
+const ROADMAP_UPGRADE_ENABLED = true
 import Link from 'next/link'
 import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
@@ -1094,9 +1094,8 @@ export default function ProfilePage() {
                 {/* Optional Roadmap Upgrade banner inside profile settings */}
                 {(() => {
                   const activeRoadmapObj = roadmaps.find((r: any) => r.goal_id === activeGoal.id)
-                  const QUALITY_UPDATE_DATE = new Date('2026-06-28T08:00:00.000Z')
-                  const isOldRoadmap = activeRoadmapObj && activeRoadmapObj.created_at && new Date(activeRoadmapObj.created_at) < QUALITY_UPDATE_DATE
-                  const canUpgrade = isOldRoadmap && !profile?.roadmap_upgraded
+                  const activeRoadmapPhases = activeRoadmapObj ? phases.filter((p: any) => p.roadmap_id === activeRoadmapObj.id) : []
+                  const canUpgrade = activeRoadmapPhases.length <= 4 && !profile?.roadmap_upgraded
 
                   if (!ROADMAP_UPGRADE_ENABLED || !canUpgrade) return null
 
