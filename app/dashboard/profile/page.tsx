@@ -71,6 +71,7 @@ export default function ProfilePage() {
   
   // Navigation State
   const [activeTab, setActiveTab] = useState<'profile' | 'progress'>('profile')
+  const [isUpgrading, setIsUpgrading] = useState(false)
   
   // DB States
   const [userId, setUserId] = useState<string | null>(null)
@@ -469,6 +470,37 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/login')
+  }
+
+  const handleUpgradeRoadmap = async () => {
+    const activeRoadmap = roadmaps.find((r: any) => r.goal_id === activeGoal?.id)
+    if (!userId || !activeRoadmap || !activeGoal) return
+    setIsUpgrading(true)
+    toast('Upgrading your learning roadmap. This may take a minute...')
+    try {
+      const res = await fetch('/api/ai/upgrade-roadmap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          oldRoadmapId: activeRoadmap.id,
+          oldGoalId: activeGoal.id
+        })
+      })
+
+      if (res.ok) {
+        toast('Your learning roadmap has been successfully upgraded! 🗺️', 'success')
+        router.refresh()
+        window.location.reload()
+      } else {
+        const data = await res.json()
+        toast(data.error || 'Failed to upgrade roadmap.', 'error')
+      }
+    } catch (err) {
+      console.error('Error upgrading roadmap:', err)
+      toast('Failed to upgrade roadmap.', 'error')
+    } finally {
+      setIsUpgrading(false)
+    }
   }
 
   const handleDeleteAccount = async () => {
@@ -1053,6 +1085,37 @@ export default function ProfilePage() {
                     </Button>
                   </Link>
                 </div>
+
+                {/* Optional Roadmap Upgrade banner inside profile settings */}
+                {(() => {
+                  const activeRoadmapObj = roadmaps.find((r: any) => r.goal_id === activeGoal.id)
+                  const QUALITY_UPDATE_DATE = new Date('2026-06-28T08:00:00.000Z')
+                  const isOldRoadmap = activeRoadmapObj && activeRoadmapObj.created_at && new Date(activeRoadmapObj.created_at) < QUALITY_UPDATE_DATE
+                  const canUpgrade = isOldRoadmap && !profile?.roadmap_upgraded
+
+                  if (!canUpgrade) return null
+
+                  return (
+                    <div className="mt-4 p-4 border border-primary/20 bg-primary/5 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-mono font-bold text-primary uppercase tracking-wider block">
+                          Roadmap Upgrade Available
+                        </span>
+                        <p className="text-xs text-text-2 leading-relaxed">
+                          Upgrade to get a more comprehensive, version-accurate path. Your progress is safe.
+                        </p>
+                      </div>
+                      <Button
+                        onClick={handleUpgradeRoadmap}
+                        disabled={isUpgrading}
+                        variant="outline"
+                        className="w-full sm:w-auto h-9 px-4 border border-primary text-primary hover:bg-primary/10 font-bold text-xs rounded-lg transition"
+                      >
+                        {isUpgrading ? 'Upgrading...' : 'Upgrade to improved roadmap'}
+                      </Button>
+                    </div>
+                  )
+                })()}
               </div>
             ) : null}
 

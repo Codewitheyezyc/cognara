@@ -446,12 +446,35 @@ export default function DashboardPage() {
   }
 
   const handleUpgradeRoadmap = async () => {
+    if (!userId || !roadmap || !goal) return
     setIsUpgrading(true)
-    toast('Upgrade initiated! We are preparing your new roadmap...')
-    setTimeout(() => {
+    toast('Upgrading your learning roadmap. This may take a minute...')
+    try {
+      const res = await fetch('/api/ai/upgrade-roadmap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          oldRoadmapId: roadmap.id,
+          oldGoalId: goal.id
+        })
+      })
+
+      if (res.ok) {
+        toast('Your learning roadmap has been successfully upgraded! 🗺️', 'success')
+        SoundEffects.play('success')
+        // Refresh page to load new roadmap
+        router.refresh()
+        window.location.reload()
+      } else {
+        const data = await res.json()
+        toast(data.error || 'Failed to upgrade roadmap.', 'error')
+      }
+    } catch (err) {
+      console.error('Error upgrading roadmap:', err)
+      toast('Failed to upgrade roadmap.', 'error')
+    } finally {
       setIsUpgrading(false)
-      toast('Upgrade stub triggered successfully!')
-    }, 2000)
+    }
   }
 
   // 1. Check if streak broke since last login
