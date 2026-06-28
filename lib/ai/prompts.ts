@@ -27,7 +27,10 @@ The JSON must follow this exact structure:
 }
 
 Rules:
-- Create 3 to 4 phases depending on complexity.
+- Determine the number of phases dynamically based on the complexity, breadth, and depth of the user's learning goal:
+  * Simple/Narrow goals (e.g., "Learn Instagram Marketing Basics"): Generate 3 to 4 phases.
+  * Medium/Standard goals (e.g., "Master Social Media Marketing", "Learn React Development"): Generate 5 to 6 phases.
+  * Complex/Career-level/Broad goals (e.g., "Become a Full Stack Developer", "Learn Data Science"): Generate 7 to 10 phases.
 - Each phase should contain 2 to 4 modules.
 - Each module should contain 2 to 5 specific topic titles.
 - Sequence of phases, modules, and topics must be logical — foundational concepts before advanced.
