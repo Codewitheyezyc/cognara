@@ -1,6 +1,8 @@
 import { GeneratedLesson } from '@/types/ai'
 import { callClaudeJSON } from './client'
 import { LESSON_SYSTEM_PROMPT, buildLessonUserMessage, isCodeSubject } from './prompts'
+import { createClient } from '@/lib/supabase/server'
+import { getDomainFromSubject } from './lessonCache'
 
 const depthLabels = ["", "Like I'm 10", "Beginner", "Intermediate", "Advanced", "Expert"];
 
@@ -36,13 +38,91 @@ export async function generateLesson(
 
   const depthLabel = depthLabels[depthLevel] || 'Beginner'
   const isCode = isCodeSubject(subject)
-  const systemPrompt = LESSON_SYSTEM_PROMPT
+  const domain = getDomainFromSubject(subject)
+
+  let versionContext = ''
+  if (domain === 'Technology') {
+    try {
+      const supabase = await createClient()
+      const { data: versions } = await supabase
+        .from('cognara_technology_versions')
+        .select('technology_name, current_stable_version')
+        .eq('domain', 'web_development')
+
+      if (versions && versions.length > 0) {
+        versionContext = `
+TECHNOLOGY VERSION REQUIREMENTS:
+${versions.map(v => `- ${v.technology_name}: Use version ${v.current_stable_version} ONLY`).join('\n')}
+
+CRITICAL VERSION RULES:
+1. ALWAYS use the exact versions listed above.
+2. NEVER use older versions or teach deprecated syntax.
+3. If teaching Next.js — use App Router ONLY (not Pages Router — that is deprecated for new projects).
+4. If teaching React — use functional components and hooks ONLY (never class components).
+5. If code examples exist — every code example must use the versions specified above.
+6. If the user asks about or references an older version — acknowledge it exists but teach the current approach.
+
+NEXT.JS SPECIFIC RULE:
+ALWAYS teach Next.js using the App Router.
+NEVER use Pages Router syntax in examples.
+
+App Router key differences to always apply:
+- File structure: app/ directory not pages/
+- Layouts: layout.tsx not _app.tsx
+- Data fetching: async Server Components not getServerSideProps or getStaticProps
+- API routes: app/api/route.ts not pages/api/
+- Metadata: export const metadata not Head component
+- Server Actions for form handling
+`
+      }
+    } catch (err) {
+      console.error('[generateLesson] Error querying technology versions:', err)
+    }
+  } else {
+    const isBusiness = domain === 'Business'
+    const isMedicine = domain === 'Medicine'
+    const isLanguage = domain === 'Language'
+
+    let subjectRules = ''
+    if (isBusiness) {
+      subjectRules = `
+- Current marketing & algorithm best practices
+- Current platform features (not deprecated ones)
+- Current content formats that perform well
+- Current business strategy frameworks (not outdated models)
+- Current market context
+`
+    } else if (isMedicine) {
+      subjectRules = `
+- Current clinical guidelines
+- Current medical terminology
+- Note: Always recommend consulting a qualified professional for medical decisions
+`
+    } else if (isLanguage) {
+      subjectRules = `
+- Current usage — not archaic forms
+- Contemporary vocabulary
+`
+    }
+
+    versionContext = `
+CONTENT CURRENCY STANDARD (YEAR 2025):
+Teach this subject as it is understood, standard, and practiced in 2025.
+Do not teach outdated frameworks, deprecated tools, or superseded approaches.
+If a concept has evolved — teach the current understanding.
+${subjectRules}
+`
+  }
+
+  const baseSystemPrompt = LESSON_SYSTEM_PROMPT
     .replace(/{subject}/g, subject)
     .replace('{lessonTitle}', lessonTitle)
     .replace('{phaseTitle}', phaseTitle)
     .replace('{depthLevel}', String(depthLevel))
     .replace('{depthLabel}', depthLabel)
     .replace('{isTechnical}', isCode ? 'YES' : 'NO')
+
+  const systemPrompt = `${baseSystemPrompt}\n\n${versionContext}`
 
   const userPrompt = buildLessonUserMessage({
     lessonTitle,
