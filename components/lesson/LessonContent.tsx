@@ -298,13 +298,13 @@ export default function LessonContent({
             <span className="text-[10px] font-mono uppercase tracking-wider font-semibold">Cognitive Lesson</span>
           </div>
           
-          <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2 sm:gap-3 flex-nowrap">
+          <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-start sm:justify-end">
             <span className="inline-flex items-center px-2.5 py-1 border border-primary/25 bg-primary/10 text-primary text-[10px] font-mono font-extrabold uppercase tracking-widest rounded-full shrink-0 select-none">
               {depthLabels[depthLevel] || 'Beginner'}
             </span>
             
             {/* Save Actions Button Group */}
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
               {/* Save as Reference Button */}
               <button
                 type="button"
@@ -316,7 +316,7 @@ export default function LessonContent({
                 }`}
               >
                 <Bookmark className="h-3 w-3" />
-                <span>{isSavedReference ? 'Saved ✓' : 'Save as reference'}</span>
+                <span>{isSavedReference ? 'Saved ✓' : 'Save Reference'}</span>
               </button>
 
               {/* Download for Offline Button */}
@@ -335,7 +335,7 @@ export default function LessonContent({
                     ? 'Download 🔒'
                     : isDownloadedOffline
                     ? 'Downloaded ✓'
-                    : 'Download for offline'}
+                    : 'Download'}
                 </span>
               </button>
             </div>
@@ -347,7 +347,7 @@ export default function LessonContent({
                 disabled={isChangingDepth}
                 className="px-2.5 py-1 bg-surface-alt hover:bg-surface border border-border/80 text-[10px] text-primary font-bold uppercase tracking-wide rounded-full flex items-center space-x-1 transition-all duration-150 shadow-sm shrink-0 cursor-pointer disabled:opacity-50 hover:border-primary/50"
               >
-                <span>Change depth</span>
+                <span>Depth</span>
                 <ChevronDown className="h-3 w-3" />
               </button>
 
@@ -451,7 +451,7 @@ export default function LessonContent({
                     isPro={isPro}
                     onUpgradePrompt={() => setIsModalOpen(true)}
                   >
-                    <div className="my-3 p-5 rounded-xl border border-primary/20 bg-primary/5 shadow-sm relative overflow-hidden flex gap-4">
+                    <div className="my-3 p-5 rounded-xl border border-primary/20 bg-primary/5 shadow-sm relative overflow-hidden flex items-start gap-4">
                       <div className="absolute right-0 bottom-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
                       <div className="p-2 rounded-lg bg-surface border border-border/80 text-primary shrink-0 mt-0.5 shadow-sm">
                         <Compass size={16} className="text-primary" />
@@ -480,7 +480,7 @@ export default function LessonContent({
                     isPro={isPro}
                     onUpgradePrompt={() => setIsModalOpen(true)}
                   >
-                    <div className="my-3 p-5 rounded-xl border border-accent/25 bg-accent/5 shadow-sm relative overflow-hidden flex gap-4">
+                    <div className="my-3 p-5 rounded-xl border border-accent/25 bg-accent/5 shadow-sm relative overflow-hidden flex items-start gap-4">
                       <div className="absolute right-0 bottom-0 w-24 h-24 bg-accent/10 rounded-full blur-2xl pointer-events-none" />
                       <div className="p-2 rounded-lg bg-surface border border-border/80 text-accent shrink-0 mt-0.5 shadow-sm">
                         <Terminal size={16} className="text-accent" />
@@ -500,7 +500,7 @@ export default function LessonContent({
 
             case 'summary':
               return (
-                <div key={idx} className="my-6 p-5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 shadow-[0_2px_12px_rgba(16,185,129,0.02)] relative overflow-hidden flex gap-4">
+                <div key={idx} className="my-6 p-5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 shadow-[0_2px_12px_rgba(16,185,129,0.02)] relative overflow-hidden flex items-start gap-4">
                   <div className="absolute right-0 bottom-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none" />
                   <div className="p-2 rounded-lg bg-surface border border-border/80 text-success shrink-0 mt-0.5 shadow-sm select-none">
                     <CheckCircle2 size={16} className="text-success" />

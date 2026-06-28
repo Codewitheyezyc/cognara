@@ -1397,7 +1397,9 @@ export default function QuizPage() {
 
   // Spark coach comments
   let sparkEmotion: 'idle' | 'happy' | 'celebrate' | 'thinking' | 'wave' = 'thinking'
-  let sparkBubble = "Read the question carefully and choose the best option."
+  let sparkBubble = currentQuestion?.type === 'fill_blank'
+    ? "Read the question carefully and type your answer in the box."
+    : "Read the question carefully and choose the best option."
   const isCorrect = selectedAnswer.trim().toLowerCase() === currentQuestion?.correct_answer.trim().toLowerCase()
 
   if (isAnswerChecked) {
@@ -1406,7 +1408,7 @@ export default function QuizPage() {
       const correctBubbles = [
         "Fabulous! Synaptic connection established! 🧠",
         "Spot on! Your cognitive accuracy is peak. ⚡",
-        "Excellent choice! You've mastered this concept. 🏆",
+        "Excellent! You've mastered this concept. 🏆",
         "Correct! Keep up this incredible mental focus. 🚀"
       ]
       sparkBubble = correctBubbles[currentIdx % correctBubbles.length]
@@ -1426,12 +1428,19 @@ export default function QuizPage() {
       sparkBubble = "Looking good! Click 'Check Answer' to test your hypothesis. 🧪"
     } else {
       sparkEmotion = 'thinking'
-      const thinkingBubbles = [
-        "Activate your critical thinking pathways! ⚡",
-        "Take your time... Let's analyze this concept carefully. 🧠",
-        "Select the option that matches the cognitive target. 🎯",
-        "Study the options. Which one makes the most sense? 📚"
-      ]
+      const thinkingBubbles = currentQuestion?.type === 'fill_blank'
+        ? [
+            "Activate your critical thinking pathways! ⚡",
+            "Take your time... Think of the best term to fill in the blank. 🧠",
+            "Recall the key concepts from the lesson to find the correct word. 🎯",
+            "Consider the context of the sentence. What word fits best? 📚"
+          ]
+        : [
+            "Activate your critical thinking pathways! ⚡",
+            "Take your time... Let's analyze this concept carefully. 🧠",
+            "Select the option that matches the cognitive target. 🎯",
+            "Study the options. Which one makes the most sense? 📚"
+          ]
       sparkBubble = thinkingBubbles[currentIdx % thinkingBubbles.length]
     }
   }

@@ -1288,7 +1288,9 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
               }`}
             >
               <Icon className="h-[18px] w-[18px]" strokeWidth={1.5} />
-              <span className="text-[10px] font-medium">{item.label}</span>
+              <span className="text-[10px] font-medium truncate max-w-full">
+                {item.label === 'Saved Lessons' ? 'Saved' : item.label}
+              </span>
             </Link>
           );
         })}

@@ -552,7 +552,7 @@ export default function ProfilePage() {
 
   const hours = Math.floor(minutesCountUp / 60)
   const mins = minutesCountUp % 60
-  const timeSpentString = hours > 0 ? `${hours} hrs ${mins} mins` : `${mins} mins`
+  const timeSpentString = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
 
   // Streak calendar calculation
   const activityCounts: Record<string, number> = {}
@@ -1532,7 +1532,7 @@ export default function ProfilePage() {
                 <div className="absolute right-3 top-3 opacity-15 text-text-1">
                   <BookOpen className="h-8 w-8" />
                 </div>
-                <p className="text-3xl font-black text-text-1 tracking-tight transition-transform duration-200 group-hover:scale-105">
+                <p className="text-2xl sm:text-3xl font-black text-text-1 tracking-tight transition-transform duration-200 group-hover:scale-105">
                   {lessonsCompletedCountUp}
                 </p>
                 <p className="text-[10px] sm:text-xs text-text-2 font-bold uppercase tracking-wider">
@@ -1545,7 +1545,7 @@ export default function ProfilePage() {
                 <div className="absolute right-3 top-3 opacity-15 text-text-1">
                   <CheckCircle2 className="h-8 w-8" />
                 </div>
-                <p className="text-3xl font-black text-text-1 tracking-tight transition-transform duration-200 group-hover:scale-105">
+                <p className="text-2xl sm:text-3xl font-black text-text-1 tracking-tight transition-transform duration-200 group-hover:scale-105">
                   {quizzesPassedCountUp}
                 </p>
                 <p className="text-[10px] sm:text-xs text-text-2 font-bold uppercase tracking-wider">
@@ -1558,7 +1558,7 @@ export default function ProfilePage() {
                 <div className="absolute right-3 top-3 opacity-15 text-text-1">
                   <Sparkles className="h-8 w-8 animate-pulse" />
                 </div>
-                <p className="text-3xl font-black text-text-1 tracking-tight transition-transform duration-200 group-hover:scale-105">
+                <p className="text-2xl sm:text-3xl font-black text-text-1 tracking-tight transition-transform duration-200 group-hover:scale-105">
                   {xpCountUp}
                 </p>
                 <p className="text-[10px] sm:text-xs text-text-2 font-bold uppercase tracking-wider">
@@ -1571,7 +1571,7 @@ export default function ProfilePage() {
                 <div className="absolute right-3 top-3 opacity-15 text-text-1">
                   <Clock className="h-8 w-8" />
                 </div>
-                <p className="text-[20px] sm:text-2xl font-black text-text-1 tracking-tight truncate leading-9">
+                <p className="text-2xl sm:text-3xl font-black text-text-1 tracking-tight truncate leading-9">
                   {timeSpentString}
                 </p>
                 <p className="text-[10px] sm:text-xs text-text-2 font-bold uppercase tracking-wider">
@@ -1587,18 +1587,18 @@ export default function ProfilePage() {
                 Streak History
               </h3>
 
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="p-3 bg-surface-alt/25 rounded-xl border border-border/50 shadow-inner">
-                  <p className="text-2xl font-black text-text-1">{streakData?.current_streak || 0}d 🔥</p>
-                  <p className="text-[9.5px] xs:text-[10.5px] text-text-2 font-bold uppercase tracking-wider mt-1">Current Streak</p>
+              <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
+                <div className="p-2 sm:p-3 bg-surface-alt/25 rounded-xl border border-border/50 shadow-inner flex flex-col justify-between min-h-[75px]">
+                  <p className="text-lg sm:text-2xl font-black text-text-1 leading-tight">{streakData?.current_streak || 0}d 🔥</p>
+                  <p className="text-[9px] sm:text-[10.5px] text-text-2 font-bold uppercase tracking-wider mt-1">Current Streak</p>
                 </div>
-                <div className="p-3 bg-surface-alt/25 rounded-xl border border-border/50 shadow-inner">
-                  <p className="text-2xl font-black text-text-1">{streakData?.longest_streak || 0}d</p>
-                  <p className="text-[9.5px] xs:text-[10.5px] text-text-2 font-bold uppercase tracking-wider mt-1">Longest Streak</p>
+                <div className="p-2 sm:p-3 bg-surface-alt/25 rounded-xl border border-border/50 shadow-inner flex flex-col justify-between min-h-[75px]">
+                  <p className="text-lg sm:text-2xl font-black text-text-1 leading-tight">{streakData?.longest_streak || 0}d</p>
+                  <p className="text-[9px] sm:text-[10.5px] text-text-2 font-bold uppercase tracking-wider mt-1">Longest Streak</p>
                 </div>
-                <div className="p-3 bg-surface-alt/25 rounded-xl border border-border/50 shadow-inner">
-                  <p className="text-2xl font-black text-text-1">{totalActiveDays}d</p>
-                  <p className="text-[9.5px] xs:text-[10.5px] text-text-2 font-bold uppercase tracking-wider mt-1">Total Active Days</p>
+                <div className="p-2 sm:p-3 bg-surface-alt/25 rounded-xl border border-border/50 shadow-inner flex flex-col justify-between min-h-[75px]">
+                  <p className="text-lg sm:text-2xl font-black text-text-1 leading-tight">{totalActiveDays}d</p>
+                  <p className="text-[9px] sm:text-[10.5px] text-text-2 font-bold uppercase tracking-wider mt-1">Total Active Days</p>
                 </div>
               </div>
 

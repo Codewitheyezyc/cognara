@@ -823,28 +823,28 @@ export default function LessonPage() {
 
         {/* Minimal lesson header */}
         <div className="sticky top-0 z-30 bg-bg/95 backdrop-blur-md border-b border-border">
-          <div className="max-w-[720px] mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="max-w-[720px] mx-auto px-4 min-h-[3.75rem] py-2 flex items-center justify-between gap-3">
             {/* Back arrow */}
             <Link
               href="/dashboard/path"
-              className="inline-flex items-center gap-1.5 text-text-2 hover:text-text-1 transition-colors text-xs font-semibold group"
+              className="inline-flex items-center gap-1.5 text-text-2 hover:text-text-1 transition-colors text-xs font-semibold group shrink-0"
             >
               <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
               <span className="hidden sm:inline">My Path</span>
             </Link>
 
             {/* Phase · Module breadcrumb */}
-            <div className="flex flex-col items-center">
-              <p className="text-[10px] font-mono uppercase tracking-widest text-text-3 font-bold">
-                Phase {phaseNumber}{phaseTitle ? ` · ${phaseTitle}` : ''}
+            <div className="flex flex-col items-center text-center min-w-0 flex-1">
+              <p className="text-[9.5px] sm:text-[10px] font-mono uppercase tracking-widest text-text-3 font-bold truncate max-w-full">
+                Phase {phaseNumber}<span className="hidden md:inline">{phaseTitle ? ` · ${phaseTitle}` : ''}</span>
               </p>
-              <p className="text-[11px] font-semibold text-text-2 truncate max-w-[160px] sm:max-w-[280px] mt-0.5">
+              <p className="text-[10.5px] sm:text-[11px] font-semibold text-text-2 truncate max-w-[140px] xs:max-w-[200px] sm:max-w-[320px] mt-0.5">
                 {lessonTitle}
               </p>
             </div>
 
             {/* Reading time */}
-            <div className="text-[10px] text-text-3 font-medium">
+            <div className="text-[9.5px] sm:text-[10px] text-text-3 font-medium shrink-0">
               {displayEstimatedMinutes} min read
             </div>
           </div>

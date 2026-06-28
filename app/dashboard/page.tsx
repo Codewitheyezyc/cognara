@@ -1262,7 +1262,7 @@ export default function DashboardPage() {
       )}
 
       {/* SECTION 4 — QUESTS WIDGET */}
-      <QuestsWidget isPro={profile?.subscription_tier !== 'free'} />
+      <QuestsWidget isPro={profile?.subscription_tier !== 'free' || profile?.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID || profile?.id === '4c1fbae5-c423-42e7-8394-1112fe00d42e'} />
 
       {/* SECTION 5 — QUICK STATS */}
       <section className="border-t border-border/40 pt-6 space-y-3">

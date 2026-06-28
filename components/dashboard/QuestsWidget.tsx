@@ -274,7 +274,7 @@ export default function QuestsWidget({ isPro = false }: { isPro?: boolean }) {
                   ) : (
                     <button
                       disabled
-                      className="px-3.5 py-1.5 bg-[#2c3344] border border-[#1c212c] text-text-3/60 rounded-lg text-[9.5px] font-bold cursor-not-allowed"
+                      className="px-3.5 py-1.5 bg-border/20 border border-border/30 text-text-3/40 rounded-lg text-[9.5px] font-bold cursor-not-allowed"
                     >
                       Claim
                     </button>
