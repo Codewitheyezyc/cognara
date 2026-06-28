@@ -923,16 +923,19 @@ export default function ProfilePage() {
   const nextLesson = activeLessonIdx !== -1 ? lessons[activeLessonIdx] : lessons[lessons.length - 1]
   const activeGoalProgressRatio = lessons.length > 0 ? Math.round((lessons.filter((l: any) => completedIds.has(l.id)).length / lessons.length) * 100) : 0
 
+  const activeRoadmapObj = activeGoal ? roadmaps.find((r: any) => r.goal_id === activeGoal.id) : null
+  const activeRoadmapPhases = activeRoadmapObj ? phases.filter((p: any) => p.roadmap_id === activeRoadmapObj.id) : []
+
   let activePhaseNumber = 1
-  let totalPhases = phases.length
+  let totalPhases = activeRoadmapPhases.length || 4
   if (nextLesson) {
-    const ph = phases.find((p: any) => p.id === nextLesson.phase_id)
+    const ph = activeRoadmapPhases.find((p: any) => p.id === nextLesson.phase_id)
     if (ph) activePhaseNumber = ph.phase_number
   }
 
   let activeModuleNumber = 1
   let totalModulesInPhase = 1
-  if (profile?.main_roadmap && phases.length > 0) {
+  if (profile?.main_roadmap && activeRoadmapPhases.length > 0) {
     const rawPhases = profile.main_roadmap.phases || []
     const currentRawPhase = rawPhases.find((p: any) => p.phase_number === activePhaseNumber)
     if (currentRawPhase) {
