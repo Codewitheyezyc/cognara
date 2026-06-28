@@ -41,6 +41,134 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid quest key' }, { status: 400 })
     }
 
+    // 2.5 Verify completion criteria before claim
+    const now = new Date()
+    
+    // Start of today
+    const todayStart = new Date(now)
+    todayStart.setUTCHours(0, 0, 0, 0)
+
+    // Start of the week (Sunday)
+    const dayOfWeek = now.getUTCDay()
+    const weekStart = new Date(now)
+    weekStart.setUTCDate(now.getUTCDate() - dayOfWeek)
+    weekStart.setUTCHours(0, 0, 0, 0)
+
+    // Fetch active goal & active roadmap
+    const { data: goalData } = await supabase
+      .from('learning_goals')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .maybeSingle()
+
+    let activeLessonIds: string[] = []
+    let activeQuizIds: string[] = []
+
+    if (goalData) {
+      const { data: roadmapData } = await supabase
+        .from('roadmaps')
+        .select('id')
+        .eq('goal_id', goalData.id)
+        .maybeSingle()
+
+      if (roadmapData) {
+        const { data: lessonsData } = await supabase
+          .from('lessons')
+          .select('id')
+          .eq('roadmap_id', roadmapData.id)
+        activeLessonIds = lessonsData?.map((l: any) => l.id) || []
+
+        if (activeLessonIds.length > 0) {
+          const { data: quizzesData } = await supabase
+            .from('quizzes')
+            .select('id')
+            .in('lesson_id', activeLessonIds)
+          activeQuizIds = quizzesData?.map((q: any) => q.id) || []
+        }
+      }
+    }
+
+    let progressCount = 0
+    let targetCount = 1
+
+    if (questKey === 'daily_explorer') {
+      targetCount = 1
+      if (activeLessonIds.length > 0) {
+        const { count } = await supabase
+          .from('lesson_progress')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('status', 'completed')
+          .in('lesson_id', activeLessonIds)
+          .gte('completed_at', todayStart.toISOString())
+        progressCount = count || 0
+      }
+    } else if (questKey === 'daily_quiz') {
+      targetCount = 1
+      if (activeQuizIds.length > 0) {
+        const { count } = await supabase
+          .from('quiz_attempts')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('passed', true)
+          .in('quiz_id', activeQuizIds)
+          .gte('attempted_at', todayStart.toISOString())
+        progressCount = count || 0
+      }
+    } else if (questKey === 'daily_perfect') {
+      targetCount = 1
+      if (activeQuizIds.length > 0) {
+        const { count } = await supabase
+          .from('quiz_attempts')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('score', 100)
+          .in('quiz_id', activeQuizIds)
+          .gte('attempted_at', todayStart.toISOString())
+        progressCount = count || 0
+      }
+    } else if (questKey === 'weekly_lessons') {
+      targetCount = 3
+      if (activeLessonIds.length > 0) {
+        const { count } = await supabase
+          .from('lesson_progress')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('status', 'completed')
+          .in('lesson_id', activeLessonIds)
+          .gte('completed_at', weekStart.toISOString())
+        progressCount = count || 0
+      }
+    } else if (questKey === 'weekly_quizzes') {
+      targetCount = 2
+      if (activeQuizIds.length > 0) {
+        const { count } = await supabase
+          .from('quiz_attempts')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('passed', true)
+          .in('quiz_id', activeQuizIds)
+          .gte('attempted_at', weekStart.toISOString())
+        progressCount = count || 0
+      }
+    } else if (questKey === 'weekly_streak') {
+      targetCount = 3
+      const { data: streakData } = await supabase
+        .from('streaks')
+        .select('current_streak')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      progressCount = streakData?.current_streak || 0
+    }
+
+    if (progressCount < targetCount) {
+      return NextResponse.json(
+        { error: `Quest completion criteria not met: ${progressCount}/${targetCount}` },
+        { status: 400 }
+      )
+    }
+
     // 3. Insert claim entry (UNIQUE constraint user_id + quest_key + reset_date will reject duplicates)
     const { error: claimError } = await supabase
       .from('user_quests')

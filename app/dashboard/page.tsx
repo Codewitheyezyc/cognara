@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Flame, Award, Heart, Sparkles, Calendar, BookOpen, Clock, CheckCircle2, ChevronRight, HelpCircle, X, ShieldAlert, Bell } from 'lucide-react'
+import { Flame, Award, Heart, Sparkles, Calendar, BookOpen, Clock, CheckCircle2, ChevronRight, HelpCircle, X, ShieldAlert, Bell, Zap } from 'lucide-react'
 import { getLevelInfo } from '@/lib/leveling'
 import { Spark } from '@/components/mascot/Spark'
 import { SparkDrawer } from '@/components/lesson/SparkDrawer'
@@ -41,6 +41,7 @@ export default function DashboardPage() {
   const [lessons, setLessons] = useState<any[]>([])
   const [progress, setProgress] = useState<any[]>([])
   const [quizAttempts, setQuizAttempts] = useState<any[]>([])
+  const [quizzes, setQuizzes] = useState<any[]>([])
   const [streakData, setStreakData] = useState<any>(null)
   const [dailyQuest, setDailyQuest] = useState<any>(null)
 
@@ -261,18 +262,20 @@ export default function DashboardPage() {
         setRoadmap(roadmapRow)
 
         // 5. Fetch Sibling Phases & Lessons (in parallel)
-        const [phasesRes, lessonsRes, progressRes, quizRes, streakRes] = await Promise.all([
+        const [phasesRes, lessonsRes, progressRes, quizRes, streakRes, quizzesRes] = await Promise.all([
           supabase.from('roadmap_phases').select('*').eq('roadmap_id', roadmapRow.id).order('phase_number', { ascending: true }),
           supabase.from('lessons').select('*').eq('roadmap_id', roadmapRow.id),
           supabase.from('lesson_progress').select('*').eq('user_id', user.id),
           supabase.from('quiz_attempts').select('*').eq('user_id', user.id).order('attempted_at', { ascending: false }),
-          supabase.from('streaks').select('*').eq('user_id', user.id).maybeSingle()
+          supabase.from('streaks').select('*').eq('user_id', user.id).maybeSingle(),
+          supabase.from('quizzes').select('id, lesson_id')
         ])
 
         const phaseList = phasesRes.data || []
         setPhases(phaseList)
         setProgress(progressRes.data || [])
         setQuizAttempts(quizRes.data || [])
+        setQuizzes(quizzesRes.data || [])
 
         // Detect 4 or fewer phases for upgrade banner (replaces legacy created_at checks)
         const isOldRoadmapStyle = phaseList.length <= 4
@@ -529,7 +532,11 @@ export default function DashboardPage() {
 
   // Derive metrics
   const levelInfo = getLevelInfo(profile?.xp || 0)
-  const completedIds = new Set(progress?.filter((p) => p.status === 'completed').map((p) => p.lesson_id) || [])
+  const activeLessonIds = new Set(lessons.map(l => l.id))
+  const completedIds = new Set(
+    progress?.filter((p) => p.status === 'completed' && activeLessonIds.has(p.lesson_id))
+      .map((p) => p.lesson_id) || []
+  )
   const completedLessonsCount = completedIds.size
   const totalLessonsCount = lessons.length
   const progressRatio = totalLessonsCount > 0 ? (completedLessonsCount / totalLessonsCount) * 100 : 0
@@ -932,7 +939,7 @@ export default function DashboardPage() {
     sparkMsg = "Your streak is at risk today! Just 10-15 minutes of learning is all it takes to keep the fire burning. Let's do this!"
   }
 
-  // Quick Stats Calculations (This week metrics)
+  // Quick Stats Calculations (This week metrics - active roadmap only)
   const getSunday = () => {
     const today = new Date()
     const day = today.getDay()
@@ -942,12 +949,16 @@ export default function DashboardPage() {
     return sun
   }
   const weekStart = getSunday()
-  const completedThisWeek = progress.filter(p => p.status === 'completed' && p.completed_at && new Date(p.completed_at) >= weekStart).length
-  const quizzesPassedThisWeek = quizAttempts.filter(qa => qa.passed && qa.attempted_at && new Date(qa.attempted_at) >= weekStart).length
+  
+  const activeLessonIdsForWeek = new Set(lessons.map(l => l.id))
+  const activeQuizIdsForWeek = new Set(quizzes.filter(q => activeLessonIdsForWeek.has(q.lesson_id)).map(q => q.id))
+
+  const completedThisWeek = progress.filter(p => p.status === 'completed' && activeLessonIdsForWeek.has(p.lesson_id) && p.completed_at && new Date(p.completed_at) >= weekStart).length
+  const quizzesPassedThisWeek = quizAttempts.filter(qa => qa.passed && activeQuizIdsForWeek.has(qa.quiz_id) && qa.attempted_at && new Date(qa.attempted_at) >= weekStart).length
   
   let cxpEarnedThisWeek = completedThisWeek * 100
   quizAttempts.forEach(qa => {
-    if (qa.attempted_at && new Date(qa.attempted_at) >= weekStart) {
+    if (activeQuizIdsForWeek.has(qa.quiz_id) && qa.attempted_at && new Date(qa.attempted_at) >= weekStart) {
       let quizXp = 10
       if (qa.score === 100) quizXp = 100
       else if (qa.score >= 80) quizXp = 80
@@ -960,7 +971,7 @@ export default function DashboardPage() {
 
   let totalSeconds = completedThisWeek * 5 * 60 // 5 mins per lesson estimate
   quizAttempts.forEach(qa => {
-    if (qa.attempted_at && new Date(qa.attempted_at) >= weekStart) {
+    if (activeQuizIdsForWeek.has(qa.quiz_id) && qa.attempted_at && new Date(qa.attempted_at) >= weekStart) {
       totalSeconds += qa.time_spent_secs || 120
     }
   })
@@ -1365,25 +1376,64 @@ export default function DashboardPage() {
       {/* SECTION 4 — QUESTS WIDGET */}
       <QuestsWidget isPro={profile?.subscription_tier !== 'free' || profile?.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID || profile?.id === '4c1fbae5-c423-42e7-8394-1112fe00d42e'} />
 
+      {/* SPEEDRUN MODE ENTRY CARD */}
+      <section className="border border-primary/20 bg-gradient-to-br from-primary/10 to-surface-alt p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-page-enter">
+        <div className="flex gap-4 items-start">
+          <div className="shrink-0 flex items-center justify-center p-3 bg-primary/10 border border-primary/20 rounded-xl text-primary mt-0.5">
+            <Zap className="h-5 w-5 animate-pulse" />
+          </div>
+          <div className="space-y-1 min-w-0">
+            <h4 className="text-sm font-black text-text-1 flex items-center gap-1.5 flex-wrap">
+              Speedrun Recall Challenge ⚡
+              <span className="text-[9px] font-bold text-accent px-2 py-0.5 bg-accent/10 border border-accent/15 rounded-full uppercase font-mono">
+                PRO FEATURE
+              </span>
+            </h4>
+            <p className="text-xs text-text-2 leading-relaxed">
+              Test your recall speed! Review active concepts under intense time pressure and score up to 4x bonus CXP.
+            </p>
+          </div>
+        </div>
+        <Link href="/dashboard/speedrun" className="w-full sm:w-auto shrink-0">
+          <Button className="w-full sm:w-auto h-10 px-5 bg-primary hover:bg-primary/95 text-white font-bold rounded-xl text-xs shadow-md transition hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+            Launch Challenge
+          </Button>
+        </Link>
+      </section>
+
       {/* SECTION 5 — QUICK STATS */}
       <section className="border-t border-border/40 pt-6 space-y-3">
         <h4 className="text-xs font-bold text-text-2 uppercase tracking-wider select-none">This week:</h4>
-        <div className="grid grid-cols-2 gap-y-3 gap-x-6 text-xs text-text-2">
-          <div className="flex justify-between border-b border-border/40 pb-1">
-            <span>Lessons completed</span>
-            <span className="font-bold text-text-1 font-mono">{completedThisWeek}</span>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="bg-surface border border-border/80 p-3.5 rounded-xl flex flex-col justify-between min-h-[70px] shadow-xs select-none">
+            <span className="text-[10px] text-text-3 font-semibold uppercase tracking-wide">Lessons completed</span>
+            <div className="flex items-baseline justify-between mt-1">
+              <span className="text-lg font-black text-text-1 font-mono">{completedThisWeek}</span>
+              <span className="text-[9px] text-emerald-500 font-bold uppercase font-mono">done</span>
+            </div>
           </div>
-          <div className="flex justify-between border-b border-border/40 pb-1">
-            <span>Quizzes passed</span>
-            <span className="font-bold text-text-1 font-mono">{quizzesPassedThisWeek}</span>
+          <div className="bg-surface border border-border/80 p-3.5 rounded-xl flex flex-col justify-between min-h-[70px] shadow-xs select-none">
+            <span className="text-[10px] text-text-3 font-semibold uppercase tracking-wide">Quizzes passed</span>
+            <div className="flex items-baseline justify-between mt-1">
+              <span className="text-lg font-black text-text-1 font-mono">{quizzesPassedThisWeek}</span>
+              <span className="text-[9px] text-primary font-bold uppercase font-mono">passed</span>
+            </div>
           </div>
-          <div className="flex justify-between border-b border-border/40 pb-1">
-            <span>CXP earned</span>
-            <span className="font-bold text-primary font-mono">+{cxpEarnedThisWeek}</span>
+          <div className="bg-surface border border-border/80 p-3.5 rounded-xl flex flex-col justify-between min-h-[70px] shadow-xs select-none">
+            <span className="text-[10px] text-text-3 font-semibold uppercase tracking-wide">CXP earned</span>
+            <div className="flex items-baseline justify-between mt-1">
+              <span className="text-lg font-black text-primary font-mono">+{cxpEarnedThisWeek}</span>
+              <span className="text-[9px] text-primary/80 font-bold uppercase font-mono">points</span>
+            </div>
           </div>
-          <div className="flex justify-between border-b border-border/40 pb-1">
-            <span>Time spent learning</span>
-            <span className="font-bold text-text-1 font-mono">{hoursSpent} hrs {minsSpent} mins</span>
+          <div className="bg-surface border border-border/80 p-3.5 rounded-xl flex flex-col justify-between min-h-[70px] shadow-xs select-none">
+            <span className="text-[10px] text-text-3 font-semibold uppercase tracking-wide">Time spent learning</span>
+            <div className="flex items-baseline justify-between mt-1">
+              <span className="text-[15px] font-black text-text-1 font-mono">
+                {hoursSpent > 0 ? `${hoursSpent}h ` : ''}{minsSpent}m
+              </span>
+              <span className="text-[9px] text-text-3 font-bold uppercase font-mono">study</span>
+            </div>
           </div>
         </div>
       </section>

@@ -105,22 +105,45 @@ export default function ProgressPage() {
           })
         }
 
-        // 2. Fetch completed progress count
-        const { count: compCount } = await supabase
+        // Get active goal & active roadmap
+        const { data: goalData } = await supabase
+          .from('learning_goals')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .maybeSingle()
+
+        let activeLessonIds: string[] = []
+        if (goalData) {
+          const { data: roadmapData } = await supabase
+            .from('roadmaps')
+            .select('id')
+            .eq('goal_id', goalData.id)
+            .maybeSingle()
+
+          if (roadmapData) {
+            const { data: lessonsData } = await supabase
+              .from('lessons')
+              .select('id')
+              .eq('roadmap_id', roadmapData.id)
+            activeLessonIds = lessonsData?.map((l: any) => l.id) || []
+          }
+        }
+
+        // 2. Fetch completed progress count (restricted to active roadmap)
+        const { count: compCount } = activeLessonIds.length > 0 ? await supabase
           .from('lesson_progress')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id)
           .eq('status', 'completed')
+          .in('lesson_id', activeLessonIds)
+          : { count: 0 }
         setCompletedCount(compCount || 0)
 
         // 3. Fetch total lessons
-        const { count: totLessons } = await supabase
-          .from('lessons')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-        setTotalLessons(totLessons || 0)
+        setTotalLessons(activeLessonIds.length)
 
-        // 4. Fetch all quiz attempts
+        // 4. Fetch all quiz attempts (restricted to active roadmap)
         const { data: quizAttempts } = await supabase
           .from('quiz_attempts')
           .select(`
@@ -131,6 +154,7 @@ export default function ProgressPage() {
             quiz_id,
             quizzes (
               id,
+              lesson_id,
               lessons (
                 id,
                 title
@@ -140,7 +164,10 @@ export default function ProgressPage() {
           .eq('user_id', user.id)
           .order('attempted_at', { ascending: true })
 
-        const rawAttempts = quizAttempts || []
+        const rawAttempts = (quizAttempts || []).filter((qa: any) => {
+          const quiz = qa.quizzes as any
+          return quiz && activeLessonIds.includes(quiz.lesson_id)
+        })
         setAttempts(rawAttempts)
 
         // 5. Line Chart Data: Scores over time (last 10)

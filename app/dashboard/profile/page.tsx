@@ -297,8 +297,12 @@ export default function ProfilePage() {
         const activeRoadmapPhases = activeRoadmap ? (phasesData || []).filter((p: any) => p.roadmap_id === activeRoadmap.id) : []
         const activeRoadmapLessons = activeRoadmap ? (lessonsData || []).filter((l: any) => l.roadmap_id === activeRoadmap.id) : []
 
-        // Derive stats and completion
-        const completedIds = new Set(progressData?.filter((p: any) => p.status === 'completed').map((p: any) => p.lesson_id) || [])
+        // Derive stats and completion (restricted to active roadmap)
+        const activeRoadmapLessonIds = new Set(activeRoadmapLessons.map((l: any) => l.id))
+        const completedIds = new Set(
+          progressData?.filter((p: any) => p.status === 'completed' && activeRoadmapLessonIds.has(p.lesson_id))
+            .map((p: any) => p.lesson_id) || []
+        )
         
         let completedPhasesCount = 0
         const completedPhases: any[] = []
@@ -319,8 +323,12 @@ export default function ProfilePage() {
         }) || false
 
         let quizFiveInARow = false
-        if (quizAttemptsData && quizAttemptsData.length >= 5) {
-          const recent5 = quizAttemptsData.slice(0, 5)
+        const activeRoadmapQuizzes = quizzesData?.filter((q: any) => activeRoadmapLessonIds.has(q.lesson_id)) || []
+        const activeQuizIds = new Set(activeRoadmapQuizzes.map((q: any) => q.id))
+        const activeQuizAttempts = quizAttemptsData?.filter((qa: any) => activeQuizIds.has(qa.quiz_id)) || []
+
+        if (activeQuizAttempts && activeQuizAttempts.length >= 5) {
+          const recent5 = activeQuizAttempts.slice(0, 5)
           quizFiveInARow = recent5.every((att: any) => att.score === 100)
         }
 
@@ -328,9 +336,11 @@ export default function ProfilePage() {
         const completedLessonsCount = activeRoadmapLessons.filter((l: any) => completedIds.has(l.id)).length
         const isGoalCompleted = totalLessonsCount > 0 && completedLessonsCount === totalLessonsCount
 
+        const perfectQuizzesCount = activeQuizAttempts.filter((q: any) => q.score === 100).length
+
         setStats({
           completedLessonsCount: completedIds.size,
-          perfectQuizzesCount: quizAttemptsData?.filter((q: any) => q.score === 100).length || 0,
+          perfectQuizzesCount,
           longestStreak: streak?.longest_streak || 0,
           completedPhasesCount,
           hasAdvancedLesson,
@@ -904,10 +914,19 @@ export default function ProfilePage() {
     ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     : 'June 2026'
 
-  // Calculations for active goal card (Profile tab)
-  const completedIds = new Set(progress.filter((p: any) => p.status === 'completed').map((p: any) => p.lesson_id))
+  // Calculations for active goal card (Profile tab - restricted to active roadmap)
+  const activeRoadmapObj = activeGoal ? roadmaps.find((r: any) => r.goal_id === activeGoal.id) : null
+  const activeRoadmapPhases = activeRoadmapObj ? phases.filter((p: any) => p.roadmap_id === activeRoadmapObj.id) : []
+  const activeRoadmapLessons = activeRoadmapObj ? lessons.filter((l: any) => l.roadmap_id === activeRoadmapObj.id) : []
+
+  const activeRoadmapLessonIds = new Set(activeRoadmapLessons.map((l: any) => l.id))
+  const completedIds = new Set(
+    progress
+      .filter((p: any) => p.status === 'completed' && activeRoadmapLessonIds.has(p.lesson_id))
+      .map((p: any) => p.lesson_id)
+  )
   
-  const remainingLessons = lessons.filter((l: any) => !completedIds.has(l.id)).length
+  const remainingLessons = activeRoadmapLessons.filter((l: any) => !completedIds.has(l.id)).length
   const dailyStudyMinutes = profile?.daily_study_minutes || 30
   const lessonsPerDay = Math.max(1, dailyStudyMinutes / 10)
   const daysNeeded = Math.ceil(remainingLessons / lessonsPerDay)
@@ -921,12 +940,9 @@ export default function ProfilePage() {
         year: 'numeric'
       })
 
-  const activeLessonIdx = lessons.findIndex((l: any) => !completedIds.has(l.id))
-  const nextLesson = activeLessonIdx !== -1 ? lessons[activeLessonIdx] : lessons[lessons.length - 1]
-  const activeGoalProgressRatio = lessons.length > 0 ? Math.round((lessons.filter((l: any) => completedIds.has(l.id)).length / lessons.length) * 100) : 0
-
-  const activeRoadmapObj = activeGoal ? roadmaps.find((r: any) => r.goal_id === activeGoal.id) : null
-  const activeRoadmapPhases = activeRoadmapObj ? phases.filter((p: any) => p.roadmap_id === activeRoadmapObj.id) : []
+  const activeLessonIdx = activeRoadmapLessons.findIndex((l: any) => !completedIds.has(l.id))
+  const nextLesson = activeLessonIdx !== -1 ? activeRoadmapLessons[activeLessonIdx] : activeRoadmapLessons[activeRoadmapLessons.length - 1]
+  const activeGoalProgressRatio = activeRoadmapLessons.length > 0 ? Math.round((activeRoadmapLessons.filter((l: any) => completedIds.has(l.id)).length / activeRoadmapLessons.length) * 100) : 0
 
   let activePhaseNumber = 1
   let totalPhases = activeRoadmapPhases.length || 4

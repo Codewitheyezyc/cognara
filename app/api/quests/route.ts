@@ -32,47 +32,100 @@ export async function GET() {
     weekStart.setUTCHours(0, 0, 0, 0)
     const weekStartStr = weekStart.toISOString().split('T')[0]
 
-    // 3. Query Activity Data from database
-    
-    // Lessons completed today
-    const { count: completedLessonsToday } = await supabase
-      .from('lesson_progress')
-      .select('*', { count: 'exact', head: true })
+    // 3. Query Activity Data from database (restricted to active roadmap)
+    const { data: goalData } = await supabase
+      .from('learning_goals')
+      .select('id')
       .eq('user_id', user.id)
-      .eq('status', 'completed')
-      .gte('completed_at', todayStart.toISOString())
+      .eq('is_active', true)
+      .maybeSingle()
 
-    // Lessons completed this week
-    const { count: completedLessonsThisWeek } = await supabase
-      .from('lesson_progress')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('status', 'completed')
-      .gte('completed_at', weekStart.toISOString())
+    let activeLessonIds: string[] = []
+    let activeQuizIds: string[] = []
 
-    // Quizzes passed today
-    const { count: quizPassesToday } = await supabase
-      .from('quiz_attempts')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('passed', true)
-      .gte('attempted_at', todayStart.toISOString())
+    if (goalData) {
+      const { data: roadmapData } = await supabase
+        .from('roadmaps')
+        .select('id')
+        .eq('goal_id', goalData.id)
+        .maybeSingle()
 
-    // Quizzes passed this week
-    const { count: quizPassesThisWeek } = await supabase
-      .from('quiz_attempts')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('passed', true)
-      .gte('attempted_at', weekStart.toISOString())
+      if (roadmapData) {
+        const { data: lessonsData } = await supabase
+          .from('lessons')
+          .select('id')
+          .eq('roadmap_id', roadmapData.id)
+        activeLessonIds = lessonsData?.map((l: any) => l.id) || []
 
-    // Perfect quiz scores (100%) today
-    const { count: perfectQuizzesToday } = await supabase
-      .from('quiz_attempts')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('score', 100)
-      .gte('attempted_at', todayStart.toISOString())
+        if (activeLessonIds.length > 0) {
+          const { data: quizzesData } = await supabase
+            .from('quizzes')
+            .select('id')
+            .in('lesson_id', activeLessonIds)
+          activeQuizIds = quizzesData?.map((q: any) => q.id) || []
+        }
+      }
+    }
+
+    let completedLessonsToday = 0
+    let completedLessonsThisWeek = 0
+    let quizPassesToday = 0
+    let quizPassesThisWeek = 0
+    let perfectQuizzesToday = 0
+
+    if (activeLessonIds.length > 0) {
+      // Lessons completed today
+      const { count: clToday } = await supabase
+        .from('lesson_progress')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('status', 'completed')
+        .in('lesson_id', activeLessonIds)
+        .gte('completed_at', todayStart.toISOString())
+      completedLessonsToday = clToday || 0
+
+      // Lessons completed this week
+      const { count: clThisWeek } = await supabase
+        .from('lesson_progress')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('status', 'completed')
+        .in('lesson_id', activeLessonIds)
+        .gte('completed_at', weekStart.toISOString())
+      completedLessonsThisWeek = clThisWeek || 0
+
+      if (activeQuizIds.length > 0) {
+        // Quizzes passed today
+        const { count: qpToday } = await supabase
+          .from('quiz_attempts')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('passed', true)
+          .in('quiz_id', activeQuizIds)
+          .gte('attempted_at', todayStart.toISOString())
+        quizPassesToday = qpToday || 0
+
+        // Quizzes passed this week
+        const { count: qpThisWeek } = await supabase
+          .from('quiz_attempts')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('passed', true)
+          .in('quiz_id', activeQuizIds)
+          .gte('attempted_at', weekStart.toISOString())
+        quizPassesThisWeek = qpThisWeek || 0
+
+        // Perfect quiz scores (100%) today
+        const { count: pqToday } = await supabase
+          .from('quiz_attempts')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('score', 100)
+          .in('quiz_id', activeQuizIds)
+          .gte('attempted_at', todayStart.toISOString())
+        perfectQuizzesToday = pqToday || 0
+      }
+    }
 
     // Current active streak
     const { data: streakData } = await supabase
