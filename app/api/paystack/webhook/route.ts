@@ -96,24 +96,40 @@ export async function POST(req: Request) {
       }
 
       // B. Insert/Upsert into cognara_subscriptions
+      // NOTE: onConflict must be 'user_id' — subscription_code is null at charge.success time
+      const nextBillingDate = new Date()
+      if (planType === 'annual') {
+        nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1)
+      } else {
+        nextBillingDate.setMonth(nextBillingDate.getMonth() + 1)
+      }
+
       const { error: subError } = await adminSupabase
         .from('cognara_subscriptions')
         .upsert({
           user_id: userId,
-          subscription_code: subscriptionCode,
-          customer_code: customerCode,
+          subscription_code: subscriptionCode || null,
+          customer_code: customerCode || null,
           plan_code: txData.plan?.plan_code || null,
+          plan: tier,
           status: 'active',
+          status_detail: 'active',
           amount: amount,
+          amount_paid: amount,
           currency: currency,
           start_date: startDate.toISOString(),
+          started_at: startDate.toISOString(),
           end_date: endDate.toISOString(),
+          next_billing_date: nextBillingDate.toISOString(),
+          paystack_reference: txData.reference || null,
           updated_at: new Date().toISOString(),
-        }, { onConflict: 'subscription_code' })
+        }, { onConflict: 'user_id' })
 
       if (subError) {
         console.error('[Paystack Webhook Error] Failed to insert subscription details:', subError)
         // We do not fail the request since profile update succeeded
+      } else {
+        console.log(`[Paystack Webhook] Subscription record saved for user ${userId}`)
       }
 
       // C. Grant monthly shields
