@@ -5,6 +5,7 @@ import { checkRateLimit } from '@/lib/ai/rateLimit'
 import { logApiUsage } from '@/lib/ai/logUsage'
 import { checkRateLimit as checkNewRateLimit } from '@/lib/rateLimit'
 import { getDomainFromSubject, checkLessonCache, writeLessonCache } from '@/lib/ai/lessonCache'
+import { generatePracticalExercise } from '@/lib/ai/practical'
 
 export async function POST(request: Request) {
   try {
@@ -171,7 +172,7 @@ export async function POST(request: Request) {
       // Cache it for the current user in their local lessons record
       const updatedContent = {
         ...(contentMap || {}),
-        [depthLevel]: sharedLessonContent
+        [depthLevel]: sharedLessonContent.lesson
       }
       await supabase
         .from('lessons')
@@ -198,7 +199,10 @@ export async function POST(request: Request) {
         })
       }
 
-      return NextResponse.json({ content: sharedLessonContent })
+      return NextResponse.json({
+        content: sharedLessonContent.lesson,
+        practicalExercise: sharedLessonContent.practical,
+      })
     }
 
     // 7. Enforce Rate Limit (30 per day)
@@ -254,15 +258,45 @@ export async function POST(request: Request) {
         console.log(`[generate-lesson] Cached real Claude content in user lessons table for lesson ${lessonId} depth ${depthLevel}`)
       }
 
-      // Write to the global shared lesson cache
+      // Generate practical exercise alongside lesson (Claude Haiku — cheap, fast)
+      const practicalExercise = await generatePracticalExercise({
+        topic: lesson.title,
+        domain,
+        subject: goal.subject,
+        userLevel: depthLevel,
+        userBackground: profile?.occupation || 'Learner',
+        keyTakeaways: (generatedLesson as any)?.keyTakeaways || [],
+      })
+
+      // Write lesson + practical to the global shared lesson cache together
       await writeLessonCache(supabase, {
         domain,
         subject: goal.subject,
         module: phase.title,
         topic: lesson.title,
         depthLevel: Number(depthLevel),
-        content: generatedLesson
+        content: generatedLesson,
+        practical: practicalExercise,
       })
+
+      // Record lesson progress as "in_progress" (if not already completed)
+      const { data: progress } = await supabase
+        .from('lesson_progress')
+        .select('status')
+        .eq('user_id', user.id)
+        .eq('lesson_id', lessonId)
+        .maybeSingle()
+
+      if (!progress) {
+        await supabase.from('lesson_progress').insert({
+          user_id: user.id,
+          lesson_id: lessonId,
+          status: 'in_progress',
+          started_at: new Date().toISOString(),
+        })
+      }
+
+      return NextResponse.json({ content: generatedLesson, practicalExercise })
     } else {
       console.warn(`[generate-lesson] Claude not configured or failed — serving mock content without caching. Check ANTHROPIC_API_KEY in environment variables.`)
     }

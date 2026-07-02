@@ -16,6 +16,7 @@ import { PhaseCelebration } from '@/components/celebration/PhaseCelebration'
 import { CertificateTemplate } from '@/components/celebration/CertificateTemplate'
 import { CertificateShareScreen } from '@/components/celebration/CertificateShareScreen'
 import { GoalCelebration } from '@/components/celebration/GoalCelebration'
+import { PracticalExerciseScreen, type PracticalExerciseData } from '@/components/lesson/PracticalExerciseScreen'
 
 function shuffleArray<T>(array: T[]): T[] {
   const arr = [...array]
@@ -112,6 +113,12 @@ export default function QuizPage() {
   const [showGoalCompleteScreen, setShowGoalCompleteScreen] = useState(false)
   const [goalCompleteData, setGoalCompleteData] = useState<any | null>(null)
 
+  // Practical Exercise States
+  const [practicalExercise, setPracticalExercise] = useState<PracticalExerciseData | null>(null)
+  const [showPracticalScreen, setShowPracticalScreen] = useState(false)
+  const [lessonGoalId, setLessonGoalId] = useState<string | null>(null)
+  const [lessonDomain, setLessonDomain] = useState<string>('General')
+
   // Timer
   const [timeSpentSecs, setTimeSpentSecs] = useState(0)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
@@ -166,6 +173,63 @@ export default function QuizPage() {
           console.error('Failed to query welcome bonus event status:', eventErr)
         }
 
+        // Fetch practical exercise from lesson cache (non-blocking)
+        try {
+          const { data: lessonRow } = await supabase
+            .from('lessons')
+            .select('id, title, roadmap_id, phase_id')
+            .eq('id', lessonId)
+            .maybeSingle()
+
+          if (lessonRow) {
+            const { data: roadmapRow } = await supabase
+              .from('roadmaps')
+              .select('goal_id')
+              .eq('id', lessonRow.roadmap_id)
+              .maybeSingle()
+
+            if (roadmapRow?.goal_id) {
+              setLessonGoalId(roadmapRow.goal_id)
+              const { data: goalRow } = await supabase
+                .from('learning_goals')
+                .select('subject')
+                .eq('id', roadmapRow.goal_id)
+                .maybeSingle()
+
+              if (goalRow?.subject) {
+                const subjectLower = goalRow.subject.toLowerCase()
+                const domainKeywords: Record<string, string[]> = {
+                  Technology: ['javascript', 'python', 'react', 'node', 'typescript', 'web', 'frontend', 'backend', 'coding', 'software', 'programming'],
+                  Business: ['business', 'marketing', 'finance', 'accounting', 'startup', 'strategy', 'ecommerce', 'leadership'],
+                  Medicine: ['anatomy', 'biology', 'medicine', 'nursing', 'physiology', 'health', 'medical'],
+                  Language: ['english', 'french', 'spanish', 'language', 'grammar', 'linguistics'],
+                }
+                let detectedDomain = 'General'
+                for (const [domain, keywords] of Object.entries(domainKeywords)) {
+                  if (keywords.some(kw => subjectLower.includes(kw))) {
+                    detectedDomain = domain
+                    break
+                  }
+                }
+                setLessonDomain(detectedDomain)
+
+                const { data: cacheRow } = await supabase
+                  .from('cognara_lesson_cache')
+                  .select('practical_exercise')
+                  .eq('domain', detectedDomain)
+                  .eq('subject', goalRow.subject)
+                  .eq('topic', lessonRow.title)
+                  .maybeSingle()
+
+                if (cacheRow?.practical_exercise) {
+                  setPracticalExercise(cacheRow.practical_exercise as PracticalExerciseData)
+                }
+              }
+            }
+          }
+        } catch (practicalErr) {
+          console.error('[QuizPage] Failed to load practical exercise (non-critical):', practicalErr)
+        }
 
         if (profRow && profRow.subscription_tier === 'free' && (profRow.hearts ?? 3) <= 0) {
           setErrorMsg('OUT_OF_HEARTS')
@@ -1154,6 +1218,28 @@ export default function QuizPage() {
     )
   }
 
+  // Practical Exercise Screen (shown between quiz results and end session)
+  if (showPracticalScreen && practicalExercise && userId) {
+    return (
+      <PracticalExerciseScreen
+        practical={practicalExercise}
+        userId={userId}
+        lessonCacheId={null}
+        goalId={lessonGoalId}
+        topicName={lessonTitle}
+        domain={lessonDomain}
+        onComplete={() => {
+          setShowPracticalScreen(false)
+          setIsEndSession(true)
+        }}
+        onSkip={() => {
+          setShowPracticalScreen(false)
+          setIsEndSession(true)
+        }}
+      />
+    )
+  }
+
   // End of Session Screen
   if (isEndSession && quizResult) {
     const xpAward = quizResult.xp?.xpGained ?? 10
@@ -1372,10 +1458,16 @@ export default function QuizPage() {
         {/* Action CTAs */}
         <div className="flex flex-col gap-3 w-full pt-4">
           <Button
-            onClick={() => setIsEndSession(true)}
+            onClick={() => {
+              if (practicalExercise && userId) {
+                setShowPracticalScreen(true)
+              } else {
+                setIsEndSession(true)
+              }
+            }}
             className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-text-1 font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.3)] transition-all duration-200 flex items-center justify-center gap-2 text-[14px]"
           >
-            <span>Continue to Next Lesson →</span>
+            <span>Continue →</span>
           </Button>
           <Button
             onClick={() => router.push(`/dashboard/lesson/${lessonId}`)}

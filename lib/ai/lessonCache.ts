@@ -1,5 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import { GeneratedLesson } from '@/types/ai'
+import type { PracticalExercise } from './practical'
 
 const TECHNOLOGY_KEYWORDS = [
   'javascript', 'python', 'react', 'next.js', 'node', 'typescript',
@@ -65,17 +66,26 @@ interface CacheLookupParams {
   depthLevel: number
 }
 
+export interface CachedLessonResult {
+  lesson: GeneratedLesson
+  practical: PracticalExercise | null
+}
+
 /**
  * Queries the Supabase lesson cache table to check for an existing lesson
+ */
+/**
+ * Returns the cached lesson content AND its practical exercise (if present).
+ * Both are stored in the same cache row — no second DB query needed.
  */
 export async function checkLessonCache(
   supabase: SupabaseClient,
   params: CacheLookupParams
-): Promise<GeneratedLesson | null> {
+): Promise<CachedLessonResult | null> {
   try {
     const { data, error } = await supabase
       .from('cognara_lesson_cache')
-      .select('content, quality_score')
+      .select('content, practical_exercise, quality_score')
       .eq('domain', params.domain)
       .eq('subject', params.subject)
       .eq('module', params.module)
@@ -89,11 +99,13 @@ export async function checkLessonCache(
     }
 
     if (data && data.content) {
-      // Ensure the content is structured and not a mock/fallback lesson
       const lesson = data.content as any
       if (lesson && typeof lesson === 'object' && lesson._isMock !== true) {
         console.log(`[LessonCache] CACHE HIT for topic "${params.topic}" depth ${params.depthLevel} (Quality: ${data.quality_score})`)
-        return lesson as GeneratedLesson
+        return {
+          lesson: lesson as GeneratedLesson,
+          practical: (data.practical_exercise as PracticalExercise | null) || null,
+        }
       }
     }
 
@@ -106,6 +118,7 @@ export async function checkLessonCache(
 
 interface CacheWriteParams extends CacheLookupParams {
   content: GeneratedLesson
+  practical?: PracticalExercise | null
 }
 
 /**
@@ -132,6 +145,7 @@ export async function writeLessonCache(
           topic: params.topic,
           depth_level: params.depthLevel,
           content: params.content,
+          practical_exercise: params.practical || null,
           quality_score: 100,
           flag_count: 0,
           last_reviewed_at: new Date().toISOString(),

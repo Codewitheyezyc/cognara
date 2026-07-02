@@ -35,6 +35,7 @@ export default function ProgressPage() {
   const [chartLineData, setChartLineData] = useState<any[]>([])
   const [chartBarData, setChartBarData] = useState<any[]>([])
   const [cxpEvents, setCxpEvents] = useState<any[]>([])
+  const [practicalStats, setPracticalStats] = useState({ completed: 0, skipped: 0, total: 0, rate: 0, cxpEarned: 0 })
   
   // Loading state
   const [isLoading, setIsLoading] = useState(true)
@@ -230,6 +231,26 @@ export default function ProgressPage() {
         })
 
         setHeatmapData(activityCounts)
+
+        // 8. Fetch Practical Exercise Stats
+        try {
+          const { data: practicals } = await supabase
+            .from('cognara_practical_completions')
+            .select('status')
+            .eq('user_id', user.id)
+
+          if (practicals) {
+            const completed = practicals.filter((p: { status: string }) => p.status === 'completed').length
+            const skipped = practicals.filter((p: { status: string }) => p.status === 'skipped').length
+            const total = completed + skipped
+            const rate = total > 0 ? Math.round((completed / total) * 100) : 0
+            const cxpEarned = completed * 50
+            setPracticalStats({ completed, skipped, total, rate, cxpEarned })
+          }
+        } catch (practicalErr) {
+          console.error('Error fetching practical stats:', practicalErr)
+        }
+
         setIsLoading(false)
       } catch (err) {
         console.error(err)
@@ -593,6 +614,44 @@ export default function ProgressPage() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Practical Exercises Stats Card */}
+      <div className="bg-surface border border-border rounded-[10px] p-6 shadow-sm space-y-4">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400">
+            <span className="text-sm">🔧</span>
+          </div>
+          <div>
+            <h3 className="font-heading text-base font-bold text-text-1">Practical Exercises</h3>
+            <p className="text-[11px] text-text-2 mt-0.5">Hands-on exercises completed after each quiz.</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="bg-surface-alt/60 border border-border rounded-xl p-4 text-center">
+            <p className="text-2xl font-extrabold text-emerald-400 font-mono">{practicalStats.completed}</p>
+            <p className="text-[10px] text-text-3 font-mono uppercase tracking-wider mt-1">Completed</p>
+          </div>
+          <div className="bg-surface-alt/60 border border-border rounded-xl p-4 text-center">
+            <p className="text-2xl font-extrabold text-text-2 font-mono">{practicalStats.skipped}</p>
+            <p className="text-[10px] text-text-3 font-mono uppercase tracking-wider mt-1">Skipped</p>
+          </div>
+          <div className="bg-surface-alt/60 border border-border rounded-xl p-4 text-center">
+            <p className="text-2xl font-extrabold text-primary font-mono">{practicalStats.rate}%</p>
+            <p className="text-[10px] text-text-3 font-mono uppercase tracking-wider mt-1">Completion Rate</p>
+          </div>
+          <div className="bg-surface-alt/60 border border-border rounded-xl p-4 text-center">
+            <p className="text-2xl font-extrabold text-[#A78BFA] font-mono">+{practicalStats.cxpEarned}</p>
+            <p className="text-[10px] text-text-3 font-mono uppercase tracking-wider mt-1">CXP Earned</p>
+          </div>
+        </div>
+
+        {practicalStats.total === 0 && (
+          <p className="text-[12px] text-text-3 text-center pt-2">
+            Complete your first lesson and quiz to unlock practical exercises.
+          </p>
+        )}
       </div>
     </div>
   )
