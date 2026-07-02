@@ -175,57 +175,33 @@ export default function QuizPage() {
           console.error('Failed to query welcome bonus event status:', eventErr)
         }
 
-        // Fetch practical exercise from lesson cache (non-blocking)
+
+        // Read practical exercise from sessionStorage (set by lesson page after generate-lesson call)
+        // This is reliable because the quiz always follows a lesson in the same browser session
         try {
-          const { data: lessonRow } = await supabase
-            .from('lessons')
-            .select('id, title, roadmap_id, phase_id')
-            .eq('id', lessonId)
-            .maybeSingle()
-
-          if (lessonRow) {
-            const { data: roadmapRow } = await supabase
-              .from('roadmaps')
-              .select('goal_id')
-              .eq('id', lessonRow.roadmap_id)
-              .maybeSingle()
-
-            if (roadmapRow?.goal_id) {
-              setLessonGoalId(roadmapRow.goal_id)
-              const { data: goalRow } = await supabase
-                .from('learning_goals')
-                .select('subject')
-                .eq('id', roadmapRow.goal_id)
-                .maybeSingle()
-
-              if (goalRow?.subject) {
-                const subjectLower = goalRow.subject.toLowerCase()
-                const domainKeywords: Record<string, string[]> = {
-                  Technology: ['javascript', 'python', 'react', 'node', 'typescript', 'web', 'frontend', 'backend', 'coding', 'software', 'programming'],
-                  Business: ['business', 'marketing', 'finance', 'accounting', 'startup', 'strategy', 'ecommerce', 'leadership'],
-                  Medicine: ['anatomy', 'biology', 'medicine', 'nursing', 'physiology', 'health', 'medical'],
-                  Language: ['english', 'french', 'spanish', 'language', 'grammar', 'linguistics'],
-                }
-                let detectedDomain = 'General'
-                for (const [domain, keywords] of Object.entries(domainKeywords)) {
-                  if (keywords.some(kw => subjectLower.includes(kw))) {
-                    detectedDomain = domain
-                    break
+          if (typeof window !== 'undefined') {
+            const storedPractical = sessionStorage.getItem(`practical_${lessonId}`)
+            if (storedPractical) {
+              setPracticalExercise(JSON.parse(storedPractical) as PracticalExerciseData)
+              console.log('[QuizPage] Loaded practical exercise from sessionStorage')
+            } else {
+              // Fallback: call the lesson API — it returns practicalExercise from shared cache
+              // This handles the case where the quiz page was opened in a new tab or session expired
+              try {
+                const practicalRes = await fetch('/api/practical/for-lesson', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ lessonId }),
+                })
+                if (practicalRes.ok) {
+                  const practicalData = await practicalRes.json()
+                  if (practicalData.practicalExercise) {
+                    setPracticalExercise(practicalData.practicalExercise as PracticalExerciseData)
+                    console.log('[QuizPage] Loaded practical exercise from API fallback')
                   }
                 }
-                setLessonDomain(detectedDomain)
-
-                const { data: cacheRow } = await supabase
-                  .from('cognara_lesson_cache')
-                  .select('practical_exercise')
-                  .eq('domain', detectedDomain)
-                  .eq('subject', goalRow.subject)
-                  .eq('topic', lessonRow.title)
-                  .maybeSingle()
-
-                if (cacheRow?.practical_exercise) {
-                  setPracticalExercise(cacheRow.practical_exercise as PracticalExerciseData)
-                }
+              } catch (apiErr) {
+                console.log('[QuizPage] Practical API fallback skipped (non-critical):', apiErr)
               }
             }
           }
@@ -1225,6 +1201,20 @@ export default function QuizPage() {
 
   // Practical Exercise Screen (shown between quiz results and end session)
   if (showPracticalScreen && practicalExercise && userId) {
+    const handlePracticalDone = () => {
+      setShowPracticalScreen(false)
+      if (nextLessonId) {
+        // Clear the practical from sessionStorage since we're moving on
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem(`practical_${lessonId}`)
+        }
+        router.push(`/dashboard/lesson/${nextLessonId}`)
+      } else {
+        // No next lesson — go to end of session screen
+        setIsEndSession(true)
+      }
+    }
+
     return (
       <PracticalExerciseScreen
         practical={practicalExercise}
@@ -1233,14 +1223,8 @@ export default function QuizPage() {
         goalId={lessonGoalId}
         topicName={lessonTitle}
         domain={lessonDomain}
-        onComplete={() => {
-          setShowPracticalScreen(false)
-          setIsEndSession(true)
-        }}
-        onSkip={() => {
-          setShowPracticalScreen(false)
-          setIsEndSession(true)
-        }}
+        onComplete={handlePracticalDone}
+        onSkip={handlePracticalDone}
       />
     )
   }

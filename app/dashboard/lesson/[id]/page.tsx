@@ -304,10 +304,14 @@ export default function LessonPage() {
             setContent(result.content)
             setContentMap(prev => ({ ...prev, [initialDepth]: result.content }))
             setStatus('in_progress')
+            // Cache practical exercise for the quiz page to read
+            if (result.practicalExercise && typeof window !== 'undefined') {
+              sessionStorage.setItem(`practical_${lessonId}`, JSON.stringify(result.practicalExercise))
+            }
           } else {
             // API returned error (500 / 504 timeout / model error)
-            setGenerationErrorMsg(result.error || "Spark is having trouble compiling this lesson. Let's try reloading the page!");
-            setGenerationError(true);
+            setGenerationErrorMsg(result.error || "Spark is having trouble compiling this lesson. Let's try reloading the page!")
+            setGenerationError(true)
           }
         } catch (err) {
           console.error('Error generating lesson content:', err)
