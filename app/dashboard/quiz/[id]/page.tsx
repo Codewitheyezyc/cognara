@@ -70,6 +70,8 @@ export default function QuizPage() {
     streak: { current: number; longest: number }
     roadmapCompleted?: boolean
     roadmapId?: string | null
+    isRetake?: boolean
+    cxpAwarded?: number
     xp?: { xpGained: number; newXp: number; newLevel: number; leveledUp: boolean } | null
   } | null>(null)
 
@@ -425,9 +427,11 @@ export default function QuizPage() {
           setShowQuizTestimonialPrompt(true)
         }
         
-        // Trigger float-up XP animation
-        setShowXpAnim(true)
-        setTimeout(() => setShowXpAnim(false), 2400)
+        // Trigger float-up XP animation — FIRST ATTEMPT ONLY (retakes earn 0 CXP)
+        if (!result.isRetake && result.cxpAwarded && result.cxpAwarded > 0) {
+          setShowXpAnim(true)
+          setTimeout(() => setShowXpAnim(false), 2400)
+        }
 
         // Trigger welcome bonus animation if eligible
         if (hasWelcomeBonus) {
@@ -829,11 +833,12 @@ export default function QuizPage() {
 
         const phaseQuizIds = phaseQuizzes?.map((q: any) => q.id) || []
 
-        // Fetch quiz attempts
+        // Fetch quiz attempts (first attempts only — retakes don't award CXP)
         const { data: quizAttemptsList } = await supabase
           .from('quiz_attempts')
           .select('quiz_id, score, passed')
           .eq('user_id', userId)
+          .eq('is_retake', false)
           .in('quiz_id', phaseQuizIds)
 
         const passedQuizAttempts = quizAttemptsList?.filter((a: any) => a.passed) || []
@@ -1326,15 +1331,28 @@ export default function QuizPage() {
   if (quizResult) {
     const firstName = profile?.name?.split(' ')[0] || 'Learner'
     const correctCount = quizResult.correctCount
-    const xpAward = quizResult.xp?.xpGained ?? 10
+    const xpAward = quizResult.cxpAwarded ?? quizResult.xp?.xpGained ?? 0
+    const isRetake = quizResult.isRetake ?? false
     
     let performanceMsg = ""
-    if (correctCount >= 4) {
-      performanceMsg = `Excellent work, ${firstName}. You have a strong grasp of ${lessonTitle}.`
-    } else if (correctCount >= 2) {
-      performanceMsg = `Good effort, ${firstName}. You are getting there — a couple of concepts to revisit.`
+    if (isRetake) {
+      // Retake-specific messages
+      if (correctCount >= 5) {
+        performanceMsg = `Perfect score on your retake! Your understanding of ${lessonTitle} has clearly improved.`
+      } else if (correctCount >= 3) {
+        performanceMsg = `Good effort on the retake, ${firstName}. Keep reviewing and you will get there.`
+      } else {
+        performanceMsg = `Still a tough one. Take another look at the lesson — the concepts will click.`
+      }
     } else {
-      performanceMsg = `This one was tough. Let's review the lesson together before moving on.`
+      // First attempt messages
+      if (correctCount >= 4) {
+        performanceMsg = `Excellent work, ${firstName}. You have a strong grasp of ${lessonTitle}.`
+      } else if (correctCount >= 2) {
+        performanceMsg = `Good effort, ${firstName}. You are getting there — a couple of concepts to revisit.`
+      } else {
+        performanceMsg = `This one was tough. Let's review the lesson together before moving on.`
+      }
     }
 
     return (
@@ -1351,8 +1369,8 @@ export default function QuizPage() {
           }
         `}</style>
 
-        {/* Floating XP Burst Animation */}
-        {showXpAnim && (
+        {/* Floating XP Burst Animation — first attempt only */}
+        {showXpAnim && xpAward > 0 && (
           <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
             <div className="animate-floatUpAndFade flex flex-col items-center">
               <span className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] drop-shadow-[0_0_24px_rgba(91,142,255,0.45)]">
@@ -1382,7 +1400,9 @@ export default function QuizPage() {
 
         {/* Header */}
         <div className="space-y-2">
-          <h2 className="text-3xl font-extrabold text-text-1 tracking-tight">Quiz Complete! 🎉</h2>
+          <h2 className="text-3xl font-extrabold text-text-1 tracking-tight">
+            {isRetake ? 'Retake Complete 🔄' : 'Quiz Complete! 🎉'}
+          </h2>
           <p className="text-lg font-semibold text-text-2">
             Score: <span className="text-text-1 font-extrabold">{correctCount}</span> out of 5
           </p>
@@ -1413,13 +1433,21 @@ export default function QuizPage() {
           </div>
         </div>
 
-        {/* Streak Announcement Banner */}
-        <div className="w-full py-3.5 px-4 bg-gradient-to-r from-[#5B8EFF]/15 to-[#A78BFA]/10 border border-[#5B8EFF]/25 rounded-2xl flex items-center justify-center gap-2">
-          <Flame className="h-5 w-5 text-rose-500 fill-current animate-pulse-subtle" />
-          <span className="text-xs font-bold text-text-1 tracking-wide">
-            🔥 Day 1 Streak — You showed up. That matters.
-          </span>
-        </div>
+        {/* Streak or Retake Banner */}
+        {isRetake ? (
+          <div className="w-full py-3.5 px-4 bg-surface-alt/60 border border-border rounded-2xl flex items-center justify-center gap-2">
+            <span className="text-xs font-bold text-text-2 tracking-wide">
+              Retakes do not award CXP — but your score is recorded.
+            </span>
+          </div>
+        ) : (
+          <div className="w-full py-3.5 px-4 bg-gradient-to-r from-[#5B8EFF]/15 to-[#A78BFA]/10 border border-[#5B8EFF]/25 rounded-2xl flex items-center justify-center gap-2">
+            <Flame className="h-5 w-5 text-rose-500 fill-current animate-pulse-subtle" />
+            <span className="text-xs font-bold text-text-1 tracking-wide">
+              🔥 Day 1 Streak — You showed up. That matters.
+            </span>
+          </div>
+        )}
 
         {/* Perfect Score Quiz Testimonial Popups */}
         {showQuizTestimonialPrompt && !showQuizTestimonialForm && (

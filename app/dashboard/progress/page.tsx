@@ -144,7 +144,7 @@ export default function ProgressPage() {
         // 3. Fetch total lessons
         setTotalLessons(activeLessonIds.length)
 
-        // 4. Fetch all quiz attempts (restricted to active roadmap)
+        // 4. Fetch all quiz attempts (restricted to active roadmap, first attempts only)
         const { data: quizAttempts } = await supabase
           .from('quiz_attempts')
           .select(`
@@ -152,6 +152,7 @@ export default function ProgressPage() {
             score,
             passed,
             attempted_at,
+            is_retake,
             quiz_id,
             quizzes (
               id,
@@ -163,6 +164,7 @@ export default function ProgressPage() {
             )
           `)
           .eq('user_id', user.id)
+          .eq('is_retake', false)
           .order('attempted_at', { ascending: true })
 
         const rawAttempts = (quizAttempts || []).filter((qa: any) => {

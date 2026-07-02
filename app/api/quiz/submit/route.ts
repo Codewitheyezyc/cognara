@@ -54,7 +54,34 @@ export async function POST(request: Request) {
     const score = Math.round((correctCount / questions.length) * 100)
     const passed = score >= 60
 
-    // 5. Insert attempt log
+    // 5. Check if this is a retake (any previous attempt on this quiz)
+    const { data: previousAttempt } = await supabase
+      .from('quiz_attempts')
+      .select('id, cxp_awarded')
+      .eq('user_id', user.id)
+      .eq('quiz_id', quizId)
+      .order('attempted_at', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+
+    const isRetake = !!previousAttempt
+
+    // 6. Calculate CXP/XP — FIRST ATTEMPT ONLY
+    const normalizedCorrect = questions.length > 0 ? Math.round((correctCount / questions.length) * 5) : 0
+    let xpAward = 0
+    let cxpToAward = 0
+
+    if (!isRetake) {
+      if (normalizedCorrect === 5)      { xpAward = 100; cxpToAward = 100 }
+      else if (normalizedCorrect === 4) { xpAward = 80;  cxpToAward = 80  }
+      else if (normalizedCorrect === 3) { xpAward = 60;  cxpToAward = 60  }
+      else if (normalizedCorrect === 2) { xpAward = 40;  cxpToAward = 40  }
+      else if (normalizedCorrect === 1) { xpAward = 20;  cxpToAward = 20  }
+      else                              { xpAward = 10;  cxpToAward = 10  } // minimum for attempting
+    }
+    // Retake — both stay 0
+
+    // 7. Insert attempt log (includes is_retake + cxp_awarded)
     const { data: attempt, error: attemptError } = await supabase
       .from('quiz_attempts')
       .insert({
@@ -64,6 +91,8 @@ export async function POST(request: Request) {
         score,
         passed,
         time_spent_secs: Number(timeSpentSecs || 0),
+        is_retake: isRetake,
+        cxp_awarded: cxpToAward,
       })
       .select('id')
       .single()
@@ -73,12 +102,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to record quiz attempt' }, { status: 500 })
     }
 
-    // 6. Handle Streak updates if passed
+    // 8. Handle Streak updates if passed
     let newCurrentStreak = 0
     let newLongestStreak = 0
 
     if (passed) {
-      const todayStr = new Date().toISOString().split('T')[0] // YYYY-MM-DD in UTC
+      const todayStr = new Date().toISOString().split('T')[0]
 
       const { data: streak } = await supabase
         .from('streaks')
@@ -87,7 +116,6 @@ export async function POST(request: Request) {
         .maybeSingle()
 
       if (!streak) {
-        // Fallback insert if trigger failed or was bypassed
         newCurrentStreak = 1
         newLongestStreak = 1
         await supabase.from('streaks').insert({
@@ -107,24 +135,18 @@ export async function POST(request: Request) {
         } else {
           const today = new Date(todayStr)
           today.setUTCHours(0, 0, 0, 0)
-
           const lastDate = new Date(lastActivity)
           lastDate.setUTCHours(0, 0, 0, 0)
 
           const diffTime = today.getTime() - lastDate.getTime()
           const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
 
-          let shieldUsed = false
           if (diffDays === 1) {
-            // Consecutive day
             newCurrentStreak += 1
             newLongestStreak = Math.max(newLongestStreak, newCurrentStreak)
           } else if (diffDays === 2 && (streak.shields_available || 0) > 0) {
-            // Missed 1 day, auto-consume shield
             newCurrentStreak += 1
             newLongestStreak = Math.max(newLongestStreak, newCurrentStreak)
-            shieldUsed = true
-
             await supabase
               .from('streaks')
               .update({
@@ -133,27 +155,18 @@ export async function POST(request: Request) {
               })
               .eq('user_id', user.id)
           } else if (diffDays > 1) {
-            // Streak broken
             newCurrentStreak = 1
             newLongestStreak = Math.max(newLongestStreak, newCurrentStreak)
-
-            // Record when the streak broke
             const brokenDate = new Date(lastActivity)
             brokenDate.setDate(brokenDate.getDate() + 1)
-            const brokenStr = brokenDate.toISOString()
-
             await supabase
               .from('streaks')
-              .update({
-                streak_broken_at: brokenStr
-              })
+              .update({ streak_broken_at: brokenDate.toISOString() })
               .eq('user_id', user.id)
           } else if (diffDays === 0 && newCurrentStreak === 0) {
-            // Activity occurred today but streak starts today (first attempt)
             newCurrentStreak = 1
             newLongestStreak = Math.max(newLongestStreak, 1)
           }
-          // Note: If diffDays === 0 and newCurrentStreak > 0, they already passed a quiz today, so retain current streak count.
         }
 
         await supabase
@@ -167,7 +180,6 @@ export async function POST(request: Request) {
           .eq('user_id', user.id)
       }
     } else {
-      // If failed, read existing streak for return info
       const { data: streak } = await supabase
         .from('streaks')
         .select('*')
@@ -177,7 +189,7 @@ export async function POST(request: Request) {
       newLongestStreak = streak?.longest_streak || 0
     }
 
-    // Check if the entire roadmap is fully completed
+    // 9. Check if entire roadmap is fully completed
     let roadmapCompleted = false
     let roadmapId = null
 
@@ -190,8 +202,6 @@ export async function POST(request: Request) {
 
       if (lessonData?.roadmap_id) {
         roadmapId = lessonData.roadmap_id
-
-        // Fetch all lesson IDs in the roadmap
         const { data: roadmapLessons } = await supabase
           .from('lessons')
           .select('id')
@@ -200,7 +210,6 @@ export async function POST(request: Request) {
         const roadmapLessonIds = roadmapLessons?.map(l => l.id) || []
 
         if (roadmapLessonIds.length > 0) {
-          // Fetch completed lessons from lesson_progress for this user
           const { count: completedCount } = await supabase
             .from('lesson_progress')
             .select('*', { count: 'exact', head: true })
@@ -215,26 +224,20 @@ export async function POST(request: Request) {
       }
     }
 
-    // 7. Award XP dynamically based on performance mapping
-    const normalizedCorrect = questions.length > 0 ? Math.round((correctCount / questions.length) * 5) : 0
-    let xpAward = 10
-    if (normalizedCorrect === 5) xpAward = 100
-    else if (normalizedCorrect === 4) xpAward = 80
-    else if (normalizedCorrect === 3) xpAward = 60
-    else if (normalizedCorrect === 2) xpAward = 40
-    else if (normalizedCorrect === 1) xpAward = 20
-
+    // 10. Award XP — FIRST ATTEMPT ONLY
     let xpData: any = null
-    try {
-      const { data: rpcData, error: rpcError } = await supabase.rpc('add_xp', {
-        user_id: user.id,
-        amount: xpAward
-      })
-      if (!rpcError && rpcData) {
-        xpData = rpcData
+    if (!isRetake && xpAward > 0) {
+      try {
+        const { data: rpcData, error: rpcError } = await supabase.rpc('add_xp', {
+          user_id: user.id,
+          amount: xpAward
+        })
+        if (!rpcError && rpcData) {
+          xpData = rpcData
+        }
+      } catch (xpErr) {
+        console.error('[Quiz Submit] Error calling add_xp RPC:', xpErr)
       }
-    } catch (xpErr) {
-      console.error('[Quiz Submit] Error calling add_xp RPC:', xpErr)
     }
 
     return NextResponse.json({
@@ -243,6 +246,8 @@ export async function POST(request: Request) {
       passed,
       correctCount,
       totalCount: questions.length,
+      isRetake,
+      cxpAwarded: cxpToAward,
       streak: {
         current: newCurrentStreak,
         longest: newLongestStreak,
