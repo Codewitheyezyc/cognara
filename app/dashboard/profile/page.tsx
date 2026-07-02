@@ -247,11 +247,12 @@ export default function ProfilePage() {
           console.error('Error fetching referrals for profile:', refsFetchErr)
         }
 
-        // 6. Fetch Goals
+        // 6. Fetch Goals (exclude archived)
         const { data: goalsData } = await supabase
           .from('learning_goals')
           .select('*')
           .eq('user_id', user.id)
+          .neq('status', 'archived')
         setGoals(goalsData || [])
 
         // 7. Fetch all roadmaps, phases, lessons, quizzes, user_quests
@@ -336,7 +337,10 @@ export default function ProfilePage() {
         const completedLessonsCount = activeRoadmapLessons.filter((l: any) => completedIds.has(l.id)).length
         const isGoalCompleted = totalLessonsCount > 0 && completedLessonsCount === totalLessonsCount
 
-        const perfectQuizzesCount = activeQuizAttempts.filter((q: any) => q.score === 100).length
+        const passedActiveQuizIds = new Set(
+          activeQuizAttempts.filter((qa: any) => qa.passed).map((qa: any) => qa.quiz_id)
+        )
+        const perfectQuizzesCount = passedActiveQuizIds.size
 
         setStats({
           completedLessonsCount: completedIds.size,
@@ -665,7 +669,7 @@ export default function ProfilePage() {
 
     const goalQuizIds = quizzes.filter((q: any) => goalLessons.some((l: any) => l.id === q.lesson_id)).map((q: any) => q.id)
     const goalQuizAttempts = quizAttempts.filter((att: any) => goalQuizIds.includes(att.quiz_id))
-    const passedQuizzes = goalQuizAttempts.filter((att: any) => att.passed).length
+    const passedQuizzes = new Set(goalQuizAttempts.filter((att: any) => att.passed).map((att: any) => att.quiz_id)).size
     
     const bestScores = new Map<string, number>()
     goalQuizAttempts.forEach((att: any) => {
@@ -1747,9 +1751,11 @@ export default function ProfilePage() {
                           <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold font-mono uppercase tracking-wider shrink-0 ${
                             gp.isCompleted
                               ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25'
-                              : 'bg-primary/10 text-primary border border-primary/25'
+                              : gp.goal.is_active
+                                ? 'bg-primary/10 text-primary border border-primary/25'
+                                : 'bg-text-3/15 text-text-3 border border-text-3/25'
                           }`}>
-                            {gp.isCompleted ? 'Completed' : 'Active'}
+                            {gp.isCompleted ? 'Completed' : gp.goal.is_active ? 'Active' : 'Inactive'}
                           </span>
                         </div>
 

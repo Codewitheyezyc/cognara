@@ -224,10 +224,10 @@ export async function POST(request: Request) {
       })
       .eq('id', userId)
 
-    // Deactivate old learning goal
+    // Deactivate & archive old learning goal
     await supabase
       .from('learning_goals')
-      .update({ is_active: false })
+      .update({ is_active: false, status: 'archived' })
       .eq('id', userGoal.id)
 
     // Insert new learning goal

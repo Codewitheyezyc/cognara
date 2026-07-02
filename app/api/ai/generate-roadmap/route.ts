@@ -146,10 +146,10 @@ export async function POST(request: Request) {
 
     // 7. Sync with relational tables for backward compatibility (dashboard rendering)
     
-    // Deactivate prior learning goals
+    // Deactivate & archive prior learning goals
     await supabase
       .from('learning_goals')
-      .update({ is_active: false })
+      .update({ is_active: false, status: 'archived' })
       .eq('user_id', user.id)
 
     // Insert new learning goal
