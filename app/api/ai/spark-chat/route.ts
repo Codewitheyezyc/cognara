@@ -23,6 +23,11 @@ Format: Write in plain conversational prose. No markdown headers. You can use a 
 
 Length: Aim for 2–4 short paragraphs max. If the answer is simple, keep it to 1–2 sentences.`
 
+// Get today's date string in WAT (UTC+1 = Nigeria time)
+function getTodayWAT(): string {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' })
+}
+
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
@@ -43,12 +48,53 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    // Fetch profile for domain metadata
+    // Fetch profile for domain metadata AND subscription tier
     const { data: profile } = await supabase
       .from('profiles')
-      .select('name, experience_level, occupation')
+      .select('name, experience_level, occupation, subscription_tier')
       .eq('id', user.id)
       .maybeSingle()
+
+    const isPro = profile?.subscription_tier !== 'free'
+    const dailyLimit = isPro ? 50 : 5
+    const today = getTodayWAT()
+
+    // ── STEP 3: Check daily usage limit ──────────────────────────────────────
+    const { data: usageRow } = await supabase
+      .from('cognara_spark_usage')
+      .select('message_count')
+      .eq('user_id', user.id)
+      .eq('usage_date', today)
+      .maybeSingle()
+
+    const currentCount = usageRow?.message_count || 0
+
+    if (currentCount >= dailyLimit) {
+      if (!isPro) {
+        return NextResponse.json({
+          type: 'limit_reached',
+          response: `You have used all ${dailyLimit} of your free Spark messages for today.\n\nYour limit resets at midnight tonight.\n\nUpgrade to Pro for 50 Spark messages per day.`,
+          limitReached: true,
+          showUpgradeButton: true,
+          currentCount,
+          dailyLimit,
+          remaining: 0,
+          isPro,
+        })
+      } else {
+        return NextResponse.json({
+          type: 'limit_reached',
+          response: `You have had ${dailyLimit} Spark conversations today — that is a serious learning session.\n\nYour limit resets at midnight tonight. Come back tomorrow and keep going.`,
+          limitReached: true,
+          showUpgradeButton: false,
+          currentCount,
+          dailyLimit,
+          remaining: 0,
+          isPro,
+        })
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     const userLevel = profile?.experience_level || 'beginner'
     const userBackground = profile?.occupation || 'learner'
@@ -85,14 +131,33 @@ user_first_name: ${userName}
     claudeMessages.push({ role: 'user', content: message })
 
     if (!anthropic) {
-      // Dev mode fallback
+      // Dev mode fallback — still increment usage
+      await supabase.rpc('increment_spark_count', {
+        user_id_input: user.id,
+        date_input: today,
+      })
       const mockResponses = [
         `That's a great question about ${lessonTitle}. The key thing to understand here is that concepts build on each other — once this clicks, the rest of the module will feel much more natural.`,
         `Think of it this way — imagine you're explaining this to a friend over coffee. The core idea is simpler than it looks at first glance.`,
         `You're asking exactly the right thing. This is one of those concepts that trips people up at first but becomes obvious once it settles in. Let me break it down differently.`,
       ]
       const response = mockResponses[Math.floor(Math.random() * mockResponses.length)]
-      return NextResponse.json({ response })
+      const newCount = currentCount + 1
+      const remaining = dailyLimit - newCount
+      return NextResponse.json({
+        response,
+        currentCount: newCount,
+        dailyLimit,
+        remaining,
+        isPro,
+        warning: newCount >= dailyLimit
+          ? (isPro
+            ? 'You have used your last Spark message for today. Limit resets at midnight.'
+            : 'That was your last free Spark message today. Limit resets at midnight. Upgrade to Pro for 50 messages per day.')
+          : (remaining === 1 && !isPro
+            ? 'You have 1 free Spark message remaining today.'
+            : null),
+      })
     }
 
     const systemWithContext = SPARK_SYSTEM_PROMPT + '\n' + domainMeta + lessonContext
@@ -110,7 +175,34 @@ user_first_name: ${userName}
         ? claudeResponse.content[0].text.trim()
         : "I'm thinking through that — let me try a different approach."
 
-    return NextResponse.json({ response: responseText })
+    // ── STEP 4: Increment usage after successful Claude response ──────────────
+    await supabase.rpc('increment_spark_count', {
+      user_id_input: user.id,
+      date_input: today,
+    })
+
+    const newCount = currentCount + 1
+    const remaining = dailyLimit - newCount
+
+    // Build optional warning for last or near-last message
+    let warning: string | null = null
+    if (newCount >= dailyLimit) {
+      warning = isPro
+        ? 'You have used your last Spark message for today. Limit resets at midnight.'
+        : 'That was your last free Spark message today. Limit resets at midnight. Upgrade to Pro for 50 messages per day.'
+    } else if (remaining === 1 && !isPro) {
+      warning = 'You have 1 free Spark message remaining today.'
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
+    return NextResponse.json({
+      response: responseText,
+      currentCount: newCount,
+      dailyLimit,
+      remaining,
+      isPro,
+      warning,
+    })
   } catch (err: any) {
     console.error('[spark-chat] Error:', err)
     return NextResponse.json(
@@ -119,3 +211,4 @@ user_first_name: ${userName}
     )
   }
 }
+

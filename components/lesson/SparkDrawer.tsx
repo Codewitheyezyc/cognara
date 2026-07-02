@@ -1,12 +1,15 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { X, Send, Loader2 } from 'lucide-react'
+import { X, Send, Loader2, Zap } from 'lucide-react'
 import { Spark } from '@/components/mascot/Spark'
 
 interface SparkMessage {
   role: 'spark' | 'user'
   content: string
+  isWarning?: boolean
+  isLimitReached?: boolean
+  showUpgradeButton?: boolean
 }
 
 interface SparkDrawerProps {
@@ -17,6 +20,7 @@ interface SparkDrawerProps {
   lessonContent: string
   userName: string | null
   subject: string
+  isPro?: boolean
 }
 
 export function SparkDrawer({
@@ -27,6 +31,7 @@ export function SparkDrawer({
   lessonContent,
   userName,
   subject,
+  isPro = false,
 }: SparkDrawerProps) {
   const firstName = userName?.split(' ')[0] || null
   const buildGreeting = () =>
@@ -40,6 +45,12 @@ export function SparkDrawer({
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [visible, setVisible] = useState(false)
+
+  // Usage tracking state (populated from API responses)
+  const [remaining, setRemaining] = useState<number | null>(null)
+  const [dailyLimit, setDailyLimit] = useState<number>(isPro ? 50 : 5)
+  const [isLimitBlocked, setIsLimitBlocked] = useState(false)
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -57,6 +68,8 @@ export function SparkDrawer({
   useEffect(() => {
     setMessages([{ role: 'spark', content: buildGreeting() }])
     setInput('')
+    setRemaining(null)
+    setIsLimitBlocked(false)
   }, [lessonId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Scroll to newest message
@@ -74,7 +87,7 @@ export function SparkDrawer({
 
   const handleSend = async () => {
     const trimmed = input.trim()
-    if (!trimmed || isLoading) return
+    if (!trimmed || isLoading || isLimitBlocked) return
 
     const userMsg: SparkMessage = { role: 'user', content: trimmed }
     setMessages(prev => [...prev, userMsg])
@@ -103,8 +116,41 @@ export function SparkDrawer({
       let data: any = {}
       try { data = await res.json() } catch { /* non-JSON */ }
 
+      // Handle limit reached response
+      if (data.limitReached) {
+        setIsLimitBlocked(true)
+        setRemaining(0)
+        setMessages(prev => [
+          ...prev,
+          {
+            role: 'spark',
+            content: data.response,
+            isLimitReached: true,
+            showUpgradeButton: data.showUpgradeButton,
+          },
+        ])
+        return
+      }
+
       if (res.ok && data.response) {
+        // Update usage from API response
+        if (typeof data.remaining === 'number') {
+          setRemaining(data.remaining)
+          setDailyLimit(data.dailyLimit || dailyLimit)
+          if (data.remaining <= 0) setIsLimitBlocked(true)
+        }
+
         setMessages(prev => [...prev, { role: 'spark', content: data.response }])
+
+        // Append a warning as a subtle system message if the API signals one
+        if (data.warning) {
+          setTimeout(() => {
+            setMessages(prev => [
+              ...prev,
+              { role: 'spark', content: data.warning, isWarning: true },
+            ])
+          }, 400)
+        }
       } else {
         setMessages(prev => [
           ...prev,
@@ -129,6 +175,10 @@ export function SparkDrawer({
   }
 
   if (!isOpen && !visible) return null
+
+  const showUsagePill =
+    remaining !== null &&
+    (!isPro || remaining <= 10)
 
   return (
     <>
@@ -164,13 +214,32 @@ export function SparkDrawer({
               <p className="text-[10px] text-primary font-medium truncate max-w-[200px]">{lessonTitle}</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-surface-alt hover:bg-border text-text-2 hover:text-text-1 flex items-center justify-center transition-colors"
-            aria-label="Close Spark"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
+
+          <div className="flex items-center gap-2">
+            {/* Usage pill — Step 5 */}
+            {showUsagePill && (
+              <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-bold font-mono select-none ${
+                remaining === 0
+                  ? 'border-red-400/30 bg-red-500/10 text-red-400'
+                  : remaining <= 1
+                  ? 'border-amber-400/30 bg-amber-500/10 text-amber-400'
+                  : 'border-border bg-surface-alt text-text-2'
+              }`}>
+                <Zap className="h-2.5 w-2.5" />
+                <span>
+                  {remaining} / {dailyLimit} left today
+                </span>
+              </div>
+            )}
+
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full bg-surface-alt hover:bg-border text-text-2 hover:text-text-1 flex items-center justify-center transition-colors"
+              aria-label="Close Spark"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
 
         {/* Messages */}
@@ -180,19 +249,33 @@ export function SparkDrawer({
               key={idx}
               className={`flex gap-2.5 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              {msg.role === 'spark' && (
+              {msg.role === 'spark' && !msg.isWarning && (
                 <div className="shrink-0 mt-0.5">
-                  <Spark emotion="idle" size={22} />
+                  <Spark emotion={msg.isLimitReached ? 'thinking' : 'idle'} size={22} />
                 </div>
               )}
               <div
                 className={`max-w-[82%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed ${
-                  msg.role === 'spark'
+                  msg.isWarning
+                    ? 'bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl text-[11px] font-medium mx-auto text-center w-full max-w-full'
+                    : msg.isLimitReached
+                    ? 'bg-surface-alt border border-red-400/20 text-text-1 rounded-tl-sm space-y-2'
+                    : msg.role === 'spark'
                     ? 'bg-surface-alt border border-border text-text-1 rounded-tl-sm'
                     : 'bg-gradient-to-br from-primary to-accent text-white rounded-tr-sm'
                 }`}
               >
-                {msg.content}
+                {msg.content.split('\n').map((line, i) => (
+                  <p key={i} className={i > 0 ? 'mt-1.5' : ''}>{line}</p>
+                ))}
+                {msg.showUpgradeButton && (
+                  <a
+                    href="/dashboard/profile?tab=billing"
+                    className="mt-3 inline-block w-full text-center py-2 px-4 bg-gradient-to-r from-primary to-accent text-white text-[12px] font-bold rounded-xl hover:opacity-90 transition-opacity"
+                  >
+                    Upgrade to Pro
+                  </a>
+                )}
               </div>
             </div>
           ))}
@@ -214,33 +297,51 @@ export function SparkDrawer({
 
         {/* Input */}
         <div className="shrink-0 px-4 py-3 border-t border-border">
-          <div className="flex items-center gap-2 bg-surface-alt border border-border rounded-xl px-3.5 py-2.5 focus-within:border-primary/50 transition-colors">
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask anything about this lesson..."
-              disabled={isLoading}
-              className="flex-1 bg-transparent text-text-1 placeholder-text-3 text-[13px] outline-none border-none disabled:opacity-50"
-            />
-            <button
-              onClick={handleSend}
-              disabled={!input.trim() || isLoading}
-              className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#5B8EFF] to-[#A78BFA] flex items-center justify-center text-white disabled:opacity-35 transition-opacity hover:opacity-90"
-              aria-label="Send"
-            >
-              {isLoading ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Send className="h-3.5 w-3.5" />
+          {isLimitBlocked ? (
+            <div className="text-center py-2 space-y-1">
+              <p className="text-[11px] text-text-3 font-medium">
+                Spark messages reset at midnight Nigeria time.
+              </p>
+              {!isPro && (
+                <a
+                  href="/dashboard/profile?tab=billing"
+                  className="inline-block text-[11px] font-bold text-primary hover:underline"
+                >
+                  Upgrade to Pro for 50 messages/day →
+                </a>
               )}
-            </button>
-          </div>
-          <p className="text-[10px] text-[#2E3750] text-center mt-1.5">
-            Spark knows your current lesson — ask anything
-          </p>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 bg-surface-alt border border-border rounded-xl px-3.5 py-2.5 focus-within:border-primary/50 transition-colors">
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask anything about this lesson..."
+                disabled={isLoading}
+                className="flex-1 bg-transparent text-text-1 placeholder-text-3 text-[13px] outline-none border-none disabled:opacity-50"
+              />
+              <button
+                onClick={handleSend}
+                disabled={!input.trim() || isLoading}
+                className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#5B8EFF] to-[#A78BFA] flex items-center justify-center text-white disabled:opacity-35 transition-opacity hover:opacity-90"
+                aria-label="Send"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Send className="h-3.5 w-3.5" />
+                )}
+              </button>
+            </div>
+          )}
+          {!isLimitBlocked && (
+            <p className="text-[10px] text-[#2E3750] text-center mt-1.5">
+              Spark knows your current lesson — ask anything
+            </p>
+          )}
         </div>
       </div>
     </>
