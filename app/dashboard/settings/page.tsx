@@ -75,7 +75,7 @@ export default function SettingsPage() {
             setProfile(userProfile)
             setFontSize(userProfile.font_size || 'normal')
             setReminderEnabled(userProfile.reminder_enabled || false)
-            setReminderTime(userProfile.reminder_time || '09:00')
+            setReminderTime(userProfile.daily_reminder_time || userProfile.reminder_time || '09:00')
           }
         }
 
@@ -321,7 +321,9 @@ export default function SettingsPage() {
         .from('profiles')
         .update({
           reminder_enabled: reminderEnabled,
-          reminder_time: reminderTime
+          reminder_time: reminderTime,
+          daily_reminder_time: reminderTime,
+          reminder_timezone: 'Africa/Lagos'
         })
         .eq('id', user.id)
 
@@ -331,7 +333,9 @@ export default function SettingsPage() {
       setProfile((prev: any) => ({
         ...prev,
         reminder_enabled: reminderEnabled,
-        reminder_time: reminderTime
+        reminder_time: reminderTime,
+        daily_reminder_time: reminderTime,
+        reminder_timezone: 'Africa/Lagos'
       }))
     } catch (err: any) {
       console.error(err)

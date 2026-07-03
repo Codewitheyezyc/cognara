@@ -78,6 +78,8 @@ export default function QuizPage() {
   // Onboarding screens progression
   const [isEndSession, setIsEndSession] = useState(false)
   const [reminderSet, setReminderSet] = useState(false)
+  const [showTimePicker, setShowTimePicker] = useState(false)
+  const [selectedTime, setSelectedTime] = useState('08:00')
   const [showXpAnim, setShowXpAnim] = useState(false)
 
   // Quiz testimonial popups
@@ -1019,14 +1021,37 @@ export default function QuizPage() {
     return false
   }
 
+  const formatTime = (timeStr: string) => {
+    if (!timeStr) return ''
+    const [hoursStr, minutesStr] = timeStr.split(':')
+    const hours = parseInt(hoursStr, 10)
+    const ampm = hours >= 12 ? 'PM' : 'AM'
+    const displayHours = hours % 12 || 12
+    return `${displayHours}:${minutesStr} ${ampm}`
+  }
+
   // Handle reminder click
-  const handleSetReminder = async () => {
+  const handleSetReminder = () => {
+    setShowTimePicker(true)
+  }
+
+  const handleConfirmReminder = async () => {
     try {
       if (userId) {
-        await supabase.from('profiles').update({ reminder_enabled: true }).eq('id', userId)
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            reminder_enabled: true,
+            daily_reminder_time: selectedTime,
+            reminder_time: selectedTime,
+            reminder_timezone: 'Africa/Lagos'
+          })
+          .eq('id', userId)
+        if (error) throw error
       }
-      toast('Reminder set! Spark will nudge you tomorrow ⏰')
+      toast(`Reminder set ✓ We will remind you to learn every day at ${formatTime(selectedTime)}`)
       setReminderSet(true)
+      setShowTimePicker(false)
     } catch {
       toast('Failed to set reminder.', 'error')
     }
@@ -1293,20 +1318,60 @@ export default function QuizPage() {
             className={`w-full h-13 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-2 text-[14px] ${
               reminderSet
                 ? 'bg-surface-alt border border-border text-text-3 cursor-not-allowed'
-                : 'bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-text-1 shadow-[0_0_24px_rgba(91,142,255,0.25)]'
+                : 'bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-text-1 shadow-[0_0_24px_rgba(91,142,255,0.25)] font-bold cursor-pointer transition active:scale-[0.99]'
             }`}
           >
             <Bell className="h-4 w-4" />
-            <span>{reminderSet ? 'Reminder Set! ⏰' : 'Set a reminder for tomorrow'}</span>
+            <span>{reminderSet ? `Reminder set for ${formatTime(selectedTime)} daily ⏰` : 'Set a daily reminder'}</span>
           </Button>
           <Button
             onClick={() => router.push('/dashboard')}
             variant="ghost"
-            className="w-full h-13 bg-surface-alt/50 hover:bg-surface-alt border border-border text-text-2 hover:text-text-1 rounded-xl text-[13px] font-bold"
+            className="w-full h-13 bg-surface-alt/50 hover:bg-surface-alt border border-border text-text-2 hover:text-text-1 rounded-xl text-[13px] font-bold cursor-pointer transition active:scale-[0.99]"
           >
             Go to my dashboard
           </Button>
         </div>
+
+        {showTimePicker && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+            <div className="bg-[#111622] border border-border/80 rounded-2xl p-6 w-full max-w-sm space-y-5 shadow-2xl text-center">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-primary">
+                <Bell className="h-6 w-6 animate-bounce-subtle" />
+              </div>
+              
+              <div className="space-y-1">
+                <h3 className="font-heading text-lg font-bold text-text-1">When do you want to learn?</h3>
+                <p className="text-xs text-text-3">Pick a time for daily study reminders.</p>
+              </div>
+
+              <div className="py-1">
+                <input
+                  type="time"
+                  value={selectedTime}
+                  onChange={(e) => setSelectedTime(e.target.value)}
+                  className="w-full h-12 bg-[#1a2130] border border-border rounded-xl text-center text-xl font-bold font-mono text-text-1 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowTimePicker(false)}
+                  className="flex-1 border-border text-text-2 hover:bg-surface hover:text-text-1 rounded-xl h-11 text-xs font-semibold cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleConfirmReminder}
+                  className="flex-1 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-text-1 font-bold rounded-xl h-11 text-xs font-semibold cursor-pointer"
+                >
+                  Confirm
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     )
   }
