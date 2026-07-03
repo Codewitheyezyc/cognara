@@ -85,7 +85,7 @@ export async function checkLessonCache(
   try {
     const { data, error } = await supabase
       .from('cognara_lesson_cache')
-      .select('content, practical_exercise, quality_score')
+      .select('id, content, practical_exercise, quality_score, serve_count')
       .eq('domain', params.domain)
       .eq('subject', params.subject)
       .eq('module', params.module)
@@ -102,6 +102,17 @@ export async function checkLessonCache(
       const lesson = data.content as any
       if (lesson && typeof lesson === 'object' && lesson._isMock !== true) {
         console.log(`[LessonCache] CACHE HIT for topic "${params.topic}" depth ${params.depthLevel} (Quality: ${data.quality_score})`)
+        
+        // Increment serve_count and set last_served_at in background
+        const currentCount = data.serve_count || 0
+        await supabase
+          .from('cognara_lesson_cache')
+          .update({
+            serve_count: currentCount + 1,
+            last_served_at: new Date().toISOString()
+          })
+          .eq('id', data.id)
+
         return {
           lesson: lesson as GeneratedLesson,
           practical: (data.practical_exercise as PracticalExercise | null) || null,
