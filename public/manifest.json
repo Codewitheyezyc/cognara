@@ -1,12 +1,12 @@
 {
   "name": "Cognara",
   "short_name": "Cognara",
-  "description": "Your personalized cognitive adaptive system.",
-  "start_url": "/dashboard",
+  "description": "Your goal. Your roadmap. Your AI mentor.",
+  "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0A0C14",
-  "theme_color": "#5B8EFF",
+  "background_color": "#0F1629",
+  "theme_color": "#0F1629",
   "icons": [
     {
       "src": "/icon-192.png",
