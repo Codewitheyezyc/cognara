@@ -1119,6 +1119,166 @@ export default function DashboardPage() {
           </p>
 
         </div>
+
+        {/* CONFIRMATION MODAL (PORTALED INSIDE STREAK BREAK) */}
+        {confirmInsuranceOpen && mounted && createPortal(
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+            <div className="bg-card border border-border rounded-xl max-w-sm w-full p-6 space-y-6 shadow-2xl relative text-center animate-scaleIn">
+              
+              {/* Pulsing Golden Flame Icon */}
+              <div className="flex justify-center">
+                <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500">
+                  <Flame className="h-9 w-9 fill-current animate-pulse-subtle" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-heading text-lg font-bold text-foreground">
+                  Restore your {daysRestored} day streak?
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  150 CXP will be deducted from your balance.
+                </p>
+              </div>
+
+              {/* Balance Card */}
+              <div className="bg-surface-alt border border-border rounded-xl p-3.5 space-y-1.5 text-xs text-left font-mono">
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Current balance:</span>
+                  <span className="text-foreground font-bold">{currentCxp} CXP</span>
+                </div>
+                <div className="flex justify-between text-amber-500 font-bold border-t border-border/80 pt-1.5">
+                  <span>Balance after restore:</span>
+                  <span>{Math.max(currentCxp - 150, 0)} CXP</span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-2 pt-2">
+                <button
+                  onClick={handleRestoreStreak}
+                  disabled={isRestoringStreak}
+                  className="w-full h-11 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-bold rounded-xl text-xs cursor-pointer shadow-md transition"
+                >
+                  {isRestoringStreak ? "Restoring..." : "Yes — restore my streak"}
+                </button>
+                <button
+                  onClick={() => setConfirmInsuranceOpen(false)}
+                  disabled={isRestoringStreak}
+                  className="text-xs text-muted-foreground hover:text-foreground transition font-bold py-2.5 cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+
+            </div>
+          </div>,
+          document.body
+        )}
+
+        {/* SUCCESS SCREEN (PORTALED INSIDE STREAK BREAK) */}
+        {insuranceSuccessOpen && mounted && createPortal(
+          <div 
+            className="fixed inset-0 z-[101] bg-background text-foreground flex flex-col items-center justify-center p-6 text-center select-none cursor-pointer animate-fadeIn"
+            onClick={handleDismissSuccessScreen}
+          >
+            <div className="space-y-6 max-w-sm w-full animate-scaleIn">
+              <div className="flex justify-center">
+                <div className="w-24 h-24 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 shadow-[0_0_40px_rgba(245,158,11,0.2)] animate-float">
+                  <Flame className="h-14 w-14 fill-current animate-bounce-subtle" />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h2 className="text-3xl font-black text-foreground">
+                  Streak restored. 🔥
+                </h2>
+                <p className="text-sm text-amber-500 font-bold font-mono">
+                  Your {daysRestored} day streak is back.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  150 CXP spent &bull; Balance: {Math.max(currentCxp - 150, 0)} CXP remaining
+                </p>
+              </div>
+
+              <div className="w-12 h-px bg-border/40 mx-auto" />
+
+              <p className="text-xs text-primary font-bold tracking-wide italic">
+                &ldquo;Do not let it break again — your roadmap is waiting.&rdquo;
+              </p>
+              
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest pt-4 animate-pulse">
+                Tap anywhere to continue
+              </p>
+            </div>
+          </div>,
+          document.body
+        )}
+
+        {/* ERROR MESSAGE MODAL (PORTALED INSIDE STREAK BREAK) */}
+        {insuranceError && mounted && createPortal(
+          <div className="fixed inset-0 z-[102] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+            <div className="bg-card border border-border rounded-2xl max-w-sm w-full p-6 space-y-5 shadow-2xl text-center relative animate-scaleIn">
+              
+              <div className="flex justify-center">
+                <div className="w-14 h-14 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-500">
+                  <ShieldAlert className="h-7 w-7" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-heading text-lg font-black text-foreground">
+                  {insuranceError === 'insufficient_cxp' && "Not enough CXP"}
+                  {insuranceError === 'monthly_limit_reached' && "Already used this month"}
+                  {insuranceError === 'offer_expired' && "Offer expired"}
+                  {insuranceError === 'no_streak_to_restore' && "No streak to restore"}
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed px-2">
+                  {insuranceError === 'insufficient_cxp' && "You need 150 CXP to restore your streak. Complete lessons and quizzes to earn more."}
+                  {insuranceError === 'monthly_limit_reached' && `Streak insurance is available once per month. Your next insurance resets on ${new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}.`}
+                  {insuranceError === 'offer_expired' && "Streak insurance must be used within 24 hours of your streak breaking. Start a new streak today."}
+                  {insuranceError === 'no_streak_to_restore' && "Complete your first lesson to start building a streak."}
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2 pt-2">
+                <button
+                  onClick={() => {
+                    setInsuranceError(null)
+                    if (insuranceError === 'insufficient_cxp') {
+                      setShowStreakBreak(false)
+                      if (activeLesson) router.push(`/dashboard/lesson/${activeLesson.id}`)
+                      else router.push('/dashboard/path')
+                    } else if (insuranceError === 'monthly_limit_reached') {
+                      handleStreakBreakJumpIn()
+                    } else if (insuranceError === 'offer_expired') {
+                      handleStreakBreakJumpIn()
+                    } else if (insuranceError === 'no_streak_to_restore') {
+                      setShowStreakBreak(false)
+                      if (activeLesson) router.push(`/dashboard/lesson/${activeLesson.id}`)
+                      else router.push('/dashboard/path')
+                    }
+                  }}
+                  className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl text-xs cursor-pointer shadow-md transition"
+                >
+                  {insuranceError === 'insufficient_cxp' && "Start earning CXP →"}
+                  {insuranceError === 'monthly_limit_reached' && "Start a new streak →"}
+                  {insuranceError === 'offer_expired' && "Jump back in →"}
+                  {insuranceError === 'no_streak_to_restore' && "Start learning →"}
+                </button>
+                <button
+                  onClick={() => setInsuranceError(null)}
+                  className="text-xs text-muted-foreground hover:text-foreground transition font-bold py-2 cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+
+            </div>
+          </div>,
+          document.body
+        )}
+
       </div>
     )
   }
@@ -1647,8 +1807,8 @@ export default function DashboardPage() {
       )}
       {/* CONFIRMATION MODAL (PORTALED) */}
       {confirmInsuranceOpen && mounted && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
-          <div className="bg-[#111424] border border-[#1E2540] rounded-2xl max-w-sm w-full p-6 space-y-6 shadow-2xl relative text-center animate-scaleIn">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-card border border-border rounded-2xl max-w-sm w-full p-6 space-y-6 shadow-2xl relative text-center animate-scaleIn">
             
             {/* Pulsing Golden Flame Icon */}
             <div className="flex justify-center">
@@ -1658,21 +1818,21 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-2">
-              <h3 className="font-heading text-sm font-extrabold text-white">
+              <h3 className="font-heading text-lg font-bold text-foreground">
                 Restore your {streakData?.days_before_break || 0} day streak?
               </h3>
-              <p className="text-xs text-[#8B95B3] leading-relaxed">
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 150 CXP will be deducted from your balance.
               </p>
             </div>
 
             {/* Balance Card */}
-            <div className="bg-[#0A0C14] border border-[#1E2540]/60 rounded-xl p-3.5 space-y-1.5 text-xs text-left font-mono">
-              <div className="flex justify-between text-[#8B95B3]">
+            <div className="bg-surface-alt border border-border rounded-xl p-3.5 space-y-1.5 text-xs text-left font-mono">
+              <div className="flex justify-between text-muted-foreground">
                 <span>Current balance:</span>
-                <span className="text-white font-bold">{profile?.xp || 0} CXP</span>
+                <span className="text-foreground font-bold">{profile?.xp || 0} CXP</span>
               </div>
-              <div className="flex justify-between text-amber-400 font-bold border-t border-[#1E2540]/40 pt-1.5">
+              <div className="flex justify-between text-amber-500 font-bold border-t border-border pt-1.5">
                 <span>Balance after restore:</span>
                 <span>{Math.max((profile?.xp || 0) - 150, 0)} CXP</span>
               </div>
@@ -1690,7 +1850,7 @@ export default function DashboardPage() {
               <button
                 onClick={() => setConfirmInsuranceOpen(false)}
                 disabled={isRestoringStreak}
-                className="text-xs text-[#8B95B3] hover:text-white transition font-bold py-2.5 cursor-pointer"
+                className="text-xs text-muted-foreground hover:text-foreground transition font-bold py-2.5 cursor-pointer"
               >
                 Cancel
               </button>
@@ -1704,10 +1864,10 @@ export default function DashboardPage() {
       {/* SUCCESS SCREEN (PORTALED) */}
       {insuranceSuccessOpen && mounted && createPortal(
         <div 
-          className="fixed inset-0 z-[101] bg-[#0A0C14] text-[#F0F4FF] flex flex-col items-center justify-center p-6 text-center select-none cursor-pointer animate-fadeIn"
+          className="fixed inset-0 z-[101] bg-background text-foreground flex flex-col items-center justify-center p-6 text-center select-none cursor-pointer animate-fadeIn"
           onClick={handleDismissSuccessScreen}
         >
-          <div className="space-y-6 max-w-sm w-full">
+          <div className="space-y-6 max-w-sm w-full animate-scaleIn">
             <div className="flex justify-center">
               <div className="w-24 h-24 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 shadow-[0_0_40px_rgba(245,158,11,0.2)] animate-float">
                 <Flame className="h-14 w-14 fill-current animate-bounce-subtle" />
@@ -1715,24 +1875,24 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-3">
-              <h2 className="text-3xl font-black text-white">
+              <h2 className="text-3xl font-black text-foreground">
                 Streak restored. 🔥
               </h2>
-              <p className="text-sm text-amber-400 font-bold font-mono">
+              <p className="text-sm text-amber-500 font-bold font-mono">
                 Your {streakData?.days_before_break || 0} day streak is back.
               </p>
-              <p className="text-xs text-[#8B95B3]">
-                150 CXP spent &bull; Balance: {profile?.xp || 0} CXP remaining
+              <p className="text-xs text-muted-foreground">
+                150 CXP spent &bull; Balance: {Math.max((profile?.xp || 0) - 150, 0)} CXP remaining
               </p>
             </div>
 
             <div className="w-12 h-px bg-border/40 mx-auto" />
 
-            <p className="text-xs text-[#A78BFA] font-bold tracking-wide italic">
+            <p className="text-xs text-primary font-bold tracking-wide italic">
               &ldquo;Do not let it break again — your roadmap is waiting.&rdquo;
             </p>
             
-            <p className="text-[10px] text-[#4A5272] uppercase tracking-widest pt-4">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest pt-4 animate-pulse">
               Tap anywhere to continue
             </p>
           </div>
@@ -1742,8 +1902,8 @@ export default function DashboardPage() {
 
       {/* ERROR MESSAGE MODAL (PORTALED) */}
       {insuranceError && mounted && createPortal(
-        <div className="fixed inset-0 z-[102] flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
-          <div className="bg-[#111424] border border-[#1E2540] rounded-2xl max-w-sm w-full p-6 space-y-5 shadow-2xl text-center relative animate-scaleIn">
+        <div className="fixed inset-0 z-[102] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-card border border-border rounded-2xl max-w-sm w-full p-6 space-y-5 shadow-2xl text-center relative animate-scaleIn">
             
             <div className="flex justify-center">
               <div className="w-14 h-14 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-500">
@@ -1752,13 +1912,13 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-2">
-              <h3 className="font-heading text-lg font-black text-white">
+              <h3 className="font-heading text-lg font-black text-foreground">
                 {insuranceError === 'insufficient_cxp' && "Not enough CXP"}
                 {insuranceError === 'monthly_limit_reached' && "Already used this month"}
                 {insuranceError === 'offer_expired' && "Offer expired"}
                 {insuranceError === 'no_streak_to_restore' && "No streak to restore"}
               </h3>
-              <p className="text-xs text-[#8B95B3] leading-relaxed px-2">
+              <p className="text-xs text-muted-foreground leading-relaxed px-2">
                 {insuranceError === 'insufficient_cxp' && "You need 150 CXP to restore your streak. Complete lessons and quizzes to earn more."}
                 {insuranceError === 'monthly_limit_reached' && `Streak insurance is available once per month. Your next insurance resets on ${new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}.`}
                 {insuranceError === 'offer_expired' && "Streak insurance must be used within 24 hours of your streak breaking. Start a new streak today."}
@@ -1784,7 +1944,7 @@ export default function DashboardPage() {
                     else router.push('/dashboard/path')
                   }
                 }}
-                className="w-full h-11 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl text-xs cursor-pointer shadow-md transition"
+                className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl text-xs cursor-pointer shadow-md transition"
               >
                 {insuranceError === 'insufficient_cxp' && "Start earning CXP →"}
                 {insuranceError === 'monthly_limit_reached' && "Start a new streak →"}
@@ -1793,9 +1953,9 @@ export default function DashboardPage() {
               </button>
               <button
                 onClick={() => setInsuranceError(null)}
-                className="text-xs text-[#8B95B3] hover:text-white transition font-bold py-2 cursor-pointer"
+                className="text-xs text-muted-foreground hover:text-foreground transition font-bold py-2 cursor-pointer"
               >
-                Close
+                Cancel
               </button>
             </div>
 
