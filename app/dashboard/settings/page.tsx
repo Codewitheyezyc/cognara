@@ -345,6 +345,74 @@ export default function SettingsPage() {
     }
   }
 
+  const formatTime = (timeStr: string) => {
+    if (!timeStr) return ''
+    const [hoursStr, minutesStr] = timeStr.split(':')
+    const hours = parseInt(hoursStr, 10)
+    const ampm = hours >= 12 ? 'PM' : 'AM'
+    const displayHours = hours % 12 || 12
+    return `${displayHours}:${minutesStr} ${ampm}`
+  }
+
+  const handleDisableReminder = async () => {
+    setSavingReminders(true)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          reminder_enabled: false
+        })
+        .eq('id', user.id)
+
+      if (error) throw error
+      setReminderEnabled(false)
+      toast('Reminder notifications disabled.')
+      
+      setProfile((prev: any) => ({
+        ...prev,
+        reminder_enabled: false
+      }))
+    } catch (err: any) {
+      console.error(err)
+      toast(err.message || 'Failed to disable reminder', 'error')
+    } finally {
+      setSavingReminders(false)
+    }
+  }
+
+  const handleEnableReminder = async () => {
+    setSavingReminders(true)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          reminder_enabled: true,
+          reminder_time: reminderTime,
+          daily_reminder_time: reminderTime,
+          reminder_timezone: 'Africa/Lagos'
+        })
+        .eq('id', user.id)
+
+      if (error) throw error
+      setReminderEnabled(true)
+      toast(`Reminder set ✓ We will remind you to study at ${formatTime(reminderTime)} daily`)
+      
+      setProfile((prev: any) => ({
+        ...prev,
+        reminder_enabled: true,
+        reminder_time: reminderTime,
+        daily_reminder_time: reminderTime,
+        reminder_timezone: 'Africa/Lagos'
+      }))
+    } catch (err: any) {
+      console.error(err)
+      toast(err.message || 'Failed to enable reminder', 'error')
+    } finally {
+      setSavingReminders(false)
+    }
+  }
+
+
   if (loading) {
     return (
       <div className="space-y-6 animate-pulse max-w-3xl">
@@ -610,55 +678,71 @@ export default function SettingsPage() {
           <h2 className="font-heading text-xl font-bold text-text-1">Daily Reminder</h2>
         </div>
 
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label className="text-sm font-semibold text-text-1">Daily study reminder</Label>
-              <p className="text-xs text-text-3 mt-1">We will email you when it is time to study</p>
-            </div>
-            <button
-              onClick={() => setReminderEnabled(!reminderEnabled)}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                reminderEnabled ? 'bg-primary' : 'bg-surface-alt border border-border/80'
-              }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out ${
-                  reminderEnabled ? 'translate-x-5' : 'translate-x-0'
-                }`}
-              />
-            </button>
-          </div>
+        <div className="space-y-4">
+          {reminderEnabled ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-surface-alt/40 border border-border rounded-xl">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-primary/10 text-primary rounded-lg">
+                    <Bell className="h-5 w-5 animate-pulse-subtle" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-text-1">
+                      🔔 Reminder active at {formatTime(reminderTime)} daily
+                    </p>
+                    <p className="text-xs text-text-3 mt-0.5">We will nudge you every day in Africa/Lagos time.</p>
+                  </div>
+                </div>
+              </div>
 
-          {reminderEnabled && (
-            <div className="space-y-2 animate-fade-in">
-              <Label htmlFor="reminderTime" className="text-xs text-text-2 font-semibold">
-                What time should we remind you?
-              </Label>
-              <div className="flex gap-4 items-center">
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <div className="flex-1 flex gap-2 items-center">
+                  <Input
+                    id="reminderTime"
+                    type="time"
+                    value={reminderTime}
+                    onChange={(e) => setReminderTime(e.target.value)}
+                    className="h-10 text-xs font-semibold max-w-[120px]"
+                  />
+                  <Button
+                    onClick={handleSaveReminderSettings}
+                    disabled={savingReminders}
+                    className="h-10 text-xs font-semibold bg-primary hover:bg-primary/95 text-text-1 rounded-xl cursor-pointer"
+                  >
+                    Change time
+                  </Button>
+                </div>
+                <Button
+                  onClick={handleDisableReminder}
+                  disabled={savingReminders}
+                  variant="outline"
+                  className="h-10 text-xs font-semibold border-rose-500/20 text-rose-400 hover:bg-rose-500/10 rounded-xl cursor-pointer"
+                >
+                  Turn off
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4 text-center py-6 bg-surface-alt/25 border border-dashed border-border rounded-xl">
+              <p className="text-xs text-text-3 font-medium">No reminder set</p>
+              <div className="flex justify-center gap-3 items-center pt-2">
                 <Input
                   id="reminderTime"
                   type="time"
                   value={reminderTime}
                   onChange={(e) => setReminderTime(e.target.value)}
-                  className="w-full sm:w-auto"
+                  className="h-10 text-xs font-semibold max-w-[120px]"
                 />
+                <Button
+                  onClick={handleEnableReminder}
+                  disabled={savingReminders}
+                  className="h-10 text-xs font-semibold bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-text-1 font-bold rounded-xl cursor-pointer"
+                >
+                  Set daily reminder
+                </Button>
               </div>
             </div>
           )}
-
-          <div className="flex justify-end pt-2">
-            <Button onClick={handleSaveReminderSettings} disabled={savingReminders}>
-              {savingReminders ? (
-                <>
-                  <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
-                  Saving...
-                </>
-              ) : (
-                'Save reminder settings'
-              )}
-            </Button>
-          </div>
         </div>
       </div>
 
