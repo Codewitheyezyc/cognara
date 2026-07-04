@@ -56,6 +56,26 @@ export default function SettingsPage() {
 
   const [showDeleteDataModal, setShowDeleteDataModal] = useState(false)
 
+  // Cancellation & Pause states
+  const [showPauseOffer, setShowPauseOffer] = useState(false)
+  const [showPauseAlreadyUsed, setShowPauseAlreadyUsed] = useState(false)
+  const [showCancellationSurvey, setShowCancellationSurvey] = useState(false)
+  const [showAchievedFlow, setShowAchievedFlow] = useState(false)
+  const [selectedReason, setSelectedReason] = useState('')
+  const [additionalText, setAdditionalText] = useState('')
+  const [starRating, setStarRating] = useState(5)
+  const [isSubmittingCancellation, setIsSubmittingCancellation] = useState(false)
+  const [isSubmittingPause, setIsSubmittingPause] = useState(false)
+  const [loadingCancelInfo, setLoadingCancelInfo] = useState(false)
+  const [cancelInfo, setCancelInfo] = useState<{
+    goalName: string
+    progressPercent: number
+    lessonsCompleted: number
+    startedAt: string
+    subscriptionPlan: string
+    pauseUsedThisYear: boolean
+  } | null>(null)
+
   // Load user profile & preferences
   useEffect(() => {
     async function loadSettings() {
@@ -98,6 +118,172 @@ export default function SettingsPage() {
     }
     loadSettings()
   }, [supabase])
+
+  const handleCancelSubscriptionClick = async () => {
+    setLoadingCancelInfo(true)
+    try {
+      // 1. Fetch active goal and progress stats
+      const { data: goalRow } = await supabase
+        .from('learning_goals')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle()
+
+      let goalName = 'General Path'
+      let totalLessons = 0
+      let completedLessons = 0
+      let progressPercent = 0
+
+      if (goalRow) {
+        goalName = goalRow.subject || goalRow.goal_text || 'General Path'
+        
+        const { data: roadmapRow } = await supabase
+          .from('roadmaps')
+          .select('id')
+          .eq('goal_id', goalRow.id)
+          .eq('user_id', user.id)
+          .maybeSingle()
+
+        if (roadmapRow) {
+          const { data: lessonsData } = await supabase
+            .from('lessons')
+            .select('id')
+            .eq('roadmap_id', roadmapRow.id)
+          
+          totalLessons = lessonsData?.length || 0
+          const activeLessonIds = lessonsData?.map((l: any) => l.id) || []
+
+          if (activeLessonIds.length > 0) {
+            const { count } = await supabase
+              .from('lesson_progress')
+              .select('*', { count: 'exact', head: true })
+              .eq('user_id', user.id)
+              .eq('status', 'completed')
+              .in('lesson_id', activeLessonIds)
+            
+            completedLessons = count || 0
+          }
+        }
+      }
+
+      progressPercent = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
+
+      // 2. Fetch active subscription details
+      const { data: subRow } = await supabase
+        .from('cognara_subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle()
+
+      // 3. Set cancel info state
+      setCancelInfo({
+        goalName,
+        progressPercent,
+        lessonsCompleted: completedLessons,
+        startedAt: subRow?.started_at || subRow?.start_date || subRow?.created_at || new Date().toISOString(),
+        subscriptionPlan: subRow?.plan || profile?.subscription_tier || 'pro_monthly',
+        pauseUsedThisYear: subRow?.pause_used_this_year || false
+      })
+
+      // 4. Determine screen
+      if (subRow?.pause_used_this_year) {
+        setShowPauseAlreadyUsed(true)
+      } else {
+        setShowPauseOffer(true)
+      }
+    } catch (err) {
+      console.error('Error fetching cancellation info:', err)
+      toast('Failed to retrieve subscription status.')
+    } finally {
+      setLoadingCancelInfo(false)
+    }
+  }
+
+  const handlePauseSubscription = async () => {
+    setIsSubmittingPause(true)
+    try {
+      const response = await fetch('/api/subscription/pause', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        setShowPauseOffer(false)
+        toast('Subscription paused for 1 month.')
+        
+        // Refresh local profile state
+        const { data: updatedProfile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle()
+        if (updatedProfile) {
+          setProfile(updatedProfile)
+        }
+      } else {
+        throw new Error(result.error || 'Failed to pause subscription')
+      }
+    } catch (err: any) {
+      console.error('Error pausing subscription:', err)
+      toast(err.message || 'There was an error pausing your subscription.')
+    } finally {
+      setIsSubmittingPause(false)
+    }
+  }
+
+  const handleConfirmCancellation = async (reasonVal: string, ratingVal?: number | null, textVal?: string) => {
+    setIsSubmittingCancellation(true)
+    try {
+      const response = await fetch('/api/subscription/cancel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          reason: reasonVal,
+          additionalText: reasonVal === 'achieved_goal' ? '' : textVal,
+          starRating: ratingVal,
+          testimonialText: reasonVal === 'achieved_goal' ? textVal : '',
+          goalName: cancelInfo?.goalName,
+          subscriptionPlan: cancelInfo?.subscriptionPlan,
+          startedAt: cancelInfo?.startedAt
+        })
+      })
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        setShowCancellationSurvey(false)
+        setShowAchievedFlow(false)
+        
+        toast('Subscription cancelled. Your progress stays safe.')
+
+        // Refresh local profile state
+        const { data: updatedProfile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle()
+        if (updatedProfile) {
+          setProfile(updatedProfile)
+        }
+        
+        router.push('/dashboard')
+      } else {
+        throw new Error(result.error || 'Failed to cancel subscription')
+      }
+    } catch (err: any) {
+      console.error('Error cancelling subscription:', err)
+      toast(err.message || 'There was an error cancelling your subscription.')
+    } finally {
+      setIsSubmittingCancellation(false)
+    }
+  }
 
   // Email Update Handler
   const handleUpdateEmail = async () => {
@@ -544,6 +730,24 @@ export default function SettingsPage() {
               <p className="text-text-2 leading-relaxed">
                 Your premium access is active. All premium roadmap paths, depth levels (up to Expert), coding workspaces, and analytics are unlocked. Your subscription payments are processed securely via Paystack.
               </p>
+              <div className="pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancelSubscriptionClick}
+                  disabled={loadingCancelInfo}
+                  className="w-full sm:w-auto border-red-500/20 text-red-500 hover:bg-red-500/10 font-semibold"
+                >
+                  {loadingCancelInfo ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                      Checking subscription status...
+                    </>
+                  ) : (
+                    'Cancel Subscription'
+                  )}
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -859,6 +1063,294 @@ export default function SettingsPage() {
                 {deletingAccount ? 'Deleting Account...' : 'Permanently Delete Account'}
               </Button>
             </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* MODAL 3: PAUSE OFFER */}
+      {showPauseOffer && mounted && cancelInfo && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="bg-surface border border-border rounded-xl max-w-md w-full p-6 shadow-2xl animate-page-enter space-y-5 text-center">
+            {/* Spark mascot */}
+            <div className="flex justify-center">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-3xl animate-bounce-subtle">
+                ✨
+              </div>
+            </div>
+
+            {/* Headline */}
+            <h2 className="text-text-1 font-heading font-bold text-xl">
+              Before you go, {profile?.name || 'Learner'}
+            </h2>
+
+            {/* Progress summary */}
+            <div className="bg-surface-alt/50 border border-border/80 rounded-xl p-4 text-left space-y-3">
+              <p className="text-text-2 text-xs font-semibold text-center mb-1">
+                Here is what you have already built:
+              </p>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-text-3 font-medium">Goal</span>
+                  <span className="font-bold text-text-1">{cancelInfo.goalName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-text-3 font-medium">Progress</span>
+                  <span className="font-bold text-text-1">{cancelInfo.progressPercent}% complete</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-text-3 font-medium">Lessons Completed</span>
+                  <span className="font-bold text-text-1">{cancelInfo.lessonsCompleted}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Pause offer description */}
+            <p className="text-text-2 text-xs leading-relaxed">
+              Not ready to continue right now? Pause for a month instead. <strong>No charge</strong>. Your progress stays exactly where it is. Resume whenever you are ready.
+            </p>
+
+            {/* Actions */}
+            <div className="space-y-3">
+              <Button
+                onClick={handlePauseSubscription}
+                disabled={isSubmittingPause}
+                className="w-full bg-primary hover:bg-primary/95 text-white font-bold py-3 rounded-xl"
+              >
+                {isSubmittingPause ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Pausing subscription...
+                  </>
+                ) : (
+                  'Pause for 1 month — free'
+                )}
+              </Button>
+
+              <button
+                onClick={() => {
+                  setShowPauseOffer(false)
+                  setShowCancellationSurvey(true)
+                }}
+                disabled={isSubmittingPause}
+                className="w-full text-text-3 hover:text-text-2 text-xs font-semibold py-2 transition"
+              >
+                Cancel my subscription anyway
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* MODAL 4: PAUSE ALREADY USED */}
+      {showPauseAlreadyUsed && mounted && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="bg-surface border border-border rounded-xl max-w-md w-full p-6 shadow-2xl animate-page-enter space-y-5 text-center">
+            {/* Warning icon */}
+            <div className="flex justify-center">
+              <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center text-3xl text-amber-500">
+                ⚠️
+              </div>
+            </div>
+
+            <h2 className="text-text-1 font-heading font-bold text-xl">
+              Pause already used
+            </h2>
+            
+            <p className="text-text-2 text-xs leading-relaxed">
+              You have already used your one subscription pause this year. Your subscription pause resets each year.
+            </p>
+
+            <div className="space-y-3">
+              <Button
+                onClick={() => {
+                  setShowPauseAlreadyUsed(false)
+                  setShowCancellationSurvey(true)
+                }}
+                className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/25 font-bold py-3 rounded-xl"
+              >
+                Cancel my subscription anyway
+              </Button>
+
+              <button
+                onClick={() => setShowPauseAlreadyUsed(false)}
+                className="w-full text-text-3 hover:text-text-2 text-xs font-semibold py-2 transition"
+              >
+                Keep my subscription active
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* MODAL 5: CANCELLATION SURVEY */}
+      {showCancellationSurvey && mounted && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="bg-surface border border-border rounded-xl max-w-md w-full p-6 shadow-2xl animate-page-enter space-y-5 overflow-y-auto max-h-[90vh] text-left p-6">
+            
+            {showAchievedFlow ? (
+              // Achieved Goal Celebration and Story Sharing
+              <div className="space-y-5 text-center">
+                <div className="text-4xl animate-pulse">🎉</div>
+                
+                <h2 className="text-text-1 font-heading font-bold text-xl">
+                  You achieved your goal on Cognara!
+                </h2>
+                
+                <p className="text-text-2 text-xs leading-relaxed">
+                  That is exactly what we built this for. Would you share your story before you go? It could inspire someone who is just starting.
+                </p>
+
+                {/* Star rating */}
+                <div className="flex justify-center gap-2 mb-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      className="text-3xl transition hover:scale-115 cursor-pointer"
+                      onClick={() => setStarRating(star)}
+                    >
+                      {star <= starRating ? '⭐' : '☆'}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Testimonial input */}
+                <div className="space-y-1.5 text-left">
+                  <Label htmlFor="testimonialText" className="text-xs font-semibold text-text-2">
+                    Your Story
+                  </Label>
+                  <textarea
+                    id="testimonialText"
+                    placeholder="What did you achieve? How did Cognara help?"
+                    value={additionalText}
+                    onChange={(e) => setAdditionalText(e.target.value)}
+                    maxLength={500}
+                    rows={4}
+                    className="w-full bg-surface-alt border border-border rounded-lg p-3 text-text-1 text-xs resize-none focus:outline-none focus:border-primary transition"
+                  />
+                  <p className="text-[10px] text-text-3 text-right">
+                    {additionalText.length}/500
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <Button
+                    onClick={() => handleConfirmCancellation('achieved_goal', starRating, additionalText)}
+                    disabled={isSubmittingCancellation}
+                    className="w-full bg-primary hover:bg-primary/95 text-white font-bold py-3 rounded-xl"
+                  >
+                    {isSubmittingCancellation ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Cancelling...
+                      </>
+                    ) : (
+                      'Share my story and cancel'
+                    )}
+                  </Button>
+
+                  <button
+                    onClick={() => handleConfirmCancellation('achieved_goal', null, '')}
+                    disabled={isSubmittingCancellation}
+                    className="w-full text-text-3 hover:text-text-2 text-xs font-semibold py-2 transition"
+                  >
+                    Skip story and cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              // Main Survey Reasons List
+              <div className="space-y-5">
+                <h2 className="text-text-1 font-heading font-bold text-xl text-center">
+                  Before you go
+                </h2>
+                
+                <p className="text-text-2 text-xs text-center leading-relaxed">
+                  One quick question. Your feedback helps us improve Cognara for everyone.
+                </p>
+
+                {/* Reasons */}
+                <div className="space-y-2.5">
+                  {[
+                    { value: 'too_expensive', label: 'Too expensive' },
+                    { value: 'not_enough_time', label: 'Not enough time to learn' },
+                    { value: 'not_useful', label: 'Did not find it useful' },
+                    { value: 'found_alternative', label: 'Found another platform' },
+                    { value: 'achieved_goal', label: 'I achieved my goal 🎉' },
+                    { value: 'other', label: 'Other' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => {
+                        setSelectedReason(opt.value)
+                        if (opt.value === 'achieved_goal') {
+                          setShowAchievedFlow(true)
+                          setAdditionalText('')
+                        }
+                      }}
+                      className={`w-full text-left p-3.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                        selectedReason === opt.value
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border bg-surface-alt/40 hover:bg-surface-alt/75 text-text-2'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Textarea for Other */}
+                {selectedReason === 'other' && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="otherFeedback" className="text-xs font-semibold text-text-2">
+                      Please tell us more (optional)
+                    </Label>
+                    <textarea
+                      id="otherFeedback"
+                      placeholder="Your feedback..."
+                      value={additionalText}
+                      onChange={(e) => setAdditionalText(e.target.value)}
+                      maxLength={200}
+                      rows={3}
+                      className="w-full bg-surface-alt border border-border rounded-lg p-3 text-text-1 text-xs resize-none focus:outline-none focus:border-primary transition"
+                    />
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="space-y-3 pt-2">
+                  <Button
+                    onClick={() => handleConfirmCancellation(selectedReason, null, additionalText)}
+                    disabled={!selectedReason || isSubmittingCancellation}
+                    className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/25 font-bold py-3 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmittingCancellation ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Cancelling...
+                      </>
+                    ) : (
+                      'Submit and cancel'
+                    )}
+                  </Button>
+
+                  <Button
+                    onClick={() => {
+                      setShowCancellationSurvey(false)
+                      setSelectedReason('')
+                      setAdditionalText('')
+                      toast('Great — your subscription continues')
+                    }}
+                    disabled={isSubmittingCancellation}
+                    className="w-full bg-primary hover:bg-primary/95 text-white font-bold py-3 rounded-xl"
+                  >
+                    Actually, keep my subscription
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </div>,
         document.body
