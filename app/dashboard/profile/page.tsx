@@ -146,6 +146,9 @@ export default function ProfilePage() {
   const [quizAttempts, setQuizAttempts] = useState<any[]>([])
   const [quizzes, setQuizzes] = useState<any[]>([])
   const [userQuests, setUserQuests] = useState<any[]>([])
+  
+  // Streak Badges States
+  const [streakBadges, setStreakBadges] = useState<any[]>([])
 
   // Layout & UI States
   const [isLoading, setIsLoading] = useState(true)
@@ -227,6 +230,14 @@ export default function ProfilePage() {
           .select('*')
           .eq('user_id', user.id)
         setUserBadges(badgeData || [])
+
+        // 5c. Fetch Streak Badges
+        const { data: streakBadgesData } = await supabase
+          .from('cognara_streak_badges')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('streak_days', { ascending: true })
+        setStreakBadges(streakBadgesData || [])
 
         // 5b. Fetch referrals
         try {
@@ -1400,6 +1411,43 @@ export default function ProfilePage() {
               )}
             </div>
 
+            {/* STREAK BADGES SECTION */}
+            <div className="p-6 bg-surface border border-border rounded-2xl shadow-xl space-y-6">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2 border-b border-border pb-3">
+                🔥 My Streak Badges
+              </h3>
+
+              {!streakBadges || streakBadges.length === 0 ? (
+                <div className="py-8 px-4 text-center rounded-xl bg-surface-alt/20 border border-dashed border-border flex flex-col items-center justify-center space-y-2">
+                  <Flame className="h-6 w-6 text-text-2" />
+                  <p className="text-xs text-text-2 max-w-xs leading-relaxed">
+                    Earn badges by maintaining study streaks of 7, 30, or 100 days!
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {streakBadges.map((badge) => (
+                    <div
+                      key={badge.id}
+                      className="p-3 rounded-xl bg-surface-alt/45 border border-border flex flex-col items-center justify-between space-y-3 cursor-pointer hover:border-primary/40 hover:bg-surface-alt transition duration-150"
+                      onClick={() => setSelectedBadge(badge)}
+                    >
+                      <div className="rounded-lg overflow-hidden border border-border/85 shadow-xs">
+                        <img
+                          src={badge.badge_url_png}
+                          alt={`${badge.streak_days} day streak`}
+                          className="w-full h-auto"
+                        />
+                      </div>
+                      <span className="text-[11px] font-mono font-bold text-text-2">
+                        {badge.streak_days} Day Milestone
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* ACCOUNT SETTINGS */}
             <div className="p-6 bg-surface border border-border rounded-2xl shadow-xl space-y-6">
               <h3 className="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2 border-b border-border pb-3">
@@ -2075,6 +2123,103 @@ export default function ProfilePage() {
                   {isDeleting ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'Confirm'}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {selectedBadge && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="bg-surface border border-border rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center space-y-4 animate-page-enter">
+            {/* Badge preview */}
+            <div className="rounded-xl overflow-hidden border border-border shadow-md">
+              <img
+                src={selectedBadge.badge_url_png}
+                alt={`${selectedBadge.streak_days} day streak badge`}
+                className="w-full h-auto"
+              />
+            </div>
+
+            {/* Message details */}
+            <div className="space-y-1 text-center">
+              <h3 className="text-text-1 font-heading font-extrabold text-base flex items-center justify-center gap-1.5">
+                {selectedBadge.streak_days === 7 && '🔥 7 Day Streak!'}
+                {selectedBadge.streak_days === 30 && '⚡ 30 Day Streak!'}
+                {selectedBadge.streak_days === 100 && '👑 100 Day Streak!'}
+              </h3>
+              <p className="text-[12.5px] text-text-2 leading-relaxed">
+                {selectedBadge.streak_days === 7 && "One week of consistent daily learning on Cognara."}
+                {selectedBadge.streak_days === 30 && "One month of showing up and building a daily habit."}
+                {selectedBadge.streak_days === 100 && "100 days of unstoppable momentum. Extraordinary discipline!"}
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="space-y-2 pt-2 border-t border-border/55">
+              <p className="text-[10px] uppercase tracking-wider font-bold text-text-3">
+                Share this milestone
+              </p>
+
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  onClick={() => {
+                    const msg = selectedBadge.streak_days === 7 
+                      ? "One week. Every single day. That is not luck — that is discipline."
+                      : selectedBadge.streak_days === 30 
+                      ? "30 days of showing up. You are not just learning. You are building a habit."
+                      : "100 days. This is extraordinary. You are in the top 1% of learners on Cognara."
+
+                    const shareText = `I just hit a ${selectedBadge.streak_days}-day learning streak on Cognara 🔥\n\n${msg}\n\nIf you have a goal and need a structured path to get there — cognaralearn.com`
+                    window.open(
+                      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
+                        window.location.origin
+                      )}&text=${encodeURIComponent(shareText)}`,
+                      '_blank'
+                    )
+                  }}
+                  className="h-11 bg-[#0A66C2] hover:bg-[#0A66C2]/90 text-white font-bold rounded-xl text-xs"
+                >
+                  LinkedIn
+                </Button>
+
+                <Button
+                  onClick={() => {
+                    const msg = selectedBadge.streak_days === 7 
+                      ? "One week. Every single day. That is not luck — that is discipline."
+                      : selectedBadge.streak_days === 30 
+                      ? "30 days of showing up. You are not just learning. You are building a habit."
+                      : "100 days. This is extraordinary. You are in the top 1% of learners on Cognara."
+
+                    const shareText = `I just hit a ${selectedBadge.badge_url_png || selectedBadge.streak_days}-day learning streak on Cognara! ${msg} Check it out: cognaralearn.com`
+                    window.open(
+                      `https://wa.me/?text=${encodeURIComponent(shareText)}`,
+                      '_blank'
+                    )
+                  }}
+                  className="h-11 bg-[#25D366] hover:bg-[#25D366]/90 text-white font-bold rounded-xl text-xs"
+                >
+                  WhatsApp
+                </Button>
+              </div>
+
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const link = document.createElement('a')
+                  link.href = selectedBadge.badge_url_png
+                  link.download = `cognara-${selectedBadge.streak_days}-day-streak.png`
+                  link.click()
+                }}
+                className="w-full h-11 border-border hover:bg-surface-alt text-text-2 font-bold rounded-xl text-xs"
+              >
+                Download Badge
+              </Button>
+
+              <button
+                onClick={() => setSelectedBadge(null)}
+                className="w-full text-text-3 hover:text-text-2 text-xs font-semibold py-2 transition"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

@@ -2,6 +2,8 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import React, { useEffect, useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
+import html2canvas from 'html2canvas'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, CheckCircle2, XCircle, Flame, Heart, Sparkles, Check, X, Bell } from 'lucide-react'
@@ -106,6 +108,12 @@ export default function QuizPage() {
   const [phaseCompleteData, setPhaseCompleteData] = useState<any>(null)
 
   const [hasWelcomeBonus, setHasWelcomeBonus] = useState(false)
+
+  // Streak milestone celebration states
+  const [showStreakMilestoneModal, setShowStreakMilestoneModal] = useState(false)
+  const [milestoneStreakDays, setMilestoneStreakDays] = useState<number | null>(null)
+  const [milestoneBadgeUrl, setMilestoneBadgeUrl] = useState<string | null>(null)
+  const [isGeneratingBadge, setIsGeneratingBadge] = useState(false)
   const [showWelcomeBonusAnim, setShowWelcomeBonusAnim] = useState(false)
 
 
@@ -367,6 +375,99 @@ export default function QuizPage() {
     }
   }
 
+  const checkStreakMilestones = async (currentStreak: number) => {
+    const milestones = [7, 30, 100]
+    if (!milestones.includes(currentStreak)) return
+
+    try {
+      // Check if badge already generated for this milestone
+      const { data: existing } = await supabase
+        .from('cognara_streak_badges')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('streak_days', currentStreak)
+        .maybeSingle()
+
+      if (existing) return
+
+      // Set milestone states to trigger the hidden template rendering
+      setMilestoneStreakDays(currentStreak)
+      setIsGeneratingBadge(true)
+
+      // We need to wait for the DOM to update so the hidden template is rendered before html2canvas captures it
+      setTimeout(async () => {
+        try {
+          await generateStreakBadge(currentStreak)
+        } catch (genErr) {
+          console.error('[Streak Badge] Generation failed:', genErr)
+          setIsGeneratingBadge(false)
+        }
+      }, 800)
+    } catch (err) {
+      console.error('[Streak Badge] Error checking milestones:', err)
+    }
+  }
+
+  const generateStreakBadge = async (streakDays: number) => {
+    const element = document.getElementById(`streak-badge-${streakDays}`)
+    if (!element) {
+      throw new Error(`Element #streak-badge-${streakDays} not found in DOM`)
+    }
+
+    const canvas = await html2canvas(element, {
+      scale: 1,
+      useCORS: true,
+      backgroundColor: '#0F1629'
+    })
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, 'image/png', 1.0)
+    })
+
+    if (!blob) {
+      throw new Error('Canvas conversion to Blob failed')
+    }
+
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'cognara'
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'cognara_badges'
+
+    const formData = new FormData()
+    formData.append('file', blob)
+    formData.append('upload_preset', uploadPreset)
+    formData.append('folder', 'cognara/streak-badges')
+
+    const cloudinaryResponse = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      { method: 'POST', body: formData }
+    )
+
+    if (!cloudinaryResponse.ok) {
+      const errData = await cloudinaryResponse.json()
+      throw new Error(errData?.error?.message || 'Cloudinary upload failed')
+    }
+
+    const cloudinaryData = await cloudinaryResponse.json()
+    const badgeUrl = cloudinaryData.secure_url
+
+    // Save to Supabase
+    const { error: dbErr } = await supabase
+      .from('cognara_streak_badges')
+      .insert({
+        user_id: userId,
+        streak_days: streakDays,
+        badge_url_png: badgeUrl,
+        created_at: new Date().toISOString()
+      })
+
+    if (dbErr) {
+      console.error('[Streak Badge] Failed to save to database:', dbErr)
+    }
+
+    setMilestoneBadgeUrl(badgeUrl)
+    setShowStreakMilestoneModal(true)
+    setIsGeneratingBadge(false)
+  }
+
   // Handle proceeding to next question or final results submission
   const handleNextQuestion = async () => {
     if (currentIdx < questions.length - 1) {
@@ -452,6 +553,12 @@ export default function QuizPage() {
           })
         } catch (badgeErr) {
           console.error('Error checking badges on quiz submit:', badgeErr)
+        }
+
+        // Check and trigger streak milestone badges
+        const finalStreak = result.currentStreak || result.streak?.current || 0
+        if (finalStreak > 0) {
+          await checkStreakMilestones(finalStreak)
         }
       } catch (err: any) {
         console.error(err)
@@ -1934,6 +2041,312 @@ export default function QuizPage() {
           </div>
         </div>
       )}
+
+      {/* Hidden Streak Badge Template for Canvas Capture */}
+      {milestoneStreakDays && (
+        <div style={{ position: 'absolute', left: '-9999px', top: '-9999px', pointerEvents: 'none' }}>
+          <StreakBadgeTemplate
+            userName={profile?.name || 'Learner'}
+            streakDays={milestoneStreakDays}
+          />
+        </div>
+      )}
+
+      {/* Generating Overlay Modal for Streak Badges */}
+      {isGeneratingBadge && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="w-full max-w-sm bg-surface border border-border rounded-2xl shadow-2xl p-6 text-center space-y-4">
+            <div className="w-10 h-10 border-4 border-[#5B8EFF]/20 border-t-[#5B8EFF] rounded-full animate-spin mx-auto" />
+            <div className="space-y-1.5">
+              <h3 className="text-sm font-bold text-text-1 uppercase tracking-wider">Generating Badge</h3>
+              <p className="text-xs text-text-2">Creating your shareable streak milestone card...</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Streak Milestone Celebration Modal */}
+      {showStreakMilestoneModal && milestoneStreakDays && milestoneBadgeUrl && (
+        <StreakMilestoneModal
+          streakDays={milestoneStreakDays}
+          badgeUrl={milestoneBadgeUrl}
+          userName={profile?.name || 'Learner'}
+          onClose={() => {
+            setShowStreakMilestoneModal(false)
+            setMilestoneStreakDays(null)
+            setMilestoneBadgeUrl(null)
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+interface StreakBadgeTemplateProps {
+  userName: string
+  streakDays: number
+}
+
+function StreakBadgeTemplate({ 
+  userName, 
+  streakDays
+}: StreakBadgeTemplateProps) {
+  const milestoneConfig: Record<number, { emoji: string; label: string; color: string; message: string }> = {
+    7: {
+      emoji: '🔥',
+      label: '7 Day Streak',
+      color: '#F59E0B',
+      message: 'One week of consistent learning'
+    },
+    30: {
+      emoji: '⚡',
+      label: '30 Day Streak',
+      color: '#6366F1',
+      message: 'One month of showing up every day'
+    },
+    100: {
+      emoji: '👑',
+      label: '100 Day Streak',
+      color: '#10B981',
+      message: '100 days of unstoppable learning'
+    }
+  }
+
+  const config = milestoneConfig[streakDays] || milestoneConfig[7]
+
+  return (
+    <div
+      id={`streak-badge-${streakDays}`}
+      style={{
+        width: '1200px',
+        height: '630px',
+        backgroundColor: '#0F1629',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'Inter, sans-serif',
+        position: 'relative',
+        overflow: 'hidden'
+      }}
+    >
+      {/* Background subtle pattern */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        background: `radial-gradient(circle at 50% 50%, ${config.color}15 0%, transparent 70%)`
+      }} />
+
+      {/* Cognara logo */}
+      <img
+        src="/cognara-logo.png"
+        alt="Cognara"
+        style={{
+          height: '40px',
+          marginBottom: '32px',
+          opacity: 0.9
+        }}
+      />
+
+      {/* Emoji */}
+      <div style={{
+        fontSize: '72px',
+        marginBottom: '16px',
+        lineHeight: 1
+      }}>
+        {config.emoji}
+      </div>
+
+      {/* Streak number */}
+      <div style={{
+        fontSize: '80px',
+        fontWeight: '900',
+        color: config.color,
+        lineHeight: 1,
+        marginBottom: '8px'
+      }}>
+        {streakDays}
+      </div>
+
+      {/* Label */}
+      <div style={{
+        fontSize: '32px',
+        fontWeight: '700',
+        color: '#FFFFFF',
+        marginBottom: '16px',
+        letterSpacing: '0.05em'
+      }}>
+        {config.label}
+      </div>
+
+      {/* User name */}
+      <div style={{
+        fontSize: '20px',
+        color: '#94A3B8',
+        marginBottom: '8px'
+      }}>
+        {userName}
+      </div>
+
+      {/* Message */}
+      <div style={{
+        fontSize: '18px',
+        color: '#64748B',
+        marginBottom: '32px'
+      }}>
+        {config.message}
+      </div>
+
+      {/* Cognara URL */}
+      <div style={{
+        fontSize: '16px',
+        color: config.color,
+        letterSpacing: '0.1em',
+        fontWeight: '600'
+      }}>
+        cognaralearn.com
+      </div>
+
+    </div>
+  )
+}
+
+interface StreakMilestoneModalProps {
+  streakDays: number
+  badgeUrl: string
+  userName: string
+  onClose: () => void
+}
+
+function StreakMilestoneModal({
+  streakDays,
+  badgeUrl,
+  userName,
+  onClose
+}: StreakMilestoneModalProps) {
+  const messages: Record<number, string> = {
+    7: "One week. Every single day. That is not luck — that is discipline.",
+    30: "30 days of showing up. You are not just learning. You are building a habit.",
+    100: "100 days. This is extraordinary. You are in the top 1% of learners on Cognara."
+  }
+
+  const msg = messages[streakDays] || messages[7]
+
+  const shareText = {
+    linkedin: `I just hit a ${streakDays}-day learning streak on Cognara 🔥\n\n${msg}\n\nIf you have a goal and need a structured path to get there — cognaralearn.com`,
+    twitter: `${streakDays}-day learning streak on Cognara ${streakDays === 7 ? '🔥' : streakDays === 30 ? '⚡' : '👑'}\n\n${msg}\n\ncognaralearn.com`,
+    whatsapp: `I just hit a ${streakDays}-day learning streak on Cognara! ${msg} Check it out: cognaralearn.com`
+  }
+
+  const handleShareNative = async () => {
+    try {
+      const response = await fetch(badgeUrl)
+      const blob = await response.blob()
+      const file = new File(
+        [blob], 
+        `cognara-${streakDays}-day-streak.png`,
+        { type: 'image/png' }
+      )
+      if (navigator.share) {
+        await navigator.share({
+          title: `${streakDays} Day Learning Streak`,
+          text: shareText.twitter,
+          files: [file]
+        })
+      }
+    } catch (err) {
+      console.error('Error sharing natively:', err)
+    }
+  }
+
+  const isShareSupported = typeof navigator !== 'undefined' && !!navigator.share
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="bg-surface border border-border rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center space-y-4 animate-page-enter">
+        {/* Badge preview */}
+        <div className="rounded-xl overflow-hidden border border-border shadow-md">
+          <img
+            src={badgeUrl}
+            alt={`${streakDays} day streak badge`}
+            className="w-full h-auto"
+          />
+        </div>
+
+        {/* Message */}
+        <div className="space-y-1">
+          <h3 className="text-text-1 font-heading font-extrabold text-base flex items-center justify-center gap-1.5">
+            {streakDays === 7 && '🔥 7 Day Streak!'}
+            {streakDays === 30 && '⚡ 30 Day Streak!'}
+            {streakDays === 100 && '👑 100 Day Streak!'}
+          </h3>
+          <p className="text-[12.5px] text-text-2 leading-relaxed">
+            {msg}
+          </p>
+        </div>
+
+        {/* Share buttons */}
+        <div className="space-y-2 pt-2 border-t border-border/50">
+          <p className="text-[10px] uppercase tracking-wider font-bold text-text-3">
+            Share your achievement
+          </p>
+
+          {isShareSupported && (
+            <Button
+              onClick={handleShareNative}
+              className="w-full h-11 bg-primary hover:bg-primary/95 text-text-1 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5"
+            >
+              Share my streak
+            </Button>
+          )}
+
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              onClick={() => {
+                window.open(
+                  `https://www.linkedin.com/sharing/share-offsite/?url=https://www.cognaralearn.com`,
+                  '_blank'
+                )
+              }}
+              className="h-11 bg-[#0A66C2] hover:bg-[#0A66C2]/90 text-white font-bold rounded-xl text-xs"
+            >
+              LinkedIn
+            </Button>
+
+            <Button
+              onClick={() => {
+                window.open(
+                  `https://wa.me/?text=${encodeURIComponent(shareText.whatsapp)}`,
+                  '_blank'
+                )
+              }}
+              className="h-11 bg-[#25D366] hover:bg-[#25D366]/90 text-white font-bold rounded-xl text-xs"
+            >
+              WhatsApp
+            </Button>
+          </div>
+
+          <Button
+            variant="outline"
+            onClick={() => {
+              const link = document.createElement('a')
+              link.href = badgeUrl
+              link.download = `cognara-${streakDays}-day-streak.png`
+              link.click()
+            }}
+            className="w-full h-11 border-border hover:bg-surface-alt text-text-2 font-bold rounded-xl text-xs"
+          >
+            Download Badge
+          </Button>
+
+          <button
+            onClick={onClose}
+            className="w-full text-text-3 hover:text-text-2 text-xs font-semibold py-2 transition"
+          >
+            Continue learning
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
