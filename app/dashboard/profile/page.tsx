@@ -1571,12 +1571,13 @@ export default function ProfilePage() {
                   </div>
 
                   {profile?.subscription_tier === 'pro_monthly' || profile?.subscription_tier === 'pro_yearly' ? (
-                    <button
-                      onClick={() => toast('Subscription billing portal coming soon!', 'info')}
-                      className="h-10 px-5 bg-surface hover:bg-surface-alt border border-border text-text-1 font-bold rounded-xl text-xs transition cursor-pointer"
-                    >
-                      Manage Subscription
-                    </button>
+                    <Link href="/dashboard/settings">
+                      <button
+                        className="h-10 px-5 bg-surface hover:bg-surface-alt border border-border text-text-1 font-bold rounded-xl text-xs transition cursor-pointer"
+                      >
+                        Manage Subscription
+                      </button>
+                    </Link>
                   ) : (
                     <Link href="/dashboard/settings" className="w-full sm:w-auto">
                       <Button className="w-full sm:w-auto h-10 px-5 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent text-white font-bold rounded-xl text-xs shadow-md shadow-primary/15 active:scale-[0.99] transition duration-150">
