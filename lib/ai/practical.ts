@@ -11,6 +11,10 @@ export interface PracticalExercise {
   example_output: string
   tips: [string, string]
   domain_type: string
+  starter_code?: string
+  expected_output?: string
+  language?: string
+  complexity?: string
 }
 
 interface DomainPracticalConfig {
@@ -109,6 +113,8 @@ export async function generatePracticalExercise(
     ? metadata.keyTakeaways.slice(0, 5).join('\n- ')
     : 'Core concepts from this lesson'
 
+  const isTech = (metadata.domain || '').toLowerCase() === 'technology'
+
   const userPrompt = `LESSON TOPIC: ${metadata.topic}
 DOMAIN: ${metadata.domain}
 SUBJECT: ${metadata.subject}
@@ -132,6 +138,15 @@ REQUIREMENTS:
 - Include the tool or method the user should use
 - Include what a good result looks like for self-assessment
 - Include exactly 2 practical tips
+${isTech ? `
+ADDITIONAL FIELDS FOR TECHNOLOGY DOMAIN:
+Also include these fields in your JSON response:
+"starter_code": "Minimal starter code to give the user a starting point. Must be valid code in the language specified.",
+"expected_output": "What the code should output or produce when working correctly. For JavaScript: console.log output. For HTML: description of visual.",
+"language": "javascript OR typescript OR html OR css",
+"complexity": "simple OR complex",
+              Use 'simple' for under 20 line exercises,
+              Use 'complex' for multi-file projects` : ''}
 
 Return ONLY valid JSON in this exact format with no preamble and no markdown backticks:
 {
@@ -141,7 +156,11 @@ Return ONLY valid JSON in this exact format with no preamble and no markdown bac
   "estimated_time": "X minutes",
   "example_output": "What a good result looks like",
   "tips": ["Tip 1", "Tip 2"],
-  "domain_type": "${(metadata.domain || 'general').toLowerCase()}"
+  "domain_type": "${(metadata.domain || 'general').toLowerCase()}"${isTech ? `,
+  "starter_code": "starter code string",
+  "expected_output": "expected output description or console output",
+  "language": "javascript/typescript/html/css",
+  "complexity": "simple/complex"` : ''}
 }`
 
   // Dev mode — no API key
@@ -150,14 +169,22 @@ Return ONLY valid JSON in this exact format with no preamble and no markdown bac
     return {
       title: `Apply: ${metadata.topic}`,
       instruction: `Take what you learned about ${metadata.topic} and apply it to a real situation in your own life or work. Spend 15 minutes working through it step by step.`,
-      tool_required: 'None',
+      tool_required: isTech ? 'Code Editor' : 'None',
       estimated_time: '15 minutes',
-      example_output: `A clear written plan or output that directly demonstrates your understanding of ${metadata.topic}.`,
+      example_output: isTech 
+        ? `Output should demonstrate successful integration of ${metadata.topic}.`
+        : `A clear written plan or output that directly demonstrates your understanding of ${metadata.topic}.`,
       tips: [
         'Focus on applying the main concept — not perfecting every detail.',
         'Write down your reasoning as you go — it reinforces the lesson.',
       ],
       domain_type: (metadata.domain || 'general').toLowerCase(),
+      ...(isTech ? {
+        starter_code: `// Starter code for ${metadata.topic}\nconsole.log("Ready to code!");`,
+        expected_output: 'Ready to code!',
+        language: 'javascript',
+        complexity: 'simple'
+      } : {})
     }
   }
 

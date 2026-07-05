@@ -1542,12 +1542,13 @@ export default function QuizPage() {
       <PracticalExerciseScreen
         practical={practicalExercise}
         userId={userId}
-        lessonCacheId={null}
+        lessonCacheId={lessonId}
         goalId={lessonGoalId}
         topicName={lessonTitle}
         domain={lessonDomain}
         onComplete={handlePracticalDone}
         onSkip={handlePracticalDone}
+        isPro={profile?.subscription_tier !== 'free'}
       />
     )
   }

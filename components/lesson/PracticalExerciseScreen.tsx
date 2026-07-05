@@ -1,9 +1,20 @@
 'use client'
-
 import React, { useState } from 'react'
 import { CheckCircle2, SkipForward, Wrench, Clock, Zap, ChevronRight } from 'lucide-react'
 import { Spark } from '@/components/mascot/Spark'
 import { createClient } from '@/lib/supabase/client'
+import dynamic from 'next/dynamic'
+
+// Import dynamically to prevent SSR issues
+const ExerciseCode = dynamic(
+  () => import('@/components/lesson/ExerciseCode').then(mod => ({ default: mod.ExerciseCode })),
+  { ssr: false }
+)
+
+const ExerciseProject = dynamic(
+  () => import('@/components/lesson/ExerciseProject').then(mod => ({ default: mod.ExerciseProject })),
+  { ssr: false }
+)
 
 export interface PracticalExerciseData {
   title: string
@@ -13,6 +24,10 @@ export interface PracticalExerciseData {
   example_output: string
   tips: [string, string]
   domain_type: string
+  starter_code?: string
+  expected_output?: string
+  language?: string
+  complexity?: string
 }
 
 interface PracticalExerciseScreenProps {
@@ -205,6 +220,58 @@ export function PracticalExerciseScreen({
         </div>
       </div>
 
+      {/* Coding environment for tech domain */}
+      {getCodingEnvironment(practical) === 'monaco' && (
+        <div className="mt-6 mb-4 w-full">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-sm font-medium text-foreground">
+              Code Editor
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Write and run your code here
+            </span>
+          </div>
+
+          <ExerciseCode
+            language={
+              practical.tool_required?.toLowerCase().includes('html') 
+                ? 'html' 
+                : practical.tool_required?.toLowerCase().includes('typescript')
+                ? 'typescript'
+                : 'javascript'
+            }
+            starterCode={practical.starter_code || getStarterCode(practical)}
+            expectedOutput={practical.expected_output || ''}
+            isLocked={!isPro}
+            instructions={practical.instruction}
+          />
+        </div>
+      )}
+
+      {getCodingEnvironment(practical) === 'stackblitz' && (
+        <div className="mt-6 mb-4 w-full">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-sm font-medium text-foreground">
+              Project Workspace
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Build your full project here
+            </span>
+          </div>
+
+          <ExerciseProject
+            projectTitle={practical.title}
+            description={practical.instruction}
+            template={getProjectTemplate(practical)}
+            starterFiles={getStarterFiles(practical)}
+            steps={getChecklistSteps(practical)}
+            isLocked={!isPro}
+            lessonId={lessonCacheId || 'practical-lesson'}
+            userId={userId}
+          />
+        </div>
+      )}
+
       {/* No submission note */}
       <p className="text-[11px] text-text-3 text-center leading-relaxed mb-4 px-2">
         There is nothing to submit. This exercise is for your own practice.
@@ -247,4 +314,96 @@ export function PracticalExerciseScreen({
       </div>
     </div>
   )
+}
+
+function getCodingEnvironment(practical: PracticalExerciseData) {
+  // Only show coding environment for tech domain
+  if (practical.domain_type !== 'technology') {
+    return null
+  }
+
+  // StackBlitz for complex projects
+  // Estimated time over 20 minutes = complex
+  const timeValue = parseInt(practical.estimated_time || '0')
+
+  if (
+    timeValue >= 25 ||
+    practical.complexity === 'complex' ||
+    practical.tool_required?.toLowerCase().includes('project')
+  ) {
+    return 'stackblitz'
+  }
+
+  // Monaco for simpler coding tasks
+  return 'monaco'
+}
+
+function getStarterCode(practical: PracticalExerciseData) {
+  const tool = practical.tool_required?.toLowerCase()
+
+  if (tool?.includes('html')) {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Exercise</title>
+  <style>
+    /* Add your CSS here */
+  </style>
+</head>
+<body>
+  <!-- Add your HTML here -->
+  
+  <script>
+    // Add your JavaScript here
+  </script>
+</body>
+</html>`
+  }
+
+  if (tool?.includes('react')) {
+    return `import React, { useState } from 'react';
+
+export default function App() {
+  return (
+    <div>
+      {/* Build your component here */}
+      <h1>Hello Cognara</h1>
+    </div>
+  );
+}`
+  }
+
+  // Default JavaScript starter
+  return `// ${practical.title}
+// ${practical.instruction}
+
+// Write your solution here:
+
+function solution() {
+  // Your code here
+}
+
+solution();`
+}
+
+function getProjectTemplate(practical: PracticalExerciseData) {
+  const tool = practical.tool_required?.toLowerCase()
+
+  if (tool?.includes('react')) return 'react-ts'
+  if (tool?.includes('next')) return 'nextjs'
+  if (tool?.includes('node')) return 'node'
+  if (tool?.includes('html')) return 'html'
+  return 'javascript'
+}
+
+function getStarterFiles(practical: PracticalExerciseData) {
+  return {
+    'index.js': `// ${practical.title}\n// ${practical.instruction}\n\n// Your code here`,
+    'README.md': `# ${practical.title}\n\n${practical.instruction}\n\n## Tips\n${practical.tips?.join('\n- ') || ''}`
+  }
+}
+
+function getChecklistSteps(practical: PracticalExerciseData): string[] {
+  return practical.tips || []
 }

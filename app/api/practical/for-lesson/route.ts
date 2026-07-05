@@ -94,7 +94,13 @@ export async function POST(request: Request) {
         // Patch the existing cache row with the freshly generated practical
         await supabase
           .from('cognara_lesson_cache')
-          .update({ practical_exercise: practicalExercise })
+          .update({
+            practical_exercise: practicalExercise,
+            practical_starter_code: practicalExercise.starter_code || null,
+            practical_expected_output: practicalExercise.expected_output || null,
+            practical_language: practicalExercise.language || null,
+            practical_complexity: practicalExercise.complexity || null
+          })
           .eq('id', cacheRow.id)
         console.log(`[practical/for-lesson] Generated and cached practical for "${lesson.title}"`)
       }
