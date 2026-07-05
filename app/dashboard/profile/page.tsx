@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { getLevelInfo } from '@/lib/leveling'
 import { LinkedinIcon, TwitterIcon } from '@/components/ui/SocialIcons'
+import { shareImageToSocial } from '@/lib/share'
 
 // Easing Animation Count-up Hook
 function useCountUp(target: number, duration: number = 800) {
@@ -2227,6 +2228,34 @@ export default function ProfilePage() {
                 Share this milestone
               </p>
 
+              {/* Native share primary */}
+              <Button
+                onClick={() => {
+                  const shareText = selectedBadge.milestone_percent
+                    ? `I just reached ${selectedBadge.milestone_percent}% completion of my learning goal on Cognara! 🚀 Check it out: cognaralearn.com`
+                    : (() => {
+                        const msg = selectedBadge.streak_days === 7 
+                          ? "One week. Every single day. That is not luck — that is discipline."
+                          : selectedBadge.streak_days === 30 
+                          ? "30 days of showing up. You are not just learning. You are building a habit."
+                          : "100 days. This is extraordinary. You are in the top 1% of learners on Cognara."
+                        return `I just hit a ${selectedBadge.streak_days}-day learning streak on Cognara 🔥\n\n${msg}\n\nIf you have a goal and need a structured path to get there — cognaralearn.com`
+                      })()
+                  shareImageToSocial({
+                    imageUrl: selectedBadge.badge_url_png,
+                    title: selectedBadge.milestone_percent 
+                      ? `Cognara ${selectedBadge.milestone_percent} Percent Progress` 
+                      : `Cognara ${selectedBadge.streak_days} Day Streak`,
+                    text: shareText,
+                    platform: 'native',
+                    toast
+                  })
+                }}
+                className="w-full h-11 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl text-xs mb-1"
+              >
+                Share my achievement
+              </Button>
+
               <div className="grid grid-cols-2 gap-2">
                 <Button
                   onClick={() => {
@@ -2240,12 +2269,15 @@ export default function ProfilePage() {
                             : "100 days. This is extraordinary. You are in the top 1% of learners on Cognara."
                           return `I just hit a ${selectedBadge.streak_days}-day learning streak on Cognara 🔥\n\n${msg}\n\nIf you have a goal and need a structured path to get there — cognaralearn.com`
                         })()
-                    window.open(
-                      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
-                        window.location.origin
-                      )}&text=${encodeURIComponent(shareText)}`,
-                      '_blank'
-                    )
+                    shareImageToSocial({
+                      imageUrl: selectedBadge.badge_url_png,
+                      title: selectedBadge.milestone_percent 
+                        ? `Cognara ${selectedBadge.milestone_percent} Percent Progress` 
+                        : `Cognara ${selectedBadge.streak_days} Day Streak`,
+                      text: shareText,
+                      platform: 'linkedin',
+                      toast
+                    })
                   }}
                   className="h-11 bg-[#0A66C2] hover:bg-[#0A66C2]/90 text-white font-bold rounded-xl text-xs"
                 >
@@ -2264,10 +2296,15 @@ export default function ProfilePage() {
                             : "100 days. This is extraordinary. You are in the top 1% of learners on Cognara."
                           return `I just hit a ${selectedBadge.badge_url_png || selectedBadge.streak_days}-day learning streak on Cognara! ${msg} Check it out: cognaralearn.com`
                         })()
-                    window.open(
-                      `https://wa.me/?text=${encodeURIComponent(shareText)}`,
-                      '_blank'
-                    )
+                    shareImageToSocial({
+                      imageUrl: selectedBadge.badge_url_png,
+                      title: selectedBadge.milestone_percent 
+                        ? `Cognara ${selectedBadge.milestone_percent} Percent Progress` 
+                        : `Cognara ${selectedBadge.streak_days} Day Streak`,
+                      text: shareText,
+                      platform: 'whatsapp',
+                      toast
+                    })
                   }}
                   className="h-11 bg-[#25D366] hover:bg-[#25D366]/90 text-white font-bold rounded-xl text-xs"
                 >
@@ -2278,12 +2315,15 @@ export default function ProfilePage() {
               <Button
                 variant="outline"
                 onClick={() => {
-                  const link = document.createElement('a')
-                  link.href = selectedBadge.badge_url_png
-                  link.download = selectedBadge.milestone_percent
-                    ? `cognara-${selectedBadge.milestone_percent}-percent-progress.png`
-                    : `cognara-${selectedBadge.streak_days}-day-streak.png`
-                  link.click()
+                  shareImageToSocial({
+                    imageUrl: selectedBadge.badge_url_png,
+                    title: selectedBadge.milestone_percent 
+                      ? `Cognara-${selectedBadge.milestone_percent}-Percent-Progress` 
+                      : `Cognara-${selectedBadge.streak_days}-Day-Streak`,
+                    text: '',
+                    platform: 'download',
+                    toast
+                  })
                 }}
                 className="w-full h-11 border-border hover:bg-surface-alt text-text-2 font-bold rounded-xl text-xs"
               >

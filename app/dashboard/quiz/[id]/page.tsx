@@ -19,6 +19,7 @@ import { CertificateTemplate } from '@/components/celebration/CertificateTemplat
 import { CertificateShareScreen } from '@/components/celebration/CertificateShareScreen'
 import { GoalCelebration } from '@/components/celebration/GoalCelebration'
 import { PracticalExerciseScreen, type PracticalExerciseData } from '@/components/lesson/PracticalExerciseScreen'
+import { AwardModal } from '@/components/celebration/AwardModal'
 
 function shuffleArray<T>(array: T[]): T[] {
   const arr = [...array]
@@ -115,6 +116,13 @@ export default function QuizPage() {
   const [milestoneBadgeUrl, setMilestoneBadgeUrl] = useState<string | null>(null)
   const [isGeneratingBadge, setIsGeneratingBadge] = useState(false)
   const [showWelcomeBonusAnim, setShowWelcomeBonusAnim] = useState(false)
+
+  // Real-time pending award states
+  const [currentPendingAward, setCurrentPendingAward] = useState<any | null>(null)
+  const [isGeneratingProgressCard, setIsGeneratingProgressCard] = useState(false)
+  const [milestoneProgressPercent, setMilestoneProgressPercent] = useState<number | null>(null)
+  const [bulkGoalName, setBulkGoalName] = useState('')
+  const [bulkUserName, setBulkUserName] = useState('')
 
 
   // Certificate Generation States
@@ -463,9 +471,191 @@ export default function QuizPage() {
       console.error('[Streak Badge] Failed to save to database:', dbErr)
     }
 
-    setMilestoneBadgeUrl(badgeUrl)
-    setShowStreakMilestoneModal(true)
+    // Enqueue pending award
+    const { data: pendingAward } = await supabase
+      .from('cognara_pending_awards')
+      .insert({
+        user_id: userId,
+        award_type: 'streak_badge',
+        award_data: {
+          badge_url: badgeUrl,
+          streak_days: streakDays,
+          user_name: profile?.name || 'Learner'
+        },
+        is_shown: false,
+        created_at: new Date().toISOString()
+      })
+      .select('*')
+      .maybeSingle()
+
     setIsGeneratingBadge(false)
+    setMilestoneStreakDays(null)
+
+    if (pendingAward) {
+      setCurrentPendingAward(pendingAward)
+    }
+  }
+
+  const checkProgressMilestones = async () => {
+    try {
+      if (!userId) return
+
+      // 1. Get active goal
+      const { data: activeGoal } = await supabase
+        .from('learning_goals')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .maybeSingle()
+
+      if (!activeGoal) return
+
+      // 2. Get active roadmap
+      const { data: activeRoadmap } = await supabase
+        .from('roadmaps')
+        .select('id, title')
+        .eq('goal_id', activeGoal.id)
+        .maybeSingle()
+
+      if (!activeRoadmap) return
+
+      // 3. Get total lessons in roadmap
+      const { data: lessonsData } = await supabase
+        .from('lessons')
+        .select('id')
+        .eq('roadmap_id', activeRoadmap.id)
+
+      if (!lessonsData || lessonsData.length === 0) return
+
+      const totalLessons = lessonsData.length
+      const lessonIds = lessonsData.map((l: any) => l.id)
+
+      // 4. Get completed lessons count
+      const { count: completedCount } = await supabase
+        .from('lesson_progress')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('status', 'completed')
+        .in('lesson_id', lessonIds)
+
+      const completed = completedCount || 0
+      const progressPercent = Math.round((completed / totalLessons) * 100)
+
+      const milestones = [25, 50, 75]
+      let targetMilestone: number | null = null
+      for (const m of milestones) {
+        if (progressPercent >= m) {
+          const { data: existing } = await supabase
+            .from('cognara_progress_cards')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('milestone_percent', m)
+            .maybeSingle()
+
+          if (!existing) {
+            targetMilestone = m
+            break
+          }
+        }
+      }
+
+      if (!targetMilestone) return
+
+      setIsGeneratingProgressCard(true)
+      setMilestoneProgressPercent(targetMilestone)
+      setBulkGoalName(activeGoal.goal_text || activeGoal.subject || 'My Learning Goal')
+      setBulkUserName(profile?.name || 'Learner')
+
+      setTimeout(async () => {
+        try {
+          await generateProgressCard(targetMilestone!, activeGoal)
+        } catch (err) {
+          console.error('Failed to generate progress card:', err)
+          setIsGeneratingProgressCard(false)
+        }
+      }, 800)
+    } catch (err) {
+      console.error('Error checking progress milestones:', err)
+    }
+  }
+
+  const generateProgressCard = async (percent: number, activeGoal: any) => {
+    const element = document.getElementById(`progress-card-${percent}`)
+    if (!element) {
+      throw new Error(`Element #progress-card-${percent} not found in DOM`)
+    }
+
+    const canvas = await html2canvas(element, {
+      scale: 1,
+      useCORS: true,
+      backgroundColor: '#0F1629'
+    })
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, 'image/png', 1.0)
+    })
+
+    if (!blob) {
+      throw new Error('Canvas conversion to Blob failed')
+    }
+
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'cognara'
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'cognara_badges'
+
+    const formData = new FormData()
+    formData.append('file', blob)
+    formData.append('upload_preset', uploadPreset)
+    formData.append('folder', 'cognara/progress-cards')
+
+    const cloudinaryResponse = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      { method: 'POST', body: formData }
+    )
+
+    if (!cloudinaryResponse.ok) {
+      const errData = await cloudinaryResponse.json()
+      throw new Error(errData?.error?.message || 'Cloudinary upload failed')
+    }
+
+    const cloudinaryData = await cloudinaryResponse.json()
+    const cardUrl = cloudinaryData.secure_url
+
+    // Save to Supabase
+    await supabase
+      .from('cognara_progress_cards')
+      .insert({
+        user_id: userId,
+        milestone_percent: percent,
+        card_url_png: cardUrl,
+        created_at: new Date().toISOString()
+      })
+
+    // Enqueue pending award
+    const { data: pendingAward } = await supabase
+      .from('cognara_pending_awards')
+      .insert({
+        user_id: userId,
+        award_type: 'progress_card',
+        award_data: {
+          card_url: cardUrl,
+          milestone_percent: percent,
+          goal_name: activeGoal.goal_text || activeGoal.subject || 'My Learning Goal',
+          user_name: profile?.name || 'Learner'
+        },
+        is_shown: false,
+        created_at: new Date().toISOString()
+      })
+      .select('*')
+      .maybeSingle()
+
+    setIsGeneratingProgressCard(false)
+    setMilestoneProgressPercent(null)
+    setBulkGoalName('')
+    setBulkUserName('')
+
+    if (pendingAward) {
+      setCurrentPendingAward(pendingAward)
+    }
   }
 
   // Handle proceeding to next question or final results submission
@@ -560,6 +750,7 @@ export default function QuizPage() {
         if (finalStreak > 0) {
           await checkStreakMilestones(finalStreak)
         }
+        await checkProgressMilestones()
       } catch (err: any) {
         console.error(err)
         setErrorMsg(err.message || 'Failed to save quiz score.')
@@ -2065,16 +2256,44 @@ export default function QuizPage() {
         </div>
       )}
 
-      {/* Streak Milestone Celebration Modal */}
-      {showStreakMilestoneModal && milestoneStreakDays && milestoneBadgeUrl && (
-        <StreakMilestoneModal
-          streakDays={milestoneStreakDays}
-          badgeUrl={milestoneBadgeUrl}
-          userName={profile?.name || 'Learner'}
-          onClose={() => {
-            setShowStreakMilestoneModal(false)
-            setMilestoneStreakDays(null)
-            setMilestoneBadgeUrl(null)
+      {/* Hidden Progress Card Template for Canvas Capture */}
+      {milestoneProgressPercent && (
+        <div style={{ position: 'absolute', left: '-9999px', top: '-9999px', pointerEvents: 'none' }}>
+          <ProgressCardTemplate
+            userName={bulkUserName || profile?.name || 'Learner'}
+            milestonePercent={milestoneProgressPercent}
+            goalName={bulkGoalName}
+          />
+        </div>
+      )}
+
+      {/* Generating Overlay Modal for Progress Cards */}
+      {isGeneratingProgressCard && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-sm bg-surface border border-border rounded-2xl shadow-2xl p-6 text-center space-y-4 animate-scale-up">
+            <div className="w-10 h-10 border-4 border-[#6366F1]/20 border-t-[#6366F1] rounded-full animate-spin mx-auto" />
+            <div className="space-y-1.5">
+              <h3 className="text-sm font-bold text-text-1 uppercase tracking-wider">Generating Progress Card</h3>
+              <p className="text-xs text-text-2">Creating your shareable goal milestone card...</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Unified Award Modal for real-time achievements */}
+      {currentPendingAward && (
+        <AwardModal
+          award={currentPendingAward}
+          onClose={async () => {
+            const awardId = currentPendingAward.id
+            await supabase
+              .from('cognara_pending_awards')
+              .update({
+                is_shown: true,
+                shown_at: new Date().toISOString()
+              })
+              .eq('id', awardId)
+            setCurrentPendingAward(null)
           }}
         />
       )}
@@ -2211,141 +2430,121 @@ function StreakBadgeTemplate({
   )
 }
 
-interface StreakMilestoneModalProps {
-  streakDays: number
-  badgeUrl: string
+interface ProgressCardTemplateProps {
   userName: string
-  onClose: () => void
+  milestonePercent: number
+  goalName: string
 }
 
-function StreakMilestoneModal({
-  streakDays,
-  badgeUrl,
+function ProgressCardTemplate({
   userName,
-  onClose
-}: StreakMilestoneModalProps) {
-  const messages: Record<number, string> = {
-    7: "One week. Every single day. That is not luck — that is discipline.",
-    30: "30 days of showing up. You are not just learning. You are building a habit.",
-    100: "100 days. This is extraordinary. You are in the top 1% of learners on Cognara."
-  }
-
-  const msg = messages[streakDays] || messages[7]
-
-  const shareText = {
-    linkedin: `I just hit a ${streakDays}-day learning streak on Cognara 🔥\n\n${msg}\n\nIf you have a goal and need a structured path to get there — cognaralearn.com`,
-    twitter: `${streakDays}-day learning streak on Cognara ${streakDays === 7 ? '🔥' : streakDays === 30 ? '⚡' : '👑'}\n\n${msg}\n\ncognaralearn.com`,
-    whatsapp: `I just hit a ${streakDays}-day learning streak on Cognara! ${msg} Check it out: cognaralearn.com`
-  }
-
-  const handleShareNative = async () => {
-    try {
-      const response = await fetch(badgeUrl)
-      const blob = await response.blob()
-      const file = new File(
-        [blob], 
-        `cognara-${streakDays}-day-streak.png`,
-        { type: 'image/png' }
-      )
-      if (navigator.share) {
-        await navigator.share({
-          title: `${streakDays} Day Learning Streak`,
-          text: shareText.twitter,
-          files: [file]
-        })
-      }
-    } catch (err) {
-      console.error('Error sharing natively:', err)
-    }
-  }
-
-  const isShareSupported = typeof navigator !== 'undefined' && !!navigator.share
+  milestonePercent,
+  goalName
+}: ProgressCardTemplateProps) {
+  const accentColor = milestonePercent === 25 ? '#3B82F6' : milestonePercent === 50 ? '#8B5CF6' : '#EC4899'
+  const emoji = milestonePercent === 25 ? '🚀' : milestonePercent === 50 ? '⚡' : '🏆'
+  const text = milestonePercent === 25 
+    ? 'One-quarter of the way to mastering this goal!'
+    : milestonePercent === 50
+    ? 'Halfway mark! Consistency is turning into mastery.'
+    : 'Three-quarters complete. The finish line is in sight!'
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="bg-surface border border-border rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center space-y-4 animate-page-enter">
-        {/* Badge preview */}
-        <div className="rounded-xl overflow-hidden border border-border shadow-md">
-          <img
-            src={badgeUrl}
-            alt={`${streakDays} day streak badge`}
-            className="w-full h-auto"
-          />
-        </div>
+    <div
+      id={`progress-card-${milestonePercent}`}
+      style={{
+        width: '1200px',
+        height: '630px',
+        backgroundColor: '#0F1629',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'Inter, sans-serif',
+        position: 'relative',
+        overflow: 'hidden'
+      }}
+    >
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        background: `radial-gradient(circle at 50% 50%, ${accentColor}15 0%, transparent 70%)`
+      }} />
 
-        {/* Message */}
-        <div className="space-y-1">
-          <h3 className="text-text-1 font-heading font-extrabold text-base flex items-center justify-center gap-1.5">
-            {streakDays === 7 && '🔥 7 Day Streak!'}
-            {streakDays === 30 && '⚡ 30 Day Streak!'}
-            {streakDays === 100 && '👑 100 Day Streak!'}
-          </h3>
-          <p className="text-[12.5px] text-text-2 leading-relaxed">
-            {msg}
-          </p>
-        </div>
+      <img
+        src="/cognara-logo.png"
+        alt="Cognara"
+        style={{
+          height: '40px',
+          marginBottom: '32px',
+          opacity: 0.9
+        }}
+      />
 
-        {/* Share buttons */}
-        <div className="space-y-2 pt-2 border-t border-border/50">
-          <p className="text-[10px] uppercase tracking-wider font-bold text-text-3">
-            Share your achievement
-          </p>
+      <span style={{ fontSize: '72px', marginBottom: '16px', lineHeight: 1 }}>
+        {emoji}
+      </span>
+      
+      <div style={{
+        fontSize: '48px',
+        fontWeight: '900',
+        color: '#FFFFFF',
+        marginBottom: '12px',
+        letterSpacing: '0.05em'
+      }}>
+        {milestonePercent}% COMPLETE
+      </div>
+      
+      <div style={{
+        fontSize: '20px',
+        color: accentColor,
+        fontWeight: '700',
+        marginBottom: '24px',
+        textTransform: 'uppercase',
+        letterSpacing: '0.1em'
+      }}>
+        Goal Progress Card
+      </div>
+      
+      <div style={{
+        fontSize: '24px',
+        color: '#FFFFFF',
+        fontWeight: '600',
+        marginBottom: '8px'
+      }}>
+        {userName}
+      </div>
 
-          {isShareSupported && (
-            <Button
-              onClick={handleShareNative}
-              className="w-full h-11 bg-primary hover:bg-primary/95 text-text-1 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5"
-            >
-              Share my streak
-            </Button>
-          )}
+      <div style={{
+        fontSize: '18px',
+        color: '#E2E8F0',
+        fontWeight: '500',
+        maxWidth: '800px',
+        textAlign: 'center',
+        lineHeight: '1.4',
+        marginBottom: '16px'
+      }}>
+        {goalName}
+      </div>
+      
+      <div style={{
+        fontSize: '16px',
+        color: '#94A3B8',
+        maxWidth: '800px',
+        textAlign: 'center',
+        lineHeight: 1.4,
+        marginBottom: '32px'
+      }}>
+        {text}
+      </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              onClick={() => {
-                window.open(
-                  `https://www.linkedin.com/sharing/share-offsite/?url=https://www.cognaralearn.com`,
-                  '_blank'
-                )
-              }}
-              className="h-11 bg-[#0A66C2] hover:bg-[#0A66C2]/90 text-white font-bold rounded-xl text-xs"
-            >
-              LinkedIn
-            </Button>
-
-            <Button
-              onClick={() => {
-                window.open(
-                  `https://wa.me/?text=${encodeURIComponent(shareText.whatsapp)}`,
-                  '_blank'
-                )
-              }}
-              className="h-11 bg-[#25D366] hover:bg-[#25D366]/90 text-white font-bold rounded-xl text-xs"
-            >
-              WhatsApp
-            </Button>
-          </div>
-
-          <Button
-            variant="outline"
-            onClick={() => {
-              const link = document.createElement('a')
-              link.href = badgeUrl
-              link.download = `cognara-${streakDays}-day-streak.png`
-              link.click()
-            }}
-            className="w-full h-11 border-border hover:bg-surface-alt text-text-2 font-bold rounded-xl text-xs"
-          >
-            Download Badge
-          </Button>
-
-          <button
-            onClick={onClose}
-            className="w-full text-text-3 hover:text-text-2 text-xs font-semibold py-2 transition"
-          >
-            Continue learning
-          </button>
-        </div>
+      <div style={{
+        fontSize: '16px',
+        color: accentColor,
+        fontWeight: '600',
+        letterSpacing: '0.15em'
+      }}>
+        COGNARALEARN.COM
       </div>
     </div>
   )

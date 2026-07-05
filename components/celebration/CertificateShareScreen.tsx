@@ -6,6 +6,7 @@ import { Download, Link as LinkIcon, Check, X, Star, Share2, ArrowRight } from '
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/toast'
 import Image from 'next/image'
+import { shareImageToSocial } from '@/lib/share'
 
 // Custom SVGs for platforms to look highly professional
 const LinkedInIcon = () => (
@@ -132,61 +133,47 @@ Check it out: cognaralearn.com`
 
   // Share handlers
   const handleNativeShare = async () => {
-    if (!('share' in navigator)) return
-    setIsSharingNative(true)
-    try {
-      // Fetch PNG file blob to attach it
-      const response = await fetch(pngUrl)
-      const blob = await response.blob()
-      const file = new File([blob], `Cognara_Certificate_Phase_${phaseNumber}.png`, { type: 'image/png' })
-
-      await navigator.share({
-        title: 'My Cognara Certificate',
-        text: `I just completed Phase ${phaseNumber} (${phaseName}) of my ${goalName} journey on Cognara!`,
-        url: `https://www.cognaralearn.com/verify/${certificateId}`,
-        files: [file]
-      })
-
-      logShareEvent('native')
-      toast('Shared successfully!')
-    } catch (err: any) {
-      if (err.name !== 'AbortError') {
-        console.error('Native share failed:', err)
-        // Fallback to text share if files not supported by target app
-        try {
-          await navigator.share({
-            title: 'My Cognara Certificate',
-            text: `I just completed Phase ${phaseNumber} (${phaseName}) of my ${goalName} journey on Cognara!`,
-            url: `https://www.cognaralearn.com/verify/${certificateId}`
-          })
-          logShareEvent('native')
-        } catch (subErr) {
-          console.error('Text-only native share failed:', subErr)
-        }
-      }
-    } finally {
-      setIsSharingNative(false)
-    }
+    logShareEvent('native')
+    await shareImageToSocial({
+      imageUrl: pngUrl,
+      title: `Cognara Phase ${phaseNumber} Certificate`,
+      text: `I just completed Phase ${phaseNumber} (${phaseName}) of my ${goalName} journey on Cognara! 🎓`,
+      platform: 'native',
+      toast
+    })
   }
 
-  const handleShareLinkedIn = () => {
+  const handleShareLinkedIn = async () => {
     logShareEvent('linkedin')
-    // Open LinkedIn feed share intent
-    const url = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(linkedinText)}`
-    window.open(url, '_blank', 'noopener,noreferrer')
-    toast('Copied message template! Paste it into LinkedIn.')
+    await shareImageToSocial({
+      imageUrl: pngUrl,
+      title: `Cognara Phase ${phaseNumber} Certificate`,
+      text: linkedinText,
+      platform: 'linkedin',
+      toast
+    })
   }
 
-  const handleShareTwitter = () => {
+  const handleShareTwitter = async () => {
     logShareEvent('twitter')
-    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(twitterText)}`
-    window.open(url, '_blank', 'noopener,noreferrer')
+    await shareImageToSocial({
+      imageUrl: pngUrl,
+      title: `Cognara Phase ${phaseNumber} Certificate`,
+      text: twitterText,
+      platform: 'twitter',
+      toast
+    })
   }
 
-  const handleShareWhatsApp = () => {
+  const handleShareWhatsApp = async () => {
     logShareEvent('whatsapp')
-    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(whatsappText)}`
-    window.open(url, '_blank', 'noopener,noreferrer')
+    await shareImageToSocial({
+      imageUrl: pngUrl,
+      title: `Cognara Phase ${phaseNumber} Certificate`,
+      text: whatsappText,
+      platform: 'whatsapp',
+      toast
+    })
   }
 
   const handleCopyLink = () => {
@@ -220,10 +207,15 @@ Check it out: cognaralearn.com`
     }
   }
 
-  const handleDownloadPNG = () => {
-    const safeName = userName.replace(/\s+/g, '_')
-    const safePhase = phaseName.replace(/\s+/g, '_')
-    triggerDownload(pngUrl, `Cognara_Certificate_${safePhase}_${safeName}.png`, 'png')
+  const handleDownloadPNG = async () => {
+    logShareEvent('png_download')
+    await shareImageToSocial({
+      imageUrl: pngUrl,
+      title: `Cognara_Certificate_${phaseName.replace(/\s+/g, '_')}_${userName.replace(/\s+/g, '_')}`,
+      text: '',
+      platform: 'download',
+      toast
+    })
   }
 
   const handleDownloadPDF = () => {

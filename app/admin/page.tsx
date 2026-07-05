@@ -178,6 +178,21 @@ export default function AdminOverview() {
 
     if (dbErr) {
       console.error('[Streak Badge] Failed to save to database:', dbErr)
+    } else {
+      // Add to pending awards queue
+      await supabase
+        .from('cognara_pending_awards')
+        .insert({
+          user_id: userId,
+          award_type: 'streak_badge',
+          award_data: {
+            badge_url: badgeUrl,
+            streak_days: streakDays,
+            user_name: userName
+          },
+          is_shown: false,
+          created_at: new Date().toISOString()
+        })
     }
 
     setMilestoneStreakDays(null)
@@ -246,6 +261,22 @@ export default function AdminOverview() {
 
     if (dbErr) {
       console.error('[Progress Card] Failed to save to database:', dbErr)
+    } else {
+      // Add to pending awards queue
+      await supabase
+        .from('cognara_pending_awards')
+        .insert({
+          user_id: userId,
+          award_type: 'progress_card',
+          award_data: {
+            card_url: cardUrl,
+            milestone_percent: milestonePercent,
+            goal_name: goalName,
+            user_name: userName
+          },
+          is_shown: false,
+          created_at: new Date().toISOString()
+        })
     }
 
     setMilestoneProgressPercent(null)
