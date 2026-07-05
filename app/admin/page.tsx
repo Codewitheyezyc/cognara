@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import html2canvas from 'html2canvas'
+import { createClient } from '@/lib/supabase/client'
 import { 
   Users, UserPlus, Activity, Sparkles, 
   BookOpen, Award, Percent, Flame, RefreshCw
@@ -54,6 +56,19 @@ export default function AdminOverview() {
   const [regResult, setRegResult] = useState<any | null>(null)
   const [regError, setRegError] = useState<string | null>(null)
 
+  const supabase = createClient()
+
+  // Retroactive Awards & Badges States
+  const [loadingAwards, setLoadingAwards] = useState('')
+  const [awardsMessage, setAwardsMessage] = useState('')
+  const [bulkLoading, setBulkLoading] = useState(false)
+  const [bulkProgress, setBulkProgress] = useState(0)
+  const [bulkMessage, setBulkMessage] = useState('')
+  const [milestoneStreakDays, setMilestoneStreakDays] = useState<number | null>(null)
+  const [milestoneProgressPercent, setMilestoneProgressPercent] = useState<number | null>(null)
+  const [bulkUserName, setBulkUserName] = useState('')
+  const [bulkGoalName, setBulkGoalName] = useState('')
+
   const handleUserSearch = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!searchQuery.trim()) return
@@ -103,6 +118,479 @@ export default function AdminOverview() {
       setIsRegenerating(false)
       setShowConfirmModal(false)
     }
+  }
+
+  const generateStreakBadgeForUser = async (userId: string, streakDays: number, userName: string) => {
+    setMilestoneStreakDays(streakDays)
+    setBulkUserName(userName)
+    
+    await new Promise((resolve) => setTimeout(resolve, 800))
+
+    const element = document.getElementById(`streak-badge-${streakDays}`)
+    if (!element) {
+      throw new Error(`Element #streak-badge-${streakDays} not found in DOM`)
+    }
+
+    const canvas = await html2canvas(element, {
+      scale: 1,
+      useCORS: true,
+      backgroundColor: '#0F1629'
+    })
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, 'image/png', 1.0)
+    })
+
+    if (!blob) {
+      throw new Error('Canvas conversion to Blob failed')
+    }
+
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'pdzutmcceyvglgijorvn'
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'cognara_badges'
+
+    const formData = new FormData()
+    formData.append('file', blob)
+    formData.append('upload_preset', uploadPreset)
+    formData.append('folder', 'cognara/streak-badges')
+
+    const cloudinaryResponse = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      { method: 'POST', body: formData }
+    )
+
+    if (!cloudinaryResponse.ok) {
+      const errData = await cloudinaryResponse.json()
+      throw new Error(errData?.error?.message || 'Cloudinary upload failed')
+    }
+
+    const cloudinaryData = await cloudinaryResponse.json()
+    const badgeUrl = cloudinaryData.secure_url
+
+    // Save to Supabase
+    const { error: dbErr } = await supabase
+      .from('cognara_streak_badges')
+      .insert({
+        user_id: userId,
+        streak_days: streakDays,
+        badge_url_png: badgeUrl,
+        created_at: new Date().toISOString()
+      })
+
+    if (dbErr) {
+      console.error('[Streak Badge] Failed to save to database:', dbErr)
+    }
+
+    setMilestoneStreakDays(null)
+    setBulkUserName('')
+    return badgeUrl
+  }
+
+  const generateProgressCardForUser = async (userId: string, milestonePercent: number, userGoal: any, userName: string) => {
+    const goalName = userGoal.subject || userGoal.goal_text || userGoal.goal_name || 'My Learning Goal'
+    
+    setMilestoneProgressPercent(milestonePercent)
+    setBulkUserName(userName)
+    setBulkGoalName(goalName)
+    
+    await new Promise((resolve) => setTimeout(resolve, 800))
+
+    const element = document.getElementById(`progress-card-${milestonePercent}`)
+    if (!element) {
+      throw new Error(`Element #progress-card-${milestonePercent} not found in DOM`)
+    }
+
+    const canvas = await html2canvas(element, {
+      scale: 1,
+      useCORS: true,
+      backgroundColor: '#0F1629'
+    })
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, 'image/png', 1.0)
+    })
+
+    if (!blob) {
+      throw new Error('Canvas conversion to Blob failed')
+    }
+
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'pdzutmcceyvglgijorvn'
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'cognara_badges'
+
+    const formData = new FormData()
+    formData.append('file', blob)
+    formData.append('upload_preset', uploadPreset)
+    formData.append('folder', 'cognara/progress-cards')
+
+    const cloudinaryResponse = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      { method: 'POST', body: formData }
+    )
+
+    if (!cloudinaryResponse.ok) {
+      const errData = await cloudinaryResponse.json()
+      throw new Error(errData?.error?.message || 'Cloudinary upload failed')
+    }
+
+    const cloudinaryData = await cloudinaryResponse.json()
+    const cardUrl = cloudinaryData.secure_url
+
+    // Save to Supabase
+    const { error: dbErr } = await supabase
+      .from('cognara_progress_cards')
+      .insert({
+        user_id: userId,
+        milestone_percent: milestonePercent,
+        card_url_png: cardUrl,
+        created_at: new Date().toISOString()
+      })
+
+    if (dbErr) {
+      console.error('[Progress Card] Failed to save to database:', dbErr)
+    }
+
+    setMilestoneProgressPercent(null)
+    setBulkUserName('')
+    setBulkGoalName('')
+    return cardUrl
+  }
+
+  const handleTriggerStreakBadge = async (userId: string, streakDays: number) => {
+    setLoadingAwards(`streak_${streakDays}`)
+    setAwardsMessage('')
+
+    try {
+      const { data: existing } = await supabase
+        .from('cognara_streak_badges')
+        .select('id, created_at')
+        .eq('user_id', userId)
+        .eq('streak_days', streakDays)
+        .maybeSingle()
+
+      if (existing) {
+        setAwardsMessage(
+          `${streakDays} day badge already exists for this user. Generated on ${new Date(existing.created_at).toLocaleDateString()}.`
+        )
+        return
+      }
+
+      const userName = searchedUser?.name || 'Learner'
+      await generateStreakBadgeForUser(userId, streakDays, userName)
+
+      await supabase
+        .from('cognara_streak_badges')
+        .update({ 
+          admin_triggered: true,
+          admin_triggered_at: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+        .eq('streak_days', streakDays)
+
+      setAwardsMessage(
+        `✓ ${streakDays} day streak badge generated and saved successfully. User will see it on their profile.`
+      )
+
+    } catch (error: any) {
+      setAwardsMessage(`Error: ${error.message}`)
+    } finally {
+      setLoadingAwards('')
+    }
+  }
+
+  const handleTriggerProgressCard = async (userId: string, progressPercent: number) => {
+    setLoadingAwards(`progress_${progressPercent}`)
+    setAwardsMessage('')
+
+    try {
+      const { data: existing } = await supabase
+        .from('cognara_progress_cards')
+        .select('id, created_at')
+        .eq('user_id', userId)
+        .eq('milestone_percent', progressPercent)
+        .maybeSingle()
+
+      if (existing) {
+        setAwardsMessage(
+          `${progressPercent}% progress card already exists for this user. Generated on ${new Date(existing.created_at).toLocaleDateString()}.`
+        )
+        return
+      }
+
+      const { data: userGoal } = await supabase
+        .from('learning_goals')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .maybeSingle()
+
+      if (!userGoal) {
+        setAwardsMessage('User has no active goal.')
+        return
+      }
+
+      const userName = searchedUser?.name || 'Learner'
+      await generateProgressCardForUser(userId, progressPercent, userGoal, userName)
+
+      await supabase
+        .from('cognara_progress_cards')
+        .update({ 
+          admin_triggered: true,
+          admin_triggered_at: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+        .eq('milestone_percent', progressPercent)
+
+      setAwardsMessage(
+        `✓ ${progressPercent}% progress card generated successfully. User will see it on their profile.`
+      )
+
+    } catch (error: any) {
+      setAwardsMessage(`Error: ${error.message}`)
+    } finally {
+      setLoadingAwards('')
+    }
+  }
+
+  const handleGenerateAll = async (userId: string, userData: any) => {
+    setLoadingAwards('all')
+    setAwardsMessage('')
+
+    const results = []
+
+    try {
+      const streakMilestones = [7, 30, 100]
+
+      for (const days of streakMilestones) {
+        if (userData.streak >= days || userData.longestStreak >= days) {
+          const { data: existing } = await supabase
+            .from('cognara_streak_badges')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('streak_days', days)
+            .maybeSingle()
+
+          if (!existing) {
+            const userName = searchedUser?.name || 'Learner'
+            await generateStreakBadgeForUser(userId, days, userName)
+            
+            await supabase
+              .from('cognara_streak_badges')
+              .update({
+                admin_triggered: true,
+                admin_triggered_at: new Date().toISOString()
+              })
+              .eq('user_id', userId)
+              .eq('streak_days', days)
+
+            results.push(`${days} day streak badge`)
+          }
+        }
+      }
+
+      const progressMilestones = [25, 50, 75]
+
+      for (const percent of progressMilestones) {
+        if (userData.progress >= percent) {
+          const { data: existing } = await supabase
+            .from('cognara_progress_cards')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('milestone_percent', percent)
+            .maybeSingle()
+
+          if (!existing) {
+            const { data: userGoal } = await supabase
+              .from('learning_goals')
+              .select('*')
+              .eq('user_id', userId)
+              .eq('is_active', true)
+              .maybeSingle()
+
+            if (userGoal) {
+              const userName = searchedUser?.name || 'Learner'
+              await generateProgressCardForUser(userId, percent, userGoal, userName)
+
+              await supabase
+                .from('cognara_progress_cards')
+                .update({
+                  admin_triggered: true,
+                  admin_triggered_at: new Date().toISOString()
+                })
+                .eq('user_id', userId)
+                .eq('milestone_percent', percent)
+
+              results.push(`${percent}% progress card`)
+            }
+          }
+        }
+      }
+
+      if (results.length === 0) {
+        setAwardsMessage(
+          'All earned awards already exist for this user. Nothing new to generate.'
+        )
+      } else {
+        setAwardsMessage(
+          `✓ Generated successfully:\n${results.join('\n')}\n\nUser will see all awards on their profile.`
+        )
+      }
+
+    } catch (error: any) {
+      setAwardsMessage(`Error: ${error.message}`)
+    } finally {
+      setLoadingAwards('')
+    }
+  }
+
+  const handleBulkGenerate = async () => {
+    setBulkLoading(true)
+    setBulkProgress(0)
+    setBulkMessage('')
+
+    try {
+      const { data: allUsers, error: usersErr } = await supabase
+        .from('profiles')
+        .select('id, name')
+
+      if (usersErr || !allUsers) {
+        throw new Error(usersErr?.message || 'Failed to load user profiles')
+      }
+
+      let processed = 0
+      let totalGenerated = 0
+
+      for (const user of allUsers) {
+        const { data: streakRow } = await supabase
+          .from('streaks')
+          .select('current_streak, record_streak, longest_streak')
+          .eq('user_id', user.id)
+          .maybeSingle()
+
+        const { data: activeGoalRow } = await supabase
+          .from('learning_goals')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .maybeSingle()
+
+        let progressPercent = 0
+        if (activeGoalRow) {
+          const { data: roadmapRow } = await supabase
+            .from('roadmaps')
+            .select('id')
+            .eq('goal_id', activeGoalRow.id)
+            .maybeSingle()
+
+          if (roadmapRow) {
+            const { count: totalCount } = await supabase
+              .from('lessons')
+              .select('*', { count: 'exact', head: true })
+              .eq('roadmap_id', roadmapRow.id)
+
+            const { count: completedCount } = await supabase
+              .from('lesson_progress')
+              .select('*', { count: 'exact', head: true })
+              .eq('user_id', user.id)
+              .eq('status', 'completed')
+
+            const totalLessons = totalCount || 0
+            const completedLessons = completedCount || 0
+            progressPercent = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
+          }
+        }
+
+        const streak = streakRow?.current_streak || 0
+        const longestStreak = streakRow?.record_streak || streakRow?.longest_streak || 0
+
+        const userData = { 
+          streak, 
+          longestStreak, 
+          progress: progressPercent 
+        }
+
+        const generated = await generateMissingAwards(user.id, userData, user.name || 'Learner')
+        totalGenerated += generated
+        processed++
+        setBulkProgress(processed)
+      }
+
+      setBulkMessage(
+        `✓ Processed ${processed} users. Generated ${totalGenerated} new awards total.`
+      )
+
+    } catch (error: any) {
+      setBulkMessage(`Error: ${error.message}`)
+    } finally {
+      setBulkLoading(false)
+    }
+  }
+
+  const generateMissingAwards = async (userId: string, userData: any, userName: string) => {
+    let generatedCount = 0
+
+    const streakMilestones = [7, 30, 100]
+    for (const days of streakMilestones) {
+      if (userData.streak >= days || userData.longestStreak >= days) {
+        const { data: existing } = await supabase
+          .from('cognara_streak_badges')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('streak_days', days)
+          .maybeSingle()
+
+        if (!existing) {
+          await generateStreakBadgeForUser(userId, days, userName)
+          
+          await supabase
+            .from('cognara_streak_badges')
+            .update({
+              admin_triggered: true,
+              admin_triggered_at: new Date().toISOString()
+            })
+            .eq('user_id', userId)
+            .eq('streak_days', days)
+
+          generatedCount++
+        }
+      }
+    }
+
+    const progressMilestones = [25, 50, 75]
+    for (const percent of progressMilestones) {
+      if (userData.progress >= percent) {
+        const { data: existing } = await supabase
+          .from('cognara_progress_cards')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('milestone_percent', percent)
+          .maybeSingle()
+
+        if (!existing) {
+          const { data: userGoal } = await supabase
+            .from('learning_goals')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('is_active', true)
+            .maybeSingle()
+
+          if (userGoal) {
+            await generateProgressCardForUser(userId, percent, userGoal, userName)
+
+            await supabase
+              .from('cognara_progress_cards')
+              .update({
+                admin_triggered: true,
+                admin_triggered_at: new Date().toISOString()
+              })
+              .eq('user_id', userId)
+              .eq('milestone_percent', percent)
+
+            generatedCount++
+          }
+        }
+      }
+    }
+
+    return generatedCount
   }
 
   const fetchTestimonials = async () => {
@@ -346,6 +834,33 @@ export default function AdminOverview() {
           <p className="text-[11px] text-text-2">Search users and force regenerate their custom roadmaps</p>
         </div>
 
+        {/* Bulk Action Card */}
+        <div className="bg-surface-alt/25 border border-border rounded-2xl p-5 space-y-3">
+          <h3 className="font-bold text-text-1 text-sm">
+            Bulk Award Generation
+          </h3>
+          <p className="text-text-3 text-xs leading-relaxed">
+            Generate all earned but missing awards for every user on Cognara. 
+            Use this once to retroactively award badges and cards to existing users.
+          </p>
+          <button
+            type="button"
+            disabled={bulkLoading}
+            onClick={handleBulkGenerate}
+            className="bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-bold py-2.5 px-5 rounded-xl text-xs transition cursor-pointer"
+          >
+            {bulkLoading 
+              ? `Processing... (${bulkProgress} users done)`
+              : 'Generate All Missing Awards For All Users'}
+          </button>
+
+          {bulkMessage && (
+            <p className="text-xs text-emerald-400 font-semibold mt-3">
+              {bulkMessage}
+            </p>
+          )}
+        </div>
+
         <form onSubmit={handleUserSearch} className="flex gap-2 max-w-md">
           <input
             type="text"
@@ -437,6 +952,84 @@ export default function AdminOverview() {
                 <p className="text-[10px] text-rose-400 italic">Error details: {regError}</p>
               </div>
             )}
+            {/* Retroactive Awards & Badges Section */}
+            <div className="admin-awards-section border-t border-border/45 pt-4 mt-4 space-y-4">
+              <h3 className="font-bold text-text-1 text-sm">
+                Awards and Badges
+              </h3>
+
+              {/* Current stats */}
+              <div className="flex gap-4 text-xs font-semibold text-text-2 mb-4 bg-surface-alt/35 p-3.5 rounded-xl border border-border/40">
+                <span>Current streak: {searchedUser.streak || 0} days</span>
+                <span>Roadmap progress: {searchedUser.progress || 0}%</span>
+                <span>Phases completed: {searchedUser.phasesCompleted || 0}</span>
+              </div>
+
+              {/* Streak Badge Triggers */}
+              <div className="trigger-section mb-4">
+                <p className="text-xs text-text-3 font-semibold mb-2">
+                  Streak Badges
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  {[7, 30, 100].map((days) => (
+                    <button
+                      key={days}
+                      type="button"
+                      disabled={loadingAwards === `streak_${days}`}
+                      onClick={() => handleTriggerStreakBadge(searchedUser.id, days)}
+                      className="px-3.5 py-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 rounded-lg text-xs font-bold transition disabled:opacity-50 cursor-pointer"
+                    >
+                      {loadingAwards === `streak_${days}` 
+                        ? 'Generating...' 
+                        : `Generate ${days} Day Badge`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Progress Card Triggers */}
+              <div className="trigger-section mb-4">
+                <p className="text-xs text-text-3 font-semibold mb-2">
+                  Progress Cards
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  {[25, 50, 75].map((percent) => (
+                    <button
+                      key={percent}
+                      type="button"
+                      disabled={loadingAwards === `progress_${percent}`}
+                      onClick={() => handleTriggerProgressCard(searchedUser.id, percent)}
+                      className="px-3.5 py-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/20 rounded-lg text-xs font-bold transition disabled:opacity-50 cursor-pointer"
+                    >
+                      {loadingAwards === `progress_${percent}` 
+                        ? 'Generating...' 
+                        : `Generate ${percent}% Card`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Generate All Button */}
+              <button
+                type="button"
+                disabled={loadingAwards === 'all'}
+                onClick={() => handleGenerateAll(searchedUser.id, searchedUser)}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition disabled:opacity-50 cursor-pointer"
+              >
+                {loadingAwards === 'all' 
+                  ? 'Generating all earned awards...' 
+                  : 'Generate All Earned Awards'}
+              </button>
+
+              {/* Result message */}
+              {awardsMessage && (
+                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 mt-3">
+                  <p className="text-emerald-400 text-xs font-semibold whitespace-pre-line">
+                    {awardsMessage}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -661,6 +1254,187 @@ export default function AdminOverview() {
             <div className="p-8 text-center text-xs text-text-3">No testimonials submitted yet</div>
           )}
         </div>
+      </div>
+
+      {/* Hidden Templates for html2canvas Capture */}
+      <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+        {milestoneStreakDays !== null && (
+          <div
+            id={`streak-badge-${milestoneStreakDays}`}
+            style={{
+              width: '1200px',
+              height: '630px',
+              backgroundColor: '#0F1629',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontFamily: 'Inter, sans-serif',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'radial-gradient(circle at 50% 50%, #5B8EFF15 0%, transparent 70%)'
+            }} />
+            
+            <span style={{ fontSize: '100px', marginBottom: '24px', lineHeight: 1 }}>
+              {milestoneStreakDays === 7 ? '🔥' : milestoneStreakDays === 30 ? '⚡' : '👑'}
+            </span>
+            
+            <div style={{
+              fontSize: '48px',
+              fontWeight: '900',
+              color: '#FFFFFF',
+              marginBottom: '12px',
+              letterSpacing: '0.05em'
+            }}>
+              {milestoneStreakDays} DAY STREAK
+            </div>
+            
+            <div style={{
+              fontSize: '24px',
+              color: '#5B8EFF',
+              fontWeight: '700',
+              marginBottom: '24px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em'
+            }}>
+              Streak Milestone Badge
+            </div>
+            
+            <div style={{
+              fontSize: '28px',
+              color: '#FFFFFF',
+              fontWeight: '600',
+              marginBottom: '12px'
+            }}>
+              {bulkUserName || searchedUser?.name || 'Learner'}
+            </div>
+            
+            <div style={{
+              fontSize: '18px',
+              color: '#94A3B8',
+              maxWidth: '800px',
+              textAlign: 'center',
+              lineHeight: 1.4,
+              marginBottom: '40px'
+            }}>
+              {milestoneStreakDays === 7 
+                ? 'Showing absolute dedication with a 7-day streak! The habit is formed.'
+                : milestoneStreakDays === 30
+                ? 'Unstoppable consistency! 30 days of learning and growing every single day.'
+                : 'A legendary achievement! 100 days of pure focus, dedication, and passion.'}
+            </div>
+
+            <div style={{
+              fontSize: '16px',
+              color: '#5B8EFF',
+              fontWeight: '600',
+              letterSpacing: '0.15em'
+            }}>
+              COGNARALEARN.COM
+            </div>
+          </div>
+        )}
+
+        {milestoneProgressPercent !== null && (
+          <div
+            id={`progress-card-${milestoneProgressPercent}`}
+            style={{
+              width: '1200px',
+              height: '630px',
+              backgroundColor: '#0F1629',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontFamily: 'Inter, sans-serif',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: `radial-gradient(circle at 50% 50%, ${
+                milestoneProgressPercent === 25 ? '#3B82F6' : milestoneProgressPercent === 50 ? '#8B5CF6' : '#EC4899'
+              }15 0%, transparent 70%)`
+            }} />
+            
+            <span style={{ fontSize: '100px', marginBottom: '24px', lineHeight: 1 }}>
+              {milestoneProgressPercent === 25 ? '🚀' : milestoneProgressPercent === 50 ? '⚡' : '🏆'}
+            </span>
+            
+            <div style={{
+              fontSize: '48px',
+              fontWeight: '900',
+              color: '#FFFFFF',
+              marginBottom: '12px',
+              letterSpacing: '0.05em'
+            }}>
+              {milestoneProgressPercent}% COMPLETE
+            </div>
+            
+            <div style={{
+              fontSize: '24px',
+              color: milestoneProgressPercent === 25 ? '#3B82F6' : milestoneProgressPercent === 50 ? '#8B5CF6' : '#EC4899',
+              fontWeight: '700',
+              marginBottom: '24px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em'
+            }}>
+              Goal Progress Card
+            </div>
+            
+            <div style={{
+              fontSize: '28px',
+              color: '#FFFFFF',
+              fontWeight: '600',
+              marginBottom: '12px'
+            }}>
+              {bulkUserName || searchedUser?.name || 'Learner'}
+            </div>
+
+            <div style={{
+              fontSize: '20px',
+              color: '#E2E8F0',
+              fontWeight: '500',
+              maxWidth: '800px',
+              textAlign: 'center',
+              lineHeight: '1.4',
+              marginBottom: '24px'
+            }}>
+              {bulkGoalName || searchedUser?.goal || 'My Learning Goal'}
+            </div>
+            
+            <div style={{
+              fontSize: '18px',
+              color: '#94A3B8',
+              maxWidth: '800px',
+              textAlign: 'center',
+              lineHeight: 1.4,
+              marginBottom: '40px'
+            }}>
+              {milestoneProgressPercent === 25 
+                ? 'One-quarter of the way to mastering this goal!'
+                : milestoneProgressPercent === 50
+                ? 'Halfway mark! Consistency is turning into mastery.'
+                : 'Three-quarters complete. The finish line is in sight!'}
+            </div>
+
+            <div style={{
+              fontSize: '16px',
+              color: milestoneProgressPercent === 25 ? '#3B82F6' : milestoneProgressPercent === 50 ? '#8B5CF6' : '#EC4899',
+              fontWeight: '600',
+              letterSpacing: '0.15em'
+            }}>
+              COGNARALEARN.COM
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

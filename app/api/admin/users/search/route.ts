@@ -72,6 +72,69 @@ export async function GET(request: Request) {
       }
     }
 
+    // 5. Fetch Streak
+    const { data: streak } = await supabase
+      .from('streaks')
+      .select('*')
+      .eq('user_id', profile.id)
+      .maybeSingle()
+
+    // 6. Fetch Learning Journey metrics
+    let completedLessons = 0
+    let totalLessons = 0
+    let progress = 0
+    let phasesCompleted = 0
+
+    if (activeGoal && roadmapId) {
+      // Total lessons count
+      const { count: totalCount } = await supabase
+        .from('lessons')
+        .select('*', { count: 'exact', head: true })
+        .eq('roadmap_id', roadmapId)
+
+      totalLessons = totalCount || 0
+
+      // Completed lessons count
+      const { data: completedProgress } = await supabase
+        .from('lesson_progress')
+        .select('lesson_id')
+        .eq('user_id', profile.id)
+        .eq('status', 'completed')
+
+      const completedSet = new Set(completedProgress?.map(p => p.lesson_id) || [])
+      completedLessons = completedSet.size
+      progress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
+
+      // Phases Completed
+      const { data: phases } = await supabase
+        .from('roadmap_phases')
+        .select('id, phase_number')
+        .eq('roadmap_id', roadmapId)
+        .order('phase_number', { ascending: true })
+
+      if (phases) {
+        const totalPhasesCount = phases.length
+        
+        const { data: lessons } = await supabase
+          .from('lessons')
+          .select('id, phase_id, order_index')
+          .eq('roadmap_id', roadmapId)
+          .order('order_index', { ascending: true })
+
+        if (lessons) {
+          const firstUncompleted = lessons.find(l => !completedSet.has(l.id))
+          
+          if (firstUncompleted) {
+            const currentPhase = phases.find(p => p.id === firstUncompleted.phase_id)
+            const currentPhaseNumber = currentPhase?.phase_number || 1
+            phasesCompleted = currentPhaseNumber > 0 ? currentPhaseNumber - 1 : 0
+          } else {
+            phasesCompleted = totalPhasesCount
+          }
+        }
+      }
+    }
+
     return NextResponse.json({
       user: {
         id: profile.id,
@@ -82,7 +145,11 @@ export async function GET(request: Request) {
         roadmapId,
         phaseCount,
         roadmapDate,
-        version: profile.roadmap_upgraded ? 'Upgraded (v3)' : 'Original'
+        version: profile.roadmap_upgraded ? 'Upgraded (v3)' : 'Original',
+        streak: streak?.current_streak || 0,
+        longestStreak: streak?.record_streak || streak?.longest_streak || 0,
+        progress,
+        phasesCompleted
       }
     })
   } catch (err: any) {

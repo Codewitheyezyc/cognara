@@ -149,6 +149,7 @@ export default function ProfilePage() {
   
   // Streak Badges States
   const [streakBadges, setStreakBadges] = useState<any[]>([])
+  const [progressCards, setProgressCards] = useState<any[]>([])
 
   // Layout & UI States
   const [isLoading, setIsLoading] = useState(true)
@@ -238,6 +239,14 @@ export default function ProfilePage() {
           .eq('user_id', user.id)
           .order('streak_days', { ascending: true })
         setStreakBadges(streakBadgesData || [])
+
+        // 5d. Fetch Progress Cards
+        const { data: progressCardsData } = await supabase
+          .from('cognara_progress_cards')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('milestone_percent', { ascending: true })
+        setProgressCards(progressCardsData || [])
 
         // 5b. Fetch referrals
         try {
@@ -1448,6 +1457,49 @@ export default function ProfilePage() {
               )}
             </div>
 
+            {/* PROGRESS CARDS SECTION */}
+            <div className="p-6 bg-surface border border-border rounded-2xl shadow-xl space-y-6">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2 border-b border-border pb-3">
+                🏆 My Progress Cards
+              </h3>
+
+              {!progressCards || progressCards.length === 0 ? (
+                <div className="py-8 px-4 text-center rounded-xl bg-surface-alt/20 border border-dashed border-border flex flex-col items-center justify-center space-y-2">
+                  <Award className="h-6 w-6 text-text-2" />
+                  <p className="text-xs text-text-2 max-w-xs leading-relaxed">
+                    Earn progress milestone cards when you reach 25%, 50%, or 75% of your learning goals!
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {progressCards.map((card) => (
+                    <div
+                      key={card.id}
+                      className="p-3 rounded-xl bg-surface-alt/45 border border-border flex flex-col items-center justify-between space-y-3 cursor-pointer hover:border-primary/40 hover:bg-surface-alt transition duration-150"
+                      onClick={() => setSelectedBadge({
+                        ...card,
+                        badge_url_png: card.card_url_png,
+                        streak_days: `${card.milestone_percent}% Progress`,
+                        milestone_percent: card.milestone_percent,
+                        description: `Progress Card earned at ${card.milestone_percent}% completion towards my learning goals on Cognara.`
+                      })}
+                    >
+                      <div className="rounded-lg overflow-hidden border border-border/85 shadow-xs">
+                        <img
+                          src={card.card_url_png}
+                          alt={`${card.milestone_percent}% complete`}
+                          className="w-full h-auto"
+                        />
+                      </div>
+                      <span className="text-[11px] font-mono font-bold text-text-2">
+                        {card.milestone_percent}% Milestone
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* ACCOUNT SETTINGS */}
             <div className="p-6 bg-surface border border-border rounded-2xl shadow-xl space-y-6">
               <h3 className="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2 border-b border-border pb-3">
@@ -2030,7 +2082,7 @@ export default function ProfilePage() {
       </div>
 
       {/* BADGE DETAILS MODAL */}
-      {selectedBadge && (
+      {selectedBadge && !selectedBadge.badge_url_png && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-sm bg-surface border border-border rounded-2xl shadow-2xl p-6 relative overflow-hidden animate-scale-up">
             <div className="absolute right-0 top-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
@@ -2127,14 +2179,14 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-      {selectedBadge && (
+      {selectedBadge && selectedBadge.badge_url_png && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 overflow-y-auto">
           <div className="bg-surface border border-border rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center space-y-4 animate-page-enter">
             {/* Badge preview */}
             <div className="rounded-xl overflow-hidden border border-border shadow-md">
               <img
                 src={selectedBadge.badge_url_png}
-                alt={`${selectedBadge.streak_days} day streak badge`}
+                alt={selectedBadge.milestone_percent ? `${selectedBadge.milestone_percent}% complete` : `${selectedBadge.streak_days} day streak badge`}
                 className="w-full h-auto"
               />
             </div>
@@ -2142,14 +2194,30 @@ export default function ProfilePage() {
             {/* Message details */}
             <div className="space-y-1 text-center">
               <h3 className="text-text-1 font-heading font-extrabold text-base flex items-center justify-center gap-1.5">
-                {selectedBadge.streak_days === 7 && '🔥 7 Day Streak!'}
-                {selectedBadge.streak_days === 30 && '⚡ 30 Day Streak!'}
-                {selectedBadge.streak_days === 100 && '👑 100 Day Streak!'}
+                {selectedBadge.milestone_percent ? (
+                  <>
+                    {selectedBadge.milestone_percent === 25 && '🚀 25% Goal Achieved!'}
+                    {selectedBadge.milestone_percent === 50 && '⚡ 50% Goal Achieved!'}
+                    {selectedBadge.milestone_percent === 75 && '🏆 75% Goal Achieved!'}
+                  </>
+                ) : (
+                  <>
+                    {selectedBadge.streak_days === 7 && '🔥 7 Day Streak!'}
+                    {selectedBadge.streak_days === 30 && '⚡ 30 Day Streak!'}
+                    {selectedBadge.streak_days === 100 && '👑 100 Day Streak!'}
+                  </>
+                )}
               </h3>
               <p className="text-[12.5px] text-text-2 leading-relaxed">
-                {selectedBadge.streak_days === 7 && "One week of consistent daily learning on Cognara."}
-                {selectedBadge.streak_days === 30 && "One month of showing up and building a daily habit."}
-                {selectedBadge.streak_days === 100 && "100 days of unstoppable momentum. Extraordinary discipline!"}
+                {selectedBadge.milestone_percent ? (
+                  `You have completed ${selectedBadge.milestone_percent}% of your learning journey on Cognara. Exceptional work!`
+                ) : (
+                  <>
+                    {selectedBadge.streak_days === 7 && "One week of consistent daily learning on Cognara."}
+                    {selectedBadge.streak_days === 30 && "One month of showing up and building a daily habit."}
+                    {selectedBadge.streak_days === 100 && "100 days of unstoppable momentum. Extraordinary discipline!"}
+                  </>
+                )}
               </p>
             </div>
 
@@ -2162,13 +2230,16 @@ export default function ProfilePage() {
               <div className="grid grid-cols-2 gap-2">
                 <Button
                   onClick={() => {
-                    const msg = selectedBadge.streak_days === 7 
-                      ? "One week. Every single day. That is not luck — that is discipline."
-                      : selectedBadge.streak_days === 30 
-                      ? "30 days of showing up. You are not just learning. You are building a habit."
-                      : "100 days. This is extraordinary. You are in the top 1% of learners on Cognara."
-
-                    const shareText = `I just hit a ${selectedBadge.streak_days}-day learning streak on Cognara 🔥\n\n${msg}\n\nIf you have a goal and need a structured path to get there — cognaralearn.com`
+                    const shareText = selectedBadge.milestone_percent
+                      ? `I just reached ${selectedBadge.milestone_percent}% completion of my learning goal on Cognara! 🚀 Check it out: cognaralearn.com`
+                      : (() => {
+                          const msg = selectedBadge.streak_days === 7 
+                            ? "One week. Every single day. That is not luck — that is discipline."
+                            : selectedBadge.streak_days === 30 
+                            ? "30 days of showing up. You are not just learning. You are building a habit."
+                            : "100 days. This is extraordinary. You are in the top 1% of learners on Cognara."
+                          return `I just hit a ${selectedBadge.streak_days}-day learning streak on Cognara 🔥\n\n${msg}\n\nIf you have a goal and need a structured path to get there — cognaralearn.com`
+                        })()
                     window.open(
                       `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
                         window.location.origin
@@ -2183,13 +2254,16 @@ export default function ProfilePage() {
 
                 <Button
                   onClick={() => {
-                    const msg = selectedBadge.streak_days === 7 
-                      ? "One week. Every single day. That is not luck — that is discipline."
-                      : selectedBadge.streak_days === 30 
-                      ? "30 days of showing up. You are not just learning. You are building a habit."
-                      : "100 days. This is extraordinary. You are in the top 1% of learners on Cognara."
-
-                    const shareText = `I just hit a ${selectedBadge.badge_url_png || selectedBadge.streak_days}-day learning streak on Cognara! ${msg} Check it out: cognaralearn.com`
+                    const shareText = selectedBadge.milestone_percent
+                      ? `I just reached ${selectedBadge.milestone_percent}% completion of my learning goal on Cognara! 🚀 Check it out: cognaralearn.com`
+                      : (() => {
+                          const msg = selectedBadge.streak_days === 7 
+                            ? "One week. Every single day. That is not luck — that is discipline."
+                            : selectedBadge.streak_days === 30 
+                            ? "30 days of showing up. You are not just learning. You are building a habit."
+                            : "100 days. This is extraordinary. You are in the top 1% of learners on Cognara."
+                          return `I just hit a ${selectedBadge.badge_url_png || selectedBadge.streak_days}-day learning streak on Cognara! ${msg} Check it out: cognaralearn.com`
+                        })()
                     window.open(
                       `https://wa.me/?text=${encodeURIComponent(shareText)}`,
                       '_blank'
@@ -2206,12 +2280,14 @@ export default function ProfilePage() {
                 onClick={() => {
                   const link = document.createElement('a')
                   link.href = selectedBadge.badge_url_png
-                  link.download = `cognara-${selectedBadge.streak_days}-day-streak.png`
+                  link.download = selectedBadge.milestone_percent
+                    ? `cognara-${selectedBadge.milestone_percent}-percent-progress.png`
+                    : `cognara-${selectedBadge.streak_days}-day-streak.png`
                   link.click()
                 }}
                 className="w-full h-11 border-border hover:bg-surface-alt text-text-2 font-bold rounded-xl text-xs"
               >
-                Download Badge
+                {selectedBadge.milestone_percent ? 'Download Card' : 'Download Badge'}
               </Button>
 
               <button
