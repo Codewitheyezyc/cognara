@@ -15,6 +15,7 @@ import { SoundEffects } from '@/lib/sound'
 import { Logo } from '@/components/ui/Logo'
 import { ProfileDropdown } from '@/components/dashboard/ProfileDropdown'
 import QuestsWidget from '@/components/dashboard/QuestsWidget'
+import { AwardModal } from '@/components/celebration/AwardModal'
 const ROADMAP_UPGRADE_ENABLED = true
 
 export default function DashboardPage() {
@@ -58,6 +59,11 @@ export default function DashboardPage() {
   const [insuranceSuccessOpen, setInsuranceSuccessOpen] = useState(false)
   const [insuranceError, setInsuranceError] = useState<string | null>(null)
 
+  // Pending awards states
+  const [showAwardModal, setShowAwardModal] = useState(false)
+  const [currentAward, setCurrentAward] = useState<any>(null)
+  const [onAwardModalClose, setOnAwardModalClose] = useState<any>(null)
+
   const handleCxpRefillHearts = async () => {
     if (isRefillingHearts || !userId || !profile) return
     if ((profile.xp || 0) < 150) {
@@ -97,6 +103,73 @@ export default function DashboardPage() {
       setIsRefillingHearts(false)
     }
   }
+
+  async function checkPendingAwards(uid: string) {
+    if (!uid) return
+
+    try {
+      // Fetch all unshown pending awards
+      const { data: pendingAwards, error } = await supabase
+        .from('cognara_pending_awards')
+        .select('*')
+        .eq('user_id', uid)
+        .eq('is_shown', false)
+        .order('created_at', { ascending: true })
+
+      if (error) {
+        console.error('Error fetching pending awards:', error)
+        return
+      }
+
+      if (!pendingAwards || pendingAwards.length === 0) {
+        return
+      }
+
+      console.log('Found pending awards:', pendingAwards.length)
+
+      // Show awards one at a time
+      for (const award of pendingAwards) {
+        // Mark as shown BEFORE displaying
+        // Prevents showing again on refresh
+        const { error: updateError } = await supabase
+          .from('cognara_pending_awards')
+          .update({
+            is_shown: true,
+            shown_at: new Date().toISOString()
+          })
+          .eq('id', award.id)
+
+        if (updateError) {
+          console.error('Error marking award as shown:', updateError)
+          continue
+        }
+
+        // Show the modal
+        // This must trigger state that renders AwardModal in the UI
+        setCurrentAward(award)
+        setShowAwardModal(true)
+
+        // Wait for user to dismiss before showing next award
+        await new Promise<void>(resolve => {
+          setOnAwardModalClose(() => resolve)
+        })
+
+        // Small pause between multiple awards
+        await new Promise<void>(resolve => 
+          setTimeout(resolve, 300)
+        )
+      }
+
+    } catch (error) {
+      console.error('checkPendingAwards error:', error)
+    }
+  }
+
+  // Trigger checkPendingAwards when userId changes
+  useEffect(() => {
+    if (!userId) return
+    checkPendingAwards(userId)
+  }, [userId])
 
   // TOP BAR layout integration states
   const [email, setEmail] = useState<string>('')
@@ -1962,6 +2035,20 @@ export default function DashboardPage() {
           </div>
         </div>,
         document.body
+      )}
+
+      {/* Pending Awards Modal */}
+      {showAwardModal && currentAward && (
+        <AwardModal
+          award={currentAward}
+          onClose={() => {
+            setShowAwardModal(false)
+            setCurrentAward(null)
+            if (onAwardModalClose) {
+              onAwardModalClose()
+            }
+          }}
+        />
       )}
     </div>
   )

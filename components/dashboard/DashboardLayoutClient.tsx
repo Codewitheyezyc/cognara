@@ -135,7 +135,6 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
   const [streak, setStreak] = useState<number>(0)
   const [profile, setProfile] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [currentPendingAward, setCurrentPendingAward] = useState<any | null>(null)
   const [recentBadgeEmoji, setRecentBadgeEmoji] = useState<string>('')
   const [email, setEmail] = useState<string>('')
   const [roadmapProgress, setRoadmapProgress] = useState<{
@@ -155,49 +154,6 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
   const [notifications, setNotifications] = useState<any[]>([])
   
   const notificationsRef = useRef<HTMLDivElement>(null)
-
-  const checkPendingAwards = async (userId: string) => {
-    try {
-      const { data: pendingAwards } = await supabase
-        .from('cognara_pending_awards')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_shown', false)
-        .order('created_at', { ascending: true })
-        .limit(1)
-
-      if (pendingAwards && pendingAwards.length > 0) {
-        setCurrentPendingAward(pendingAwards[0])
-      }
-    } catch (err) {
-      console.error('Error checking pending awards:', err)
-    }
-  }
-
-  const handleCloseAwardModal = async () => {
-    if (!currentPendingAward) return
-    const awardId = currentPendingAward.id
-    
-    await supabase
-      .from('cognara_pending_awards')
-      .update({ 
-        is_shown: true,
-        shown_at: new Date().toISOString()
-      })
-      .eq('id', awardId)
-
-    setCurrentPendingAward(null)
-
-    setTimeout(() => {
-      if (profile?.id) {
-        checkPendingAwards(profile.id)
-      } else {
-        supabase.auth.getUser().then(({ data: { user } }: any) => {
-          if (user) checkPendingAwards(user.id)
-        })
-      }
-    }, 600)
-  }
 
   // Load user data and stats
   useEffect(() => {
@@ -383,7 +339,6 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
       } finally {
         if (active) {
           setIsLoading(false)
-          checkPendingAwards(user.id)
         }
       }
     }
@@ -1357,13 +1312,6 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
             setIsLevelUpOpen(false)
             setLevelUpInfo(null)
           }}
-        />
-      )}
-
-      {currentPendingAward && (
-        <AwardModal
-          award={currentPendingAward}
-          onClose={handleCloseAwardModal}
         />
       )}
       {/* CXP Information Bottom Sheet */}

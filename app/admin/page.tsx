@@ -381,6 +381,30 @@ export default function AdminOverview() {
     }
   }
 
+  const resetPendingAwardsForUser = async (userId: string) => {
+    setLoadingAwards('reset')
+    setAwardsMessage('')
+    try {
+      const { error } = await supabase
+        .from('cognara_pending_awards')
+        .update({ 
+          is_shown: false,
+          shown_at: null
+        })
+        .eq('user_id', userId)
+
+      if (error) {
+        throw error
+      }
+
+      setAwardsMessage('✓ Pending awards reset successfully. User will see modals on next dashboard load.')
+    } catch (err: any) {
+      setAwardsMessage(`Error resetting: ${err.message}`)
+    } finally {
+      setLoadingAwards('')
+    }
+  }
+
   const handleGenerateAll = async (userId: string, userData: any) => {
     setLoadingAwards('all')
     setAwardsMessage('')
@@ -1050,6 +1074,18 @@ export default function AdminOverview() {
                 {loadingAwards === 'all' 
                   ? 'Generating all earned awards...' 
                   : 'Generate All Earned Awards'}
+              </button>
+
+              {/* Reset Pending Awards Button */}
+              <button
+                type="button"
+                disabled={loadingAwards === 'reset'}
+                onClick={() => resetPendingAwardsForUser(searchedUser.id)}
+                className="w-full mt-2 bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-xl text-xs transition disabled:opacity-50 cursor-pointer"
+              >
+                {loadingAwards === 'reset' 
+                  ? 'Resetting awards...' 
+                  : 'Reset Pending Awards (Test Modals)'}
               </button>
 
               {/* Result message */}
