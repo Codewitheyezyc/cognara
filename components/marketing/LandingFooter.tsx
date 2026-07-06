@@ -8,6 +8,18 @@ import { X } from 'lucide-react'
 
 export function LandingFooter() {
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false)
+  const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    const isHomepage = window.location.pathname === '/'
+    if (isHomepage) {
+      e.preventDefault()
+      const target = document.getElementById(targetId)
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth' })
+        window.history.pushState(null, '', `#${targetId}`)
+      }
+    }
+  }
+
   return (
     <footer className="w-full bg-surface border-t border-border mt-16 py-12 px-6 relative z-10 select-none">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -28,13 +40,31 @@ export function LandingFooter() {
           <h4 className="text-[10px] font-bold text-text-3 uppercase tracking-wider">Product</h4>
           <ul className="space-y-2 text-xs font-semibold text-text-2">
             <li>
-              <a href="#how-it-works" className="hover:text-text-1 transition">How it works</a>
+              <a 
+                href="/#how-it-works" 
+                onClick={(e) => handleNavigation(e, 'how-it-works')} 
+                className="hover:text-text-1 transition"
+              >
+                How it works
+              </a>
             </li>
             <li>
-              <a href="#pricing" className="hover:text-text-1 transition">Pricing</a>
+              <a 
+                href="/#pricing" 
+                onClick={(e) => handleNavigation(e, 'pricing')} 
+                className="hover:text-text-1 transition"
+              >
+                Pricing
+              </a>
             </li>
             <li>
-              <a href="#faq" className="hover:text-text-1 transition">FAQ</a>
+              <a 
+                href="/#faq" 
+                onClick={(e) => handleNavigation(e, 'faq')} 
+                className="hover:text-text-1 transition"
+              >
+                FAQ
+              </a>
             </li>
             <li>
               <button 
@@ -52,10 +82,22 @@ export function LandingFooter() {
           <h4 className="text-[10px] font-bold text-text-3 uppercase tracking-wider">Company</h4>
           <ul className="space-y-2 text-xs font-semibold text-text-2">
             <li>
-              <a href="#about" className="hover:text-text-1 transition">About</a>
+              <a 
+                href="/#about" 
+                onClick={(e) => handleNavigation(e, 'about')} 
+                className="hover:text-text-1 transition"
+              >
+                About
+              </a>
             </li>
             <li>
-              <a href="#contact" className="hover:text-text-1 transition">Contact</a>
+              <a 
+                href="/#contact" 
+                onClick={(e) => handleNavigation(e, 'contact')} 
+                className="hover:text-text-1 transition"
+              >
+                Contact
+              </a>
             </li>
             <li>
               <Link href="/blog" className="hover:text-text-1 transition">Blog</Link>

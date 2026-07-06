@@ -151,6 +151,8 @@ export default function ProfilePage() {
   // Streak Badges States
   const [streakBadges, setStreakBadges] = useState<any[]>([])
   const [progressCards, setProgressCards] = useState<any[]>([])
+  const [userBlogPosts, setUserBlogPosts] = useState<any[]>([])
+  const [hasCompletedPhase, setHasCompletedPhase] = useState(false)
 
   // Layout & UI States
   const [isLoading, setIsLoading] = useState(true)
@@ -362,6 +364,21 @@ export default function ProfilePage() {
           activeQuizAttempts.filter((qa: any) => qa.passed).map((qa: any) => qa.quiz_id)
         )
         const perfectQuizzesCount = passedActiveQuizIds.size
+
+        // 8. Fetch user blog posts
+        const { data: blogPostsData } = await supabase
+          .from('cognara_blog_posts')
+          .select('id, title, slug, status, read_time_minutes, created_at')
+          .eq('author_id', user.id)
+          .order('created_at', { ascending: false })
+        setUserBlogPosts(blogPostsData || [])
+
+        // 9. Fetch phase completions count to check eligibility
+        const { count: completionsCount } = await supabase
+          .from('cognara_phase_completions')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+        setHasCompletedPhase(completionsCount !== null && completionsCount > 0)
 
         setStats({
           completedLessonsCount: completedIds.size,
@@ -969,6 +986,13 @@ export default function ProfilePage() {
   const nextLesson = activeLessonIdx !== -1 ? activeRoadmapLessons[activeLessonIdx] : activeRoadmapLessons[activeRoadmapLessons.length - 1]
   const activeGoalProgressRatio = activeRoadmapLessons.length > 0 ? Math.round((activeRoadmapLessons.filter((l: any) => completedIds.has(l.id)).length / activeRoadmapLessons.length) * 100) : 0
 
+  const isPro = profile ? (
+    profile.subscription_tier === 'pro' ||
+    profile.subscription_status === 'pro' ||
+    profile.subscription_tier === 'premium' ||
+    profile.subscription_tier !== 'free'
+  ) : false
+
   let activePhaseNumber = 1
   let totalPhases = activeRoadmapPhases.length || 4
   if (nextLesson) {
@@ -1420,6 +1444,131 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
+
+            {/* MY BLOG POSTS SECTION */}
+            {isPro && hasCompletedPhase && (
+              <div className="p-6 bg-surface border border-border rounded-2xl shadow-xl space-y-6">
+                <div className="flex items-center justify-between border-b border-border pb-3">
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                    ✍️ My Blog Posts
+                  </h3>
+                  <Link
+                    href="/blog/write"
+                    className="h-9 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)]"
+                  >
+                    Write a post
+                  </Link>
+                </div>
+
+                {userBlogPosts && userBlogPosts.length > 0 ? (
+                  <div className="space-y-3">
+                    {userBlogPosts.map((post: any) => (
+                      <div
+                        key={post.id}
+                        className="bg-surface-alt/40 border border-border rounded-xl p-4 flex items-center justify-between"
+                      >
+                        <div>
+                          <p className="text-text-1 font-bold text-sm">
+                            {post.title}
+                          </p>
+                          <p className="text-text-3 text-xs mt-1 font-semibold">
+                            {post.status === 'published' 
+                              ? `Published · ${post.read_time_minutes} min read`
+                              : post.status === 'pending_review'
+                              ? 'Pending review'
+                              : post.status === 'rejected'
+                              ? 'Needs changes'
+                              : 'Draft'}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          {post.status === 'published' && (
+                            <a
+                              href={`/blog/${post.slug}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="h-8 px-3 inline-flex items-center justify-center rounded-lg text-xs font-bold bg-surface hover:bg-surface-alt border border-border text-text-1 transition-all"
+                            >
+                              View
+                            </a>
+                          )}
+                          {post.status === 'rejected' && (
+                            <Link
+                              href={`/blog/write?edit=${post.id}`}
+                              className="h-8 px-3 inline-flex items-center justify-center rounded-lg text-xs font-bold border border-amber-500/20 text-amber-500 hover:bg-amber-500/10 transition-all"
+                            >
+                              Edit and resubmit
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-8 px-4 text-center rounded-xl bg-surface-alt/20 border border-dashed border-border flex flex-col items-center justify-center space-y-3">
+                    <span className="text-3xl select-none">✍️</span>
+                    <p className="text-text-1 font-bold text-sm">
+                      You have not written a post yet
+                    </p>
+                    <p className="text-text-2 text-xs max-w-xs leading-relaxed font-semibold">
+                      You completed Phase 1. You have real knowledge worth sharing. Writing about what you learned helps you remember it and helps others who are just starting.
+                    </p>
+                    <Link
+                      href="/blog/write"
+                      className="h-10 px-5 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)]"
+                    >
+                      Write your first post
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {isPro && !hasCompletedPhase && (
+              <div className="p-6 bg-surface border border-border rounded-2xl shadow-xl space-y-6">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2 border-b border-border pb-3">
+                  ✍️ My Blog Posts
+                </h3>
+                <div className="py-8 px-4 text-center rounded-xl bg-surface-alt/20 border border-dashed border-border flex flex-col items-center justify-center space-y-3">
+                  <span className="text-3xl select-none">🔒</span>
+                  <p className="text-text-1 font-bold text-sm">
+                    Complete your first phase to write posts
+                  </p>
+                  <p className="text-text-2 text-xs max-w-xs leading-relaxed font-semibold">
+                    You must finish at least one phase of your learning roadmap to unlock blog writing.
+                  </p>
+                  <Link
+                    href="/dashboard"
+                    className="h-10 px-5 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)]"
+                  >
+                    Go to My Roadmap
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {!isPro && (
+              <div className="p-6 bg-surface border border-border rounded-2xl shadow-xl space-y-6">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2 border-b border-border pb-3">
+                  ✍️ My Blog Posts
+                </h3>
+                <div className="py-8 px-4 text-center rounded-xl bg-surface-alt/20 border border-dashed border-border flex flex-col items-center justify-center space-y-3">
+                  <span className="text-3xl select-none">✍️</span>
+                  <p className="text-text-1 font-bold text-sm">
+                    Blog writing is a Pro feature
+                  </p>
+                  <p className="text-text-2 text-xs max-w-xs leading-relaxed font-semibold">
+                    Upgrade to Pro and complete your first learning phase to share your story on the Cognara blog.
+                  </p>
+                  <Link
+                    href="/upgrade"
+                    className="h-10 px-5 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)]"
+                  >
+                    Upgrade to Pro
+                  </Link>
+                </div>
+              </div>
+            )}
 
             {/* STREAK BADGES SECTION */}
             <div className="p-6 bg-surface border border-border rounded-2xl shadow-xl space-y-6">

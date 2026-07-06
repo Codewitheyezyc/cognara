@@ -37,6 +37,14 @@ export function LandingHeader({
     })
   }, [])
 
+  const handleNavigation = (e: React.MouseEvent, id: string) => {
+    const isHomepage = window.location.pathname === '/'
+    if (isHomepage) {
+      handleScrollToSection(e, id)
+      window.history.pushState(null, '', `#${id}`)
+    }
+  }
+
   return (
     <>
       {/* 1. Header Navigation */}
@@ -48,29 +56,29 @@ export function LandingHeader({
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
-          <a 
-            href="#home" 
-            onClick={(e) => handleScrollToSection(e, 'home')}
+          <Link 
+            href="/" 
+            onClick={(e) => handleNavigation(e, 'home')}
             className="flex items-center space-x-1.5 sm:space-x-2 text-text-1 hover:opacity-90 transition-opacity cursor-pointer z-10"
           >
             <Logo className="h-5 w-5 sm:h-6 sm:w-6" />
             <span className="font-heading text-lg sm:text-xl font-bold tracking-tight text-text-1">Cognara</span>
-          </a>
+          </Link>
 
           {/* Marketing Anchor Navigation - Only shown when scrolled (below the fold) */}
           <nav className={`hidden md:flex items-center space-x-6 transition-all duration-300 ${
             isScrolled ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
           }`}>
             <a 
-              href="#how-it-works" 
-              onClick={(e) => handleScrollToSection(e, 'how-it-works')}
+              href="/#how-it-works" 
+              onClick={(e) => handleNavigation(e, 'how-it-works')}
               className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150"
             >
               How It Works
             </a>
             <a 
-              href="#pricing" 
-              onClick={(e) => handleScrollToSection(e, 'pricing')}
+              href="/#pricing" 
+              onClick={(e) => handleNavigation(e, 'pricing')}
               className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150"
             >
               Pricing
@@ -158,10 +166,10 @@ export function LandingHeader({
         <div className="md:hidden fixed inset-0 top-20 z-50 bg-bg/95 backdrop-blur-lg border-b border-border/40 flex flex-col p-6 space-y-6 animate-page-enter">
           <nav className="flex flex-col space-y-4">
             <a 
-              href="#how-it-works" 
+              href="/#how-it-works" 
               onClick={(e) => {
                 setMobileMenuOpen(false)
-                handleScrollToSection(e, 'how-it-works')
+                handleNavigation(e, 'how-it-works')
               }}
               className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
             >
@@ -169,30 +177,30 @@ export function LandingHeader({
             </a>
 
             <a 
-              href="#pricing" 
+              href="/#pricing" 
               onClick={(e) => {
                 setMobileMenuOpen(false)
-                handleScrollToSection(e, 'pricing')
+                handleNavigation(e, 'pricing')
               }}
               className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
             >
               Pricing
             </a>
             <a 
-              href="#faq" 
+              href="/#faq" 
               onClick={(e) => {
                 setMobileMenuOpen(false)
-                handleScrollToSection(e, 'faq')
+                handleNavigation(e, 'faq')
               }}
               className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
             >
               FAQ
             </a>
             <a 
-              href="#contact" 
+              href="/#contact" 
               onClick={(e) => {
                 setMobileMenuOpen(false)
-                handleScrollToSection(e, 'contact')
+                handleNavigation(e, 'contact')
               }}
               className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
             >

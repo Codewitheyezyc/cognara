@@ -26,6 +26,21 @@ export function MarketingPageClient() {
     }
   }
 
+  React.useEffect(() => {
+    // Check if URL has a hash when page loads
+    const hash = window.location.hash
+    if (hash) {
+      // Small delay to ensure page is fully rendered
+      setTimeout(() => {
+        const id = hash.replace('#', '')
+        const target = document.getElementById(id)
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' })
+        }
+      }, 300)
+    }
+  }, [])
+
   return (
     <div id="home" className="min-h-screen bg-bg text-text-1 flex flex-col relative transition-colors duration-200">
       {/* Background container for glows to prevent overflow from creating vertical whitespace */}
