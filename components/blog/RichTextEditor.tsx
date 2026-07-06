@@ -58,17 +58,14 @@ export function RichTextEditor({ value, onChange, placeholder = 'Start writing..
     <div className="w-full border border-border bg-surface rounded-2xl overflow-hidden focus-within:border-primary/50 transition-colors">
       
       {/* Editor & Preview Header Toggle */}
-      <div className="flex items-center justify-between border-b border-border/80 bg-surface-alt/40 px-3 py-2 gap-2">
-        <div 
-          className="flex-1 overflow-x-auto flex items-center space-x-1 sm:space-x-1.5 mr-2" 
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border/80 bg-surface-alt/40 px-3 py-2 gap-2">
+        <div className="flex flex-wrap items-center gap-1">
           {!isPreviewMode && toolbarItems.map((item, idx) => (
             <button
               key={idx}
               type="button"
               onClick={item.action}
-              className="p-2 text-text-2 hover:text-text-1 hover:bg-surface-alt rounded-lg transition-colors cursor-pointer shrink-0"
+              className="p-2 text-text-2 hover:text-text-1 hover:bg-surface-alt rounded-lg transition-colors cursor-pointer"
               title={item.label}
             >
               {item.icon}
@@ -76,7 +73,7 @@ export function RichTextEditor({ value, onChange, placeholder = 'Start writing..
           ))}
         </div>
 
-        <div className="flex bg-surface-alt p-1 rounded-xl border border-border/60 shrink-0">
+        <div className="flex bg-surface-alt p-1 rounded-xl border border-border/60 shrink-0 self-end sm:self-auto">
           <button
             type="button"
             onClick={() => setIsPreviewMode(false)}
