@@ -256,6 +256,12 @@ export function PracticalExerciseScreen({
             </span>
           </div>
 
+          <div className="bg-surface-alt border border-border px-4 py-2 flex items-center gap-2 rounded-xl mb-3">
+            <span className="text-xs text-text-3 font-semibold leading-relaxed">
+              💡 This editor runs basic JavaScript. For exercises that need imports or React — Cognara uses the full project workspace instead.
+            </span>
+          </div>
+
           {showMonacoSuggestion && (
             <DesktopSuggestion
               featureName="Code Editor"
@@ -308,6 +314,12 @@ export function PracticalExerciseScreen({
             </span>
             <span className="text-xs text-muted-foreground">
               Build your full project here
+            </span>
+          </div>
+
+          <div className="bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 flex items-center gap-2 rounded-xl mb-3">
+            <span className="text-xs text-indigo-500 font-semibold leading-relaxed">
+              ✓ Full project environment — imports and packages work here just like in VSCode.
             </span>
           </div>
 
@@ -397,25 +409,43 @@ export function PracticalExerciseScreen({
 }
 
 function getCodingEnvironment(practical: PracticalExerciseData) {
-  // Only show coding environment for tech domain
+  // Only for technology domain
   if (practical.domain_type !== 'technology') {
-    return null
+    return null;
   }
 
-  // StackBlitz for complex projects
-  // Estimated time over 20 minutes = complex
-  const timeValue = parseInt(practical.estimated_time || '0')
+  const instruction = practical.instruction?.toLowerCase() || '';
+  const tool = practical.tool_required?.toLowerCase() || '';
 
-  if (
-    timeValue >= 25 ||
-    practical.complexity === 'complex' ||
-    practical.tool_required?.toLowerCase().includes('project')
-  ) {
-    return 'stackblitz'
-  }
+  // Use StackBlitz when exercise needs:
+  // imports, packages, React, Next.js, multiple files, or full project
+  const needsStackBlitz = 
+    instruction.includes('import') ||
+    instruction.includes('react') ||
+    instruction.includes('next.js') ||
+    instruction.includes('nextjs') ||
+    instruction.includes('component') ||
+    instruction.includes('usestate') ||
+    instruction.includes('useeffect') ||
+    instruction.includes('install') ||
+    instruction.includes('package') ||
+    instruction.includes('npm') ||
+    instruction.includes('node') ||
+    instruction.includes('express') ||
+    instruction.includes('api route') ||
+    instruction.includes('full project') ||
+    instruction.includes('multiple files') ||
+    tool.includes('react') ||
+    tool.includes('next') ||
+    tool.includes('node') ||
+    practical.complexity === 'complex';
 
-  // Monaco for simpler coding tasks
-  return 'monaco'
+  if (needsStackBlitz) return 'stackblitz';
+
+  // Use Monaco for simple exercises:
+  // Basic JS, HTML, CSS, algorithms
+  // No imports needed
+  return 'monaco';
 }
 
 function getStarterCode(practical: PracticalExerciseData) {

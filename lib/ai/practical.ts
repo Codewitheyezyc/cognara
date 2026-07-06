@@ -144,9 +144,46 @@ Also include these fields in your JSON response:
 "starter_code": "Minimal starter code to give the user a starting point. Must be valid code in the language specified.",
 "expected_output": "What the code should output or produce when working correctly. For JavaScript: console.log output. For HTML: description of visual.",
 "language": "javascript OR typescript OR html OR css",
-"complexity": "simple OR complex",
-              Use 'simple' for under 20 line exercises,
-              Use 'complex' for multi-file projects` : ''}
+"complexity": "simple OR complex"
+
+ENVIRONMENT SELECTION RULES:
+Use complexity: "simple" when:
+- Exercise uses only vanilla JavaScript
+- No imports or packages needed
+- Single file exercise
+- Basic algorithms, DOM manipulation, simple functions
+- Examples: reverse array, fizzbuzz, basic calculator, DOM styling
+
+Use complexity: "complex" when:
+- Exercise requires any import statement
+- Exercise uses React, Next.js, or any framework
+- Exercise requires installing a package
+- Exercise spans multiple files
+- Examples: React component, useState hook, API route, Next.js page, Express server
+
+STARTER CODE RULES:
+- For simple (Monaco): provide vanilla JS starter
+- For complex (StackBlitz): provide proper import statements at the top of starter code
+
+Example simple starter:
+// Write your solution here
+function solution() {
+  // your code
+}
+
+Example complex starter:
+import { useState } from 'react';
+
+export default function MyComponent() {
+  const [count, setCount] = useState(0);
+  
+  return (
+    <div>
+      {/* Your code here */}
+    </div>
+  );
+}
+` : ''}
 
 Return ONLY valid JSON in this exact format with no preamble and no markdown backticks:
 {
