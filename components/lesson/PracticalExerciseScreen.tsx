@@ -1,9 +1,10 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { CheckCircle2, SkipForward, Wrench, Clock, Zap, ChevronRight } from 'lucide-react'
 import { Spark } from '@/components/mascot/Spark'
 import { createClient } from '@/lib/supabase/client'
 import dynamic from 'next/dynamic'
+import { DesktopSuggestion } from '@/components/ui/DesktopSuggestion'
 
 // Import dynamically to prevent SSR issues
 const ExerciseCode = dynamic(
@@ -59,6 +60,29 @@ export function PracticalExerciseScreen({
   const [isSaving, setIsSaving] = useState(false)
   const [isSkipping, setIsSkipping] = useState(false)
   const [showCxpAnim, setShowCxpAnim] = useState(false)
+
+  // Mobile device suggestion states
+  const [showMonacoSuggestion, setShowMonacoSuggestion] = useState(false)
+  const [showMonacoEditor, setShowMonacoEditor] = useState(true)
+  const [showStackBlitzSuggestion, setShowStackBlitzSuggestion] = useState(false)
+  const [showStackBlitzEditor, setShowStackBlitzEditor] = useState(true)
+
+  useEffect(() => {
+    const isMobile = window.innerWidth < 768
+    if (isMobile) {
+      const monacoDismissed = sessionStorage.getItem('cognara-dismiss-suggest-monaco')
+      if (!monacoDismissed) {
+        setShowMonacoSuggestion(true)
+        setShowMonacoEditor(false)
+      }
+      
+      const stackblitzDismissed = sessionStorage.getItem('cognara-dismiss-suggest-stackblitz')
+      if (!stackblitzDismissed) {
+        setShowStackBlitzSuggestion(true)
+        setShowStackBlitzEditor(false)
+      }
+    }
+  }, [])
 
   const handleComplete = async () => {
     if (isSaving) return
@@ -232,19 +256,47 @@ export function PracticalExerciseScreen({
             </span>
           </div>
 
-          <ExerciseCode
-            language={
-              practical.tool_required?.toLowerCase().includes('html') 
-                ? 'html' 
-                : practical.tool_required?.toLowerCase().includes('typescript')
-                ? 'typescript'
-                : 'javascript'
-            }
-            starterCode={practical.starter_code || getStarterCode(practical)}
-            expectedOutput={practical.expected_output || ''}
-            isLocked={!isPro}
-            instructions={practical.instruction}
-          />
+          {showMonacoSuggestion && (
+            <DesktopSuggestion
+              featureName="Code Editor"
+              message="The code editor works on mobile but is much easier to use on a laptop or desktop screen."
+              onContinue={() => {
+                setShowMonacoEditor(true)
+                setShowMonacoSuggestion(false)
+                sessionStorage.setItem('cognara-dismiss-suggest-monaco', 'dismissed')
+              }}
+              onDismiss={() => {
+                setShowMonacoSuggestion(false)
+                sessionStorage.setItem('cognara-dismiss-suggest-monaco', 'dismissed')
+              }}
+            />
+          )}
+
+          {showMonacoEditor ? (
+            <ExerciseCode
+              language={
+                practical.tool_required?.toLowerCase().includes('html') 
+                  ? 'html' 
+                  : practical.tool_required?.toLowerCase().includes('typescript')
+                  ? 'typescript'
+                  : 'javascript'
+              }
+              starterCode={practical.starter_code || getStarterCode(practical)}
+              expectedOutput={practical.expected_output || ''}
+              isLocked={!isPro}
+              instructions={practical.instruction}
+            />
+          ) : (
+            !showMonacoSuggestion && (
+              <button
+                type="button"
+                onClick={() => setShowMonacoEditor(true)}
+                className="w-full py-3 border border-border hover:bg-surface-alt text-text-1 rounded-xl font-bold text-xs uppercase tracking-wider transition cursor-pointer"
+              >
+                Open Code Editor
+              </button>
+            )
+          )}
         </div>
       )}
 
@@ -259,16 +311,44 @@ export function PracticalExerciseScreen({
             </span>
           </div>
 
-          <ExerciseProject
-            projectTitle={practical.title}
-            description={practical.instruction}
-            template={getProjectTemplate(practical)}
-            starterFiles={getStarterFiles(practical)}
-            steps={getChecklistSteps(practical)}
-            isLocked={!isPro}
-            lessonId={lessonCacheId || 'practical-lesson'}
-            userId={userId}
-          />
+          {showStackBlitzSuggestion && (
+            <DesktopSuggestion
+              featureName="Project Workspace"
+              message="The full project workspace needs a larger screen to work properly. For the best experience switch to a laptop or desktop."
+              onContinue={() => {
+                setShowStackBlitzEditor(true)
+                setShowStackBlitzSuggestion(false)
+                sessionStorage.setItem('cognara-dismiss-suggest-stackblitz', 'dismissed')
+              }}
+              onDismiss={() => {
+                setShowStackBlitzSuggestion(false)
+                sessionStorage.setItem('cognara-dismiss-suggest-stackblitz', 'dismissed')
+              }}
+            />
+          )}
+
+          {showStackBlitzEditor ? (
+            <ExerciseProject
+              projectTitle={practical.title}
+              description={practical.instruction}
+              template={getProjectTemplate(practical)}
+              starterFiles={getStarterFiles(practical)}
+              steps={getChecklistSteps(practical)}
+              isLocked={!isPro}
+              lessonId={lessonCacheId || 'practical-lesson'}
+              userId={userId}
+            />
+          ) : (
+            !showStackBlitzSuggestion && (
+              <button
+                type="button"
+                onClick={() => setShowStackBlitzEditor(true)}
+                className="w-full py-3 border border-border hover:bg-surface-alt text-text-1 rounded-xl font-bold text-xs uppercase tracking-wider transition cursor-pointer"
+              >
+                Open Project Workspace
+              </button>
+            )
+          )}
         </div>
       )}
 
