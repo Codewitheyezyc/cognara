@@ -285,8 +285,19 @@ export function WriteBlogClient({ eligibility, initialTitle, userId }: WriteBlog
 
               {/* Custom Rich Text Editor */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-text-2 uppercase tracking-wider">Post Body Content</label>
-                <RichTextEditor value={content} onChange={setContent} placeholder="Write about what you learned..." />
+                <div className="mb-2">
+                  <label className="text-sm font-medium text-text-1 block mb-1">
+                    Your post
+                  </label>
+                  <p className="text-xs text-text-3 mb-3 font-semibold">
+                    Write normally — no coding knowledge needed. Use the toolbar above to format your text.
+                  </p>
+                </div>
+                <RichTextEditor
+                  value={content}
+                  onChange={setContent}
+                  placeholder="Write your post here... Share what you learned, how it helped you, and what you would tell someone just starting out."
+                />
               </div>
 
               {/* Tags Selector */}

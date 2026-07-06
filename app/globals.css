@@ -486,3 +486,12 @@
 .prose ol { list-style-type: decimal; }
 .prose li { margin-top: 0.3em; margin-bottom: 0.3em; padding-left: 0.25em; }
 .prose blockquote { border-left: 4px solid var(--color-primary); padding-left: 1.1em; color: var(--color-text-2); font-style: italic; margin-bottom: 1.25em; }
+
+/* Tiptap editor placeholder styles */
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--color-text-3, hsl(var(--muted-foreground)));
+  pointer-events: none;
+  height: 0;
+}
