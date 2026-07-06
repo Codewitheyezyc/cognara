@@ -38,13 +38,13 @@ export function FinalCtaSection() {
         <div className="relative z-10 max-w-2xl mx-auto space-y-6 flex flex-col items-center">
           {/* Headline */}
           <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white leading-tight">
-            You have a goal.<br />
-            Let&apos;s build the path.
+            Have a goal?<br />
+            Let&apos;s build your path.
           </h2>
 
           {/* Subtext */}
           <p className="text-white/90 text-sm sm:text-base font-semibold max-w-md">
-            Join {learnersCount} learners who stopped searching and started achieving.
+            Join {learnersCount} learners who stopped searching and started reaching their goals.
           </p>
 
           {/* Action Area */}
@@ -53,11 +53,11 @@ export function FinalCtaSection() {
               <Button
                 className="w-full h-13 bg-white hover:bg-neutral-100 text-[#3D6AFF] hover:text-[#2d5aef] font-extrabold text-base rounded-xl transition duration-150 cursor-pointer shadow-lg active:scale-[0.98]"
               >
-                Start free today
+                Build my free roadmap
               </Button>
             </Link>
             <span className="text-[11px] text-white/80 font-bold uppercase tracking-wider block mt-6">
-              Takes 2 minutes. Your roadmap is waiting.
+              Builds your path in under 60 seconds.
             </span>
           </div>
 

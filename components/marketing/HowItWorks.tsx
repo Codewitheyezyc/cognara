@@ -9,18 +9,18 @@ export function HowItWorks() {
   const steps = [
     {
       icon: <Target className="h-6 w-6 text-primary" />,
-      title: 'Tell Cognara your goal',
-      description: 'Anything from becoming a developer to mastering business strategy to passing your professional exams.'
+      title: 'Tell us what you want to learn',
+      description: 'Choose any subject, from writing code to building a business model.'
     },
     {
       icon: <Map className="h-6 w-6 text-accent" />,
-      title: 'Get your personalised roadmap',
-      description: 'Cognara builds a structured path from where you are today to where you want to be — in under 60 seconds.'
+      title: 'Get your own learning path',
+      description: 'We build your personal learning plan in under 60 seconds.'
     },
     {
       icon: <Bot className="h-6 w-6 text-primary" />,
-      title: 'Learn with an AI mentor that remembers you',
-      description: 'Daily lessons at your exact level. Quizzes that test real understanding. Spark adapts when you struggle and celebrates when you succeed.'
+      title: 'Learn with a helper built with AI',
+      description: 'Get daily lessons and quizzes made for you. Your helper Spark remembers what you know.'
     }
   ]
 

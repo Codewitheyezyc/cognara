@@ -5,21 +5,21 @@ import { Check, X } from 'lucide-react'
 
 export function ComparisonSection() {
   const otherTools = [
-    'Answer your questions in the moment',
-    'Forget you when you close the tab',
-    'No structure — you figure out what comes next',
-    'No progress tracking',
-    'No accountability',
-    'Great for quick answers. Not built for real achievement.'
+    'They answer your question right now',
+    'They forget who you are when you close the tab',
+    'They leave you to figure out what to learn next',
+    'They do not show how far you have come',
+    'No one checks on you when you stop',
+    'Good for quick answers, but not for finishing a big goal'
   ]
 
   const cognaraTools = [
-    'Builds your complete learning journey',
-    'Remembers exactly where you stopped',
-    'Structured roadmap from beginner to goal',
-    'Tracks every lesson, quiz, and milestone',
-    'Spark checks in when you fall behind',
-    'Built for one thing: getting you there.'
+    'We build your entire learning path',
+    'We remember exactly where you left off',
+    'You get a step-by-step path from start to finish',
+    'We track your lessons, quizzes, and points',
+    'Spark checks in to help you stay on track',
+    'We are built to help you reach your goal'
   ]
 
   return (
@@ -71,7 +71,7 @@ export function ComparisonSection() {
 
       {/* Closing Line */}
       <p className="text-base sm:text-lg font-extrabold text-text-1 mt-12 text-center tracking-tight">
-        Other tools give you information. Cognara gives you a path.
+        Other tools give you answers. We show you the way.
       </p>
     </section>
   )

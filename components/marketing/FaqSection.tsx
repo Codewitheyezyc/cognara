@@ -6,19 +6,19 @@ import { HelpCircle } from 'lucide-react'
 const faqs = [
   {
     q: "Can I use Cognara to learn non-technical subjects?",
-    a: "Yes! Cognara is designed to master any structured body of knowledge. Whether you are studying corporate finance, learning classical guitar, or practicing public speaking, our system partitions the concepts, creates custom roadmaps, and adjusts explanations to your level."
+    a: "Yes! You can use Cognara to learn anything you want. Whether you are studying finance, learning guitar, or practicing public speaking, we build a simple path for you and teach you at your own pace."
   },
   {
     q: "How does Cognara know which depth level is right for me?",
-    a: "During onboarding, you choose a preferred depth level. You can also change this at any time in your Settings or directly in the header of any active lesson. If a concept feels too complex or too basic, just toggle the depth to reload it immediately."
+    a: "When you sign up, you pick how deep you want to go. You can change this at any time. If a lesson feels too hard or too easy, you can click a button to change it instantly."
   },
   {
     q: "Does Cognara query the server every time I load a page?",
-    a: "No. Cognara uses a smart lazy-generation caching layer. The very first time you click a lesson on your roadmap, the system compiles and structures it for your chosen depth. Once generated, it is cached in our secure database forever. This gives you instant loading times for future visits."
+    a: "No. We save your lessons the first time you load them. This means the next time you open a lesson, it loads instantly without making you wait."
   },
   {
     q: "How are the daily streaks calculated?",
-    a: "Your streak increases every calendar day you complete a quiz with a passing score of 60% or higher. Taking multiple quizzes on the same day maintains your streak but does not double-increment it, encouraging consistent, daily habits."
+    a: "Your streak grows every day you pass a quiz with a score of 60% or more. Taking more quizzes on the same day keeps your streak going but does not add extra days. We want to help you build a daily learning habit."
   }
 ]
 

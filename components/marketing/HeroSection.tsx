@@ -62,18 +62,18 @@ export function HeroSection() {
     <section className="flex flex-col items-center justify-center py-16 md:py-24 text-center max-w-4xl mx-auto">
       {/* 1. Badge / Top line */}
       <div className="inline-flex items-center px-3.5 py-1 border border-primary/20 bg-primary/5 text-primary text-xs font-mono font-bold uppercase tracking-wider rounded-full mb-6">
-        AI-Powered Transformation
+        Built with AI to help you grow
       </div>
 
       {/* 2. Headline */}
       <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-extrabold text-text-1 tracking-tight leading-[1.1] max-w-3xl mx-auto">
-        Your goal. Your roadmap. <br className="hidden sm:inline" />
-        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Your AI mentor.</span>
+        Tell us your goal. <br className="hidden sm:inline" />
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">We build your path.</span>
       </h1>
 
       {/* 3. Subheadline */}
       <p className="text-text-2 text-sm sm:text-base md:text-lg leading-relaxed max-w-2xl mx-auto mt-6">
-        Tell Cognara what you want to achieve. It builds your personalised learning path, teaches you at your exact level, and keeps you accountable every single day.
+        Choose anything you want to learn. We build a simple daily plan that matches your level and helps you stay on track every day.
       </p>
 
       {/* 4. CTA and Social Proof */}
@@ -82,7 +82,7 @@ export function HeroSection() {
           href="/signup"
           className="w-full h-13 px-8 inline-flex items-center justify-center rounded-xl font-extrabold text-base bg-gradient-to-r from-primary to-accent hover:from-primary-hover hover:to-accent text-white shadow-[0_0_24px_rgba(91,142,255,0.3)] transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
         >
-          Start Your Journey — It&apos;s Free
+          Build My Free Learning Plan →
         </Link>
         <span className="text-[11px] text-text-3 font-bold uppercase tracking-wider">
           Join {learnersCount} learners already on their path
@@ -104,9 +104,9 @@ export function HeroSection() {
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
             </div>
             <div className="text-[9px] sm:text-[10px] font-mono text-text-3 font-bold tracking-wider sm:tracking-widest uppercase">
-              {activeStep === 0 && 'STEP 1: DEFINE YOUR GOAL'}
-              {activeStep === 1 && 'STEP 2: ROADMAP GENERATION'}
-              {activeStep === 2 && 'STEP 3: ACTIVE LEARNING'}
+              {activeStep === 0 && 'STEP 1: CHOOSE YOUR GOAL'}
+              {activeStep === 1 && 'STEP 2: GET YOUR PATH'}
+              {activeStep === 2 && 'STEP 3: START LEARNING'}
             </div>
             <div className="w-10" /> {/* spacer to balance controls */}
           </div>
@@ -121,8 +121,8 @@ export function HeroSection() {
               }`}
             >
               <div className="text-center space-y-1.5">
-                <h4 className="text-sm sm:text-base font-extrabold text-text-1">What do you want to achieve?</h4>
-                <p className="text-[11px] sm:text-xs text-text-2">Define your goal. Cognara compiles your custom curriculum.</p>
+                <h4 className="text-sm sm:text-base font-extrabold text-text-1">What do you want to learn?</h4>
+                <p className="text-[11px] sm:text-xs text-text-2">Tell us your goal. We will build your personal path.</p>
               </div>
               <div className="space-y-3">
                 <div className="relative h-11 sm:h-13 w-full bg-surface border border-border rounded-xl px-4 flex items-center shadow-inner text-left">
@@ -135,7 +135,7 @@ export function HeroSection() {
                   type="button"
                   className="w-full h-10 sm:h-12 bg-primary text-white rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 cursor-default select-none shadow-sm opacity-90"
                 >
-                  Build My Roadmap →
+                  Build My Path →
                 </button>
               </div>
             </div>
@@ -147,7 +147,7 @@ export function HeroSection() {
               }`}
             >
               <div className="text-left space-y-0.5">
-                <h4 className="text-xs sm:text-sm font-extrabold text-text-1">Your Roadmap: Social Media Strategist</h4>
+                <h4 className="text-xs sm:text-sm font-extrabold text-text-1">Your Path: Social Media Strategist</h4>
                 <p className="text-[9px] sm:text-[10px] text-text-3 font-mono">Estimated completion: 6 weeks at 30m/day</p>
               </div>
               

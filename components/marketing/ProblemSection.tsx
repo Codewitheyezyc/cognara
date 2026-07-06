@@ -6,15 +6,15 @@ export function ProblemSection() {
   const cards = [
     {
       icon: '🌀',
-      text: 'You started learning but lost the thread after week two.'
+      text: 'You start learning something new but stop after two weeks.'
     },
     {
       icon: '📑',
-      text: "You have 47 browser tabs open and still don't know where to begin."
+      text: 'You have too many open tabs and do not know where to start.'
     },
     {
       icon: '🤖',
-      text: 'You asked ChatGPT to teach you. It helped once. Then forgot you existed.'
+      text: 'You asked AI to teach you, but it gave you too much info.'
     }
   ]
 

@@ -206,10 +206,10 @@ export function WriteBlogClient({ eligibility, initialTitle, userId }: WriteBlog
                 <span>Writer Studio</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-black font-heading tracking-tight text-text-1">
-                Create new article
+                Share your story
               </h1>
               <p className="text-xs sm:text-sm text-text-2 font-medium">
-                Draft insights, code walkthroughs, or learning logs to share with the community.
+                Have something to say about what you learned? Write it here. Your story could help someone who is just starting out.
               </p>
             </div>
 

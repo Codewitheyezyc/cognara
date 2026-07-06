@@ -265,7 +265,7 @@ export function SignupPageClient() {
           <Logo className="h-6 w-6" />
           <span className="font-heading text-2xl font-bold tracking-tight text-text-1">Cognara</span>
         </div>
-        <p className="text-sm text-text-2">Your mind. Your path. Your era.</p>
+        <p className="text-sm text-text-2">Simple daily plans to help you learn.</p>
         <h2 className="mt-4 font-heading text-xl font-semibold text-text-1">Create an account</h2>
       </div>
 

@@ -19,26 +19,26 @@ export function PricingSection() {
   }, [supabase])
 
   const freeFeatures = [
-    { label: '1 active learning goal', included: true },
-    { label: 'Beginner depth level', included: true },
-    { label: 'Quizzes and streak tracking', included: true },
-    { label: 'Priority Spark (AI mentor)', included: false },
-    { label: 'Unlimited learning goals', included: false },
-    { label: 'All depth levels', included: false },
-    { label: 'Phase completion certificates', included: false },
-    { label: 'Offline access', included: false }
+    { label: '1 learning goal at a time', included: true },
+    { label: 'Start at the beginner level', included: true },
+    { label: 'Lessons, quizzes, and tracking', included: true },
+    { label: 'Fast support from Spark (your AI helper)', included: false },
+    { label: 'Learn as many things as you want', included: false },
+    { label: 'Learn as deep as you want to go', included: false },
+    { label: 'Shareable certificates when you complete a phase', included: false },
+    { label: 'Learn without an internet connection', included: false }
   ]
 
   const proFeatures = [
     'Everything in the Free plan',
-    'Unlimited learning goals',
-    'All depth levels',
-    'Phase completion certificates',
-    'Offline access',
-    'Priority Spark (AI mentor)',
-    'Projects and assignments',
-    'Speed run mode',
-    'Advanced quests'
+    'Learn as many things as you want',
+    'Learn as deep as you want to go',
+    'Shareable certificates when you complete a phase',
+    'Learn without an internet connection',
+    'Fast support from Spark (your AI helper)',
+    'Practical projects and homework',
+    'Fast path mode',
+    'Weekly challenges'
   ]
 
   const handleSelectPlan = async (plan: 'free' | 'monthly' | 'annual') => {
@@ -89,10 +89,10 @@ export function PricingSection() {
       {/* Headline & Subheadline */}
       <div className="text-center space-y-3 max-w-2xl mx-auto">
         <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-text-1 tracking-tight">
-          Start free. Upgrade when you are ready.
+          Start learning for free. Pay only when you are ready.
         </h2>
         <p className="text-text-2 text-xs sm:text-sm font-semibold">
-          No payment required to start.
+          No card needed to try it.
         </p>
       </div>
 
@@ -135,7 +135,7 @@ export function PricingSection() {
               onClick={() => handleSelectPlan('free')}
               className="w-full h-11 border border-border bg-surface-alt hover:bg-surface text-text-1 font-bold rounded-xl text-xs transition duration-150 cursor-pointer"
             >
-              Start Free →
+              Try it free →
             </button>
           </div>
         </div>
@@ -183,7 +183,7 @@ export function PricingSection() {
                   <span>Initializing...</span>
                 </>
               ) : (
-                <span>Start Pro →</span>
+                <span>Get Pro →</span>
               )}
             </button>
           </div>
@@ -231,7 +231,7 @@ export function PricingSection() {
                   <span>Initializing...</span>
                 </>
               ) : (
-                <span>Get Annual →</span>
+                <span>Get Pro Annual →</span>
               )}
             </button>
           </div>

@@ -106,10 +106,10 @@ export function BlogListingClient({ initialPosts, userId }: BlogListingClientPro
               <span>Cognara Insights</span>
             </div>
             <h1 className="text-4xl sm:text-5xl font-black font-heading tracking-tight leading-tight text-text-1">
-              Learning Stories & Tips.
+              Stories and lessons from people just like you.
             </h1>
             <p className="text-sm sm:text-base text-text-2 font-medium max-w-xl">
-              Roadmaps, tutorials, and success stories curated from the community and AI mentors.
+              Real stories from real learners. Find tips and lessons to help you along the way.
             </p>
           </div>
 
@@ -127,7 +127,7 @@ export function BlogListingClient({ initialPosts, userId }: BlogListingClientPro
                   className="h-10 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)] gap-1.5"
                 >
                   <Plus size={14} />
-                  <span>Write Post</span>
+                  <span>Write a post</span>
                 </Link>
               </>
             )}

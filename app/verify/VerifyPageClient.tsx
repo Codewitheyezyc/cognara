@@ -141,7 +141,7 @@ export function VerifyPageClient({
             Certificate Verified
           </h2>
           <p className="text-xs sm:text-sm text-text-2 max-w-md mx-auto leading-relaxed font-semibold">
-            This certificate is authentic and was issued by Cognara upon genuine completion of the learning phase specified below.
+            This certificate is real. We gave it to them for finishing their learning phase.
           </p>
         </div>
 
@@ -221,7 +221,7 @@ export function VerifyPageClient({
           {/* Card Footer */}
           <div className="px-6 py-4 border-t border-border/40 bg-surface-alt/10">
             <p className="text-[10px] text-text-2 text-center font-medium leading-relaxed">
-              This certificate was issued by Cognara and represents genuine demonstrated understanding of the topics listed above.
+              This certificate is real. It shows that this learner completed all the lessons listed above.
             </p>
           </div>
         </div>
@@ -284,7 +284,7 @@ export function VerifyPageClient({
               {firstName} earned this with Cognara.
             </h3>
             <p className="text-xs sm:text-sm text-text-2 leading-relaxed font-semibold">
-              Cognara builds your personalised learning roadmap, teaches you at your exact level, and keeps you accountable every day until you achieve your goal.
+              We build your personal path. We teach you at your level and help you daily.
             </p>
           </div>
 
@@ -292,15 +292,15 @@ export function VerifyPageClient({
           <div className="space-y-4 max-w-sm w-full font-bold text-xs sm:text-sm text-text-2">
             <div className="flex items-center gap-3.5 bg-surface border border-border px-4 py-3.5 rounded-xl shadow-sm">
               <span className="text-lg">🗺️</span>
-              <span>Your roadmap built in under 60 seconds</span>
+              <span>Your learning path built in under 60 seconds</span>
             </div>
             <div className="flex items-center gap-3.5 bg-surface border border-border px-4 py-3.5 rounded-xl shadow-sm">
               <span className="text-lg">🧠</span>
-              <span>Lessons personalised to your exact level</span>
+              <span>Lessons built for your level</span>
             </div>
             <div className="flex items-center gap-3.5 bg-surface border border-border px-4 py-3.5 rounded-xl shadow-sm">
               <span className="text-lg">🔥</span>
-              <span>Daily accountability that keeps you going</span>
+              <span>Daily tracking that keeps you going</span>
             </div>
           </div>
 
