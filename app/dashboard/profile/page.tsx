@@ -19,6 +19,7 @@ import {
 import { getLevelInfo } from '@/lib/leveling'
 import { LinkedinIcon, TwitterIcon } from '@/components/ui/SocialIcons'
 import { shareImageToSocial } from '@/lib/share'
+import { LessonPreviewModal } from '@/components/dashboard/LessonPreviewModal'
 
 // Easing Animation Count-up Hook
 function useCountUp(target: number, duration: number = 800) {
@@ -153,6 +154,7 @@ export default function ProfilePage() {
   const [progressCards, setProgressCards] = useState<any[]>([])
   const [userBlogPosts, setUserBlogPosts] = useState<any[]>([])
   const [hasCompletedPhase, setHasCompletedPhase] = useState(false)
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
 
   // Layout & UI States
   const [isLoading, setIsLoading] = useState(true)
@@ -373,9 +375,9 @@ export default function ProfilePage() {
           .order('created_at', { ascending: false })
         setUserBlogPosts(blogPostsData || [])
 
-        // 9. Fetch phase completions count to check eligibility
+        // 9. Fetch phase completions count from certificates to check eligibility
         const { count: completionsCount } = await supabase
-          .from('cognara_phase_completions')
+          .from('cognara_certificates')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id)
         setHasCompletedPhase(completionsCount !== null && completionsCount > 0)
@@ -1560,12 +1562,12 @@ export default function ProfilePage() {
                   <p className="text-text-2 text-xs max-w-xs leading-relaxed font-semibold">
                     Upgrade to Pro and complete your first learning phase to share your story on the Cognara blog.
                   </p>
-                  <Link
-                    href="/upgrade"
-                    className="h-10 px-5 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)]"
+                  <button
+                    onClick={() => setIsUpgradeModalOpen(true)}
+                    className="h-10 px-5 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)] cursor-pointer"
                   >
-                    Upgrade to Pro
-                  </Link>
+                    See Pro plans
+                  </button>
                 </div>
               </div>
             )}
@@ -2489,6 +2491,11 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
+
+      <LessonPreviewModal
+        isOpen={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
+      />
     </div>
   )
 }

@@ -62,12 +62,12 @@ export async function canUserWriteBlog(
   }
 
   // Must have completed at least one phase
-  const { count, error: countErr } = await supabase
-    .from('cognara_phase_completions')
-    .select('*', { count: 'exact', head: true })
+  const { data: certificates, error: certsErr } = await supabase
+    .from('cognara_certificates')
+    .select('goal_name, phase_number, phase_name')
     .eq('user_id', userId)
 
-  if (countErr || count === null || count < 1) {
+  if (certsErr || !certificates || certificates.length < 1) {
     return {
       eligible: false,
       author_type: 'community',
@@ -77,19 +77,24 @@ export async function canUserWriteBlog(
   }
 
   // Get completed domains for topic locking
-  const { data: completedPhases } = await supabase
-    .from('cognara_phase_completions')
-    .select('domain, phase_number, phase_name')
+  const { data: goals } = await supabase
+    .from('learning_goals')
+    .select('goal_text, subject')
     .eq('user_id', userId)
 
-  const allowedDomains = Array.from(
-    new Set((completedPhases || []).map(p => p.domain))
-  )
+  const allowedDomainsSet = new Set<string>()
+  certificates.forEach(c => {
+    const g = goals?.find(goal => goal.goal_text === c.goal_name)
+    const domain = g?.subject || 'General'
+    allowedDomainsSet.add(domain.charAt(0).toUpperCase() + domain.slice(1))
+  })
+
+  const allowedDomains = allowedDomainsSet.size > 0 ? Array.from(allowedDomainsSet) : ['General']
 
   return {
     eligible: true,
     author_type: 'community',
     allowed_domains: allowedDomains,
-    completed_phases: completedPhases || []
+    completed_phases: certificates
   }
 }

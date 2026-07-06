@@ -33,7 +33,7 @@ export function TestimonialsSection() {
   }
 
   return (
-    <section className="py-16 md:py-24 max-w-5xl mx-auto px-4 border-t border-border/40 scroll-mt-24">
+    <section id="testimonials" className="py-16 md:py-24 max-w-5xl mx-auto px-4 border-t border-border/40 scroll-mt-24">
       {/* Headline */}
       <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-text-1 tracking-tight text-center">
         Real people. Real goals. Real progress.

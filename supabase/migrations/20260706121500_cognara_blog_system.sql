@@ -44,17 +44,17 @@ RETURNS TRIGGER AS $$
 DECLARE
   v_domain VARCHAR;
 BEGIN
-  -- Look up domain from learning_goals
-  SELECT domain INTO v_domain
+  -- Look up domain (subject) from learning_goals
+  SELECT subject INTO v_domain
   FROM learning_goals
   WHERE user_id = NEW.user_id AND is_active = true
   LIMIT 1;
 
   -- Fallback if no active goal is found (look up by goal_name)
   IF v_domain IS NULL THEN
-    SELECT domain INTO v_domain
+    SELECT subject INTO v_domain
     FROM learning_goals
-    WHERE user_id = NEW.user_id AND title = NEW.goal_name
+    WHERE user_id = NEW.user_id AND goal_text = NEW.goal_name
     LIMIT 1;
   END IF;
 
@@ -62,6 +62,9 @@ BEGIN
   IF v_domain IS NULL THEN
     v_domain := 'General';
   END IF;
+
+  -- Capitalize first letter (e.g., technology -> Technology)
+  v_domain := INITCAP(v_domain);
 
   INSERT INTO cognara_phase_completions (user_id, domain, phase_number, phase_name)
   VALUES (NEW.user_id, v_domain, NEW.phase_number, NEW.phase_name)
@@ -82,12 +85,12 @@ EXECUTE FUNCTION sync_phase_completion();
 INSERT INTO cognara_phase_completions (user_id, domain, phase_number, phase_name, created_at)
 SELECT 
   c.user_id,
-  COALESCE(g.domain, 'General') as domain,
+  INITCAP(COALESCE(g.subject, 'General')) as domain,
   c.phase_number,
   c.phase_name,
-  c.created_at
+  c.issued_at
 FROM cognara_certificates c
-LEFT JOIN learning_goals g ON g.user_id = c.user_id AND (g.is_active = true OR g.title = c.goal_name)
+LEFT JOIN learning_goals g ON g.user_id = c.user_id AND (g.is_active = true OR g.goal_text = c.goal_name)
 ON CONFLICT ON CONSTRAINT unique_user_phase DO NOTHING;
 
 -- Enable Row Level Security (RLS)

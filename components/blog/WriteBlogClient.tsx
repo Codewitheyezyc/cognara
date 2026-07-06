@@ -8,6 +8,7 @@ import { LandingFooter } from '@/components/marketing/LandingFooter'
 import { RichTextEditor } from './RichTextEditor'
 import { CloudinaryUpload } from './CloudinaryUpload'
 import { BlogEligibilityResult } from '@/lib/blog/eligibility'
+import { LessonPreviewModal } from '@/components/dashboard/LessonPreviewModal'
 import { Lock, Award, CheckCircle2, ChevronRight, Loader2, ArrowLeft, PenTool } from 'lucide-react'
 
 interface WriteBlogClientProps {
@@ -19,6 +20,7 @@ interface WriteBlogClientProps {
 export function WriteBlogClient({ eligibility, initialTitle, userId }: WriteBlogClientProps) {
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
 
   // Form states
   const [title, setTitle] = useState(initialTitle)
@@ -108,41 +110,37 @@ export function WriteBlogClient({ eligibility, initialTitle, userId }: WriteBlog
         <main className="relative z-10 max-w-xl w-full mx-auto px-6 mt-36 flex-1 flex flex-col justify-center items-center text-center">
           {eligibility.reason === 'pro_required' ? (
             // Pro Upgrade Paywall Card
-            <div className="bg-surface border border-border p-8 rounded-3xl space-y-6 shadow-2xl animate-page-enter">
-              <div className="mx-auto w-14 h-14 bg-amber-500/10 border border-amber-500/25 rounded-2xl flex items-center justify-center text-amber-500">
-                <Lock className="h-6 w-6" />
-              </div>
-              <div className="space-y-2">
-                <h2 className="font-heading text-2xl font-black text-text-1">Unlock Writer Dashboard</h2>
-                <p className="text-xs text-text-2 leading-relaxed">
-                  Sharing your lessons, projects, and learning insights with the Cognara community is a Pro feature. Level up your profile to start writing.
-                </p>
-              </div>
+            <div className="max-w-lg mx-auto px-4 py-20 text-center bg-card border border-border rounded-2xl shadow-xl animate-page-enter">
+              <span className="text-4xl">✍️</span>
+              <h2 className="text-text-1 font-bold text-2xl mt-4 mb-2">
+                Blog writing is a Pro feature
+              </h2>
+              <p className="text-text-2 mb-6 text-sm">
+                Upgrade to Pro and complete your first learning phase to start writing for the Cognara blog.
+              </p>
               <button
-                onClick={() => router.push('/dashboard/settings')}
-                className="w-full h-11 bg-primary hover:bg-primary-hover text-white flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(91,142,255,0.25)] cursor-pointer"
+                onClick={() => setIsUpgradeModalOpen(true)}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl transition cursor-pointer"
               >
-                Upgrade to Cognara Pro
+                See Pro plans
               </button>
             </div>
           ) : (
             // Phase Completion Required Card
-            <div className="bg-surface border border-border p-8 rounded-3xl space-y-6 shadow-2xl animate-page-enter">
-              <div className="mx-auto w-14 h-14 bg-[#5B8EFF]/10 border border-[#5B8EFF]/25 rounded-2xl flex items-center justify-center text-primary">
-                <Award className="h-6 w-6" />
-              </div>
-              <div className="space-y-2">
-                <h2 className="font-heading text-2xl font-black text-text-1">Complete a Phase First</h2>
-                <p className="text-xs text-text-2 leading-relaxed">
-                  We keep publishing standards high by restricting blog writing to learners who have completed at least one phase in their active roadmaps.
-                </p>
-              </div>
-              <button
-                onClick={() => router.push('/dashboard/path')}
-                className="w-full h-11 bg-primary hover:bg-primary-hover text-white flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(91,142,255,0.25)] cursor-pointer"
+            <div className="bg-card border border-border rounded-xl p-6 text-center w-full max-w-md shadow-xl animate-page-enter">
+              <span className="text-3xl">🎯</span>
+              <p className="text-text-1 font-medium mt-3 mb-1 text-base">
+                Almost there
+              </p>
+              <p className="text-text-2 text-sm mb-4 leading-relaxed">
+                Finish your first learning phase to unlock blog writing. You are closer than you think.
+              </p>
+              <Link
+                href="/dashboard/path"
+                className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition"
               >
-                Continue Learning
-              </button>
+                Go to my roadmap →
+              </Link>
             </div>
           )}
         </main>
@@ -362,6 +360,11 @@ export function WriteBlogClient({ eligibility, initialTitle, userId }: WriteBlog
       </main>
 
       <LandingFooter />
+      
+      <LessonPreviewModal
+        isOpen={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
+      />
     </div>
   )
 }

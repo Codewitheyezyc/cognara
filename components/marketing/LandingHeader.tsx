@@ -39,9 +39,10 @@ export function LandingHeader({
 
   const handleNavigation = (e: React.MouseEvent, id: string) => {
     const isHomepage = window.location.pathname === '/'
+    const cleanId = id.replace('#', '')
     if (isHomepage) {
-      handleScrollToSection(e, id)
-      window.history.pushState(null, '', `#${id}`)
+      handleScrollToSection(e, cleanId)
+      window.history.pushState(null, '', `#${cleanId}`)
     }
   }
 
@@ -70,20 +71,37 @@ export function LandingHeader({
             isScrolled ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
           }`}>
             <a 
-              href="/#how-it-works" 
-              onClick={(e) => handleNavigation(e, 'how-it-works')}
-              className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150"
+              href="/#how-it-works"
+              onClick={(e) => handleNavigation(e, '#how-it-works')}
+              className="text-muted-foreground hover:text-foreground transition-colors text-sm"
             >
-              How It Works
+              How it works
             </a>
             <a 
-              href="/#pricing" 
-              onClick={(e) => handleNavigation(e, 'pricing')}
-              className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150"
+              href="/#pricing"
+              onClick={(e) => handleNavigation(e, '#pricing')}
+              className="text-muted-foreground hover:text-foreground transition-colors text-sm"
             >
               Pricing
             </a>
-            <Link href="/blog" className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
+            <a 
+              href="/#testimonials"
+              onClick={(e) => handleNavigation(e, '#testimonials')}
+              className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+            >
+              Testimonials
+            </a>
+            <a 
+              href="/#faq"
+              onClick={(e) => handleNavigation(e, '#faq')}
+              className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+            >
+              FAQ
+            </a>
+            <Link
+              href="/blog"
+              className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+            >
               Blog
             </Link>
             {hasSession ? (
@@ -166,50 +184,49 @@ export function LandingHeader({
         <div className="md:hidden fixed inset-0 top-20 z-50 bg-bg/95 backdrop-blur-lg border-b border-border/40 flex flex-col p-6 space-y-6 animate-page-enter">
           <nav className="flex flex-col space-y-4">
             <a 
-              href="/#how-it-works" 
+              href="/#how-it-works"
               onClick={(e) => {
-                setMobileMenuOpen(false)
-                handleNavigation(e, 'how-it-works')
+                handleNavigation(e, '#how-it-works');
+                setMobileMenuOpen(false);
               }}
-              className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
+              className="block text-foreground py-3 border-b border-border"
             >
-              How It Works
+              How it works
             </a>
-
             <a 
-              href="/#pricing" 
+              href="/#pricing"
               onClick={(e) => {
-                setMobileMenuOpen(false)
-                handleNavigation(e, 'pricing')
+                handleNavigation(e, '#pricing');
+                setMobileMenuOpen(false);
               }}
-              className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
+              className="block text-foreground py-3 border-b border-border"
             >
               Pricing
             </a>
             <a 
-              href="/#faq" 
+              href="/#testimonials"
               onClick={(e) => {
-                setMobileMenuOpen(false)
-                handleNavigation(e, 'faq')
+                handleNavigation(e, '#testimonials');
+                setMobileMenuOpen(false);
               }}
-              className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
+              className="block text-foreground py-3 border-b border-border"
+            >
+              Testimonials
+            </a>
+            <a 
+              href="/#faq"
+              onClick={(e) => {
+                handleNavigation(e, '#faq');
+                setMobileMenuOpen(false);
+              }}
+              className="block text-foreground py-3 border-b border-border"
             >
               FAQ
             </a>
-            <a 
-              href="/#contact" 
-              onClick={(e) => {
-                setMobileMenuOpen(false)
-                handleNavigation(e, 'contact')
-              }}
-              className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
-            >
-              Contact
-            </a>
-            <Link 
-              href="/blog" 
+            <Link
+              href="/blog"
               onClick={() => setMobileMenuOpen(false)}
-              className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
+              className="block text-foreground py-3 border-b border-border"
             >
               Blog
             </Link>

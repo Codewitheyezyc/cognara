@@ -10,12 +10,13 @@ export function LandingFooter() {
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false)
   const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
     const isHomepage = window.location.pathname === '/'
+    const cleanId = targetId.replace('#', '')
     if (isHomepage) {
       e.preventDefault()
-      const target = document.getElementById(targetId)
+      const target = document.getElementById(cleanId)
       if (target) {
         target.scrollIntoView({ behavior: 'smooth' })
-        window.history.pushState(null, '', `#${targetId}`)
+        window.history.pushState(null, '', `#${cleanId}`)
       }
     }
   }
@@ -55,6 +56,15 @@ export function LandingFooter() {
                 className="hover:text-text-1 transition"
               >
                 Pricing
+              </a>
+            </li>
+            <li>
+              <a 
+                href="/#testimonials" 
+                onClick={(e) => handleNavigation(e, 'testimonials')} 
+                className="hover:text-text-1 transition"
+              >
+                Testimonials
               </a>
             </li>
             <li>
