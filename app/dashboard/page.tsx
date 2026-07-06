@@ -1068,33 +1068,33 @@ export default function DashboardPage() {
     const canRestore = isCxpEnough && !isExpired && !isUsedThisMonth && isStreakValid
 
     return (
-      <div className="min-h-screen bg-[#0A0C14] text-[#F0F4FF] flex items-center justify-center p-4 py-8">
+      <div className="min-h-screen bg-background text-text-1 flex items-center justify-center p-4 py-8">
         <div className="flex flex-col items-center justify-center text-center p-6 space-y-5 max-w-2xl mx-auto animate-page-enter">
           
           {/* Spark Mascot - Centered */}
-          <div className="p-4 bg-[#1A203C] rounded-2xl border border-[#2E3750] shadow-inner mb-1 animate-pulse-subtle">
+          <div className="p-4 bg-surface border border-border rounded-2xl shadow-sm mb-1">
             <Spark emotion="thinking" size={80} />
           </div>
           
-          <h2 className="text-2xl font-extrabold text-white">Hey {profile?.name || 'there'}.</h2>
+          <h2 className="text-2xl font-extrabold text-text-1">Hey {profile?.name || 'there'}.</h2>
           
-          <div className="space-y-3 text-sm text-[#C8D0E8] leading-relaxed max-w-md">
+          <div className="space-y-3 text-sm text-text-2 leading-relaxed max-w-md">
             <p>
               &ldquo;Your streak broke. That happens — life gets busy and that is okay.&rdquo;
             </p>
             
-            <div className="bg-[#111424] border border-[#1E2540]/60 rounded-2xl p-4 text-left space-y-2 select-none">
-              <h4 className="text-[10px] font-mono uppercase tracking-widest text-[#5B8EFF] font-bold">Here is what you have already built:</h4>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-emerald-400 font-bold">✓</span>
+            <div className="bg-surface border border-border rounded-2xl p-4 text-left space-y-2 select-none">
+              <h4 className="text-[10px] font-mono uppercase tracking-widest text-primary font-bold">Here is what you have already built:</h4>
+              <div className="flex items-center gap-2 text-xs text-text-2">
+                <span className="text-emerald-500 font-bold">✓</span>
                 <span>{completedLessonsCount} lessons completed</span>
               </div>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-emerald-400 font-bold">✓</span>
+              <div className="flex items-center gap-2 text-xs text-text-2">
+                <span className="text-emerald-500 font-bold">✓</span>
                 <span>{quizAttempts.filter(qa => qa.passed).length} quizzes passed</span>
               </div>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-emerald-400 font-bold">✓</span>
+              <div className="flex items-center gap-2 text-xs text-text-2">
+                <span className="text-emerald-500 font-bold">✓</span>
                 <span>{Math.round(progressRatio)}% of your {roadmap?.title || profile?.main_goal || 'Goal'} roadmap done</span>
               </div>
             </div>
@@ -1105,25 +1105,25 @@ export default function DashboardPage() {
           </div>
 
           {/* DIVIDER LINE */}
-          <div className="w-full max-w-md h-px bg-[#1E2540]/60 my-2" />
+          <div className="w-full max-w-md h-px bg-border my-2" />
 
           {/* TWO OPTIONS — side by side on desktop, stacked on mobile */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 w-full max-w-lg mt-2">
             
             {/* OPTION 1 — RESTORE STREAK */}
-            <div className="bg-[#111424] border border-[#1E2540]/60 rounded-2xl p-5 flex flex-col justify-between items-center text-center space-y-4 shadow-sm relative">
+            <div className="bg-surface border border-border rounded-2xl p-5 flex flex-col justify-between items-center text-center space-y-4 shadow-sm relative">
               <div className="flex flex-col items-center space-y-2">
                 <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0">
                   <Flame className="h-5 w-5 fill-current" />
                 </div>
-                <h3 className="font-heading text-sm font-bold text-white">Restore my streak</h3>
-                <p className="text-[11px] text-[#8B95B3] leading-relaxed">
+                <h3 className="font-heading text-sm font-bold text-text-1">Restore my streak</h3>
+                <p className="text-[11px] text-text-3 leading-relaxed">
                   Spend 150 CXP to keep your {daysRestored} day streak alive
                 </p>
               </div>
 
               <div className="w-full space-y-3">
-                <span className="text-[10px] font-mono text-[#5B8EFF] font-bold block">
+                <span className="text-[10px] font-mono text-primary font-bold block">
                   Your balance: {currentCxp} CXP
                 </span>
 
@@ -1138,7 +1138,7 @@ export default function DashboardPage() {
                   <div className="space-y-1 w-full">
                     <button
                       disabled
-                      className="w-full h-11 bg-[#1A203C]/80 border border-[#2E3750]/50 text-[#4A5272] font-bold rounded-xl text-[11px] cursor-not-allowed select-none"
+                      className="w-full h-11 bg-surface-alt border border-border text-text-3 font-bold rounded-xl text-[11px] cursor-not-allowed select-none"
                     >
                       {isUsedThisMonth 
                         ? "Used this month" 
@@ -1148,7 +1148,7 @@ export default function DashboardPage() {
                             ? "No streak to restore" 
                             : "Not enough CXP (need 150)"}
                     </button>
-                    <span className="text-[9px] text-[#8B95B3] block leading-tight">
+                    <span className="text-[9px] text-text-3 block leading-tight">
                       {isUsedThisMonth 
                         ? "Resets on the first of next month" 
                         : isExpired 
@@ -1163,13 +1163,13 @@ export default function DashboardPage() {
             </div>
 
             {/* OPTION 2 — START FRESH */}
-            <div className="bg-[#111424] border border-[#1E2540]/60 rounded-2xl p-5 flex flex-col justify-between items-center text-center space-y-4 shadow-sm relative">
+            <div className="bg-surface border border-border rounded-2xl p-5 flex flex-col justify-between items-center text-center space-y-4 shadow-sm relative">
               <div className="flex flex-col items-center space-y-2">
-                <div className="w-10 h-10 rounded-full bg-[#5B8EFF]/10 border border-[#5B8EFF]/20 flex items-center justify-center text-[#5B8EFF] shrink-0">
-                  <Flame className="h-5 w-5 fill-current text-[#5B8EFF]" />
+                <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                  <Flame className="h-5 w-5 fill-current text-primary" />
                 </div>
-                <h3 className="font-heading text-sm font-bold text-white">Start a new streak</h3>
-                <p className="text-[11px] text-[#8B95B3] leading-relaxed">
+                <h3 className="font-heading text-sm font-bold text-text-1">Start a new streak</h3>
+                <p className="text-[11px] text-text-3 leading-relaxed">
                   Jump back in and build an even stronger streak
                 </p>
               </div>
@@ -1187,7 +1187,7 @@ export default function DashboardPage() {
           </div>
 
           {/* SMALL TEXT BENEATH BOTH OPTIONS */}
-          <p className="text-[10px] text-[#8B95B3] tracking-wide pt-4 select-none">
+          <p className="text-[10px] text-text-3 tracking-wide pt-4 select-none">
             Streak insurance is available once per month.
           </p>
 

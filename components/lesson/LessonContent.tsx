@@ -357,7 +357,7 @@ export default function LessonContent({
                     className="fixed inset-0 z-40" 
                     onClick={() => setIsDropdownOpen(false)}
                   />
-                  <div className="absolute right-0 mt-1.5 w-44 rounded-md shadow-lg bg-surface border border-border z-50 py-1 animate-page-enter">
+                  <div className="absolute left-0 sm:right-0 sm:left-auto mt-1.5 w-44 rounded-md shadow-lg bg-surface border border-border z-50 py-1 animate-page-enter">
                     {depthLevels.map((lvl) => {
                       const isLvlLocked = !isPro && lvl.value !== 2 // Only Beginner (Level 2) is unlocked
                       return (
