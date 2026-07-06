@@ -48,11 +48,14 @@ export function TestimonialsSection() {
           >
             {/* Top Info */}
             <div className="space-y-3">
-              <div className="flex items-baseline justify-between">
-                <span className="font-heading text-sm sm:text-base font-bold text-text-1">
+              <div className="flex items-center justify-between gap-2 overflow-hidden">
+                <span className="font-heading text-sm sm:text-base font-bold text-text-1 shrink-0">
                   {t.first_name} {t.last_initial}.
                 </span>
-                <span className="text-[10px] text-text-3 font-mono font-bold uppercase tracking-widest bg-surface-alt/80 px-2 py-0.5 rounded-full border border-border/40">
+                <span 
+                  title={t.learning_goal}
+                  className="text-[10px] text-text-3 font-mono font-bold uppercase tracking-widest bg-surface-alt/80 px-2 py-0.5 rounded-full border border-border/40 truncate max-w-[140px] inline-block"
+                >
                   {t.learning_goal}
                 </span>
               </div>
