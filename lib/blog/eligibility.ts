@@ -85,8 +85,20 @@ export async function canUserWriteBlog(
   const allowedDomainsSet = new Set<string>()
   certificates.forEach(c => {
     const g = goals?.find(goal => goal.goal_text === c.goal_name)
-    const domain = g?.subject || 'General'
-    allowedDomainsSet.add(domain.charAt(0).toUpperCase() + domain.slice(1))
+    const subject = g?.subject || 'General'
+    
+    // Normalization helper to map specific subjects to broad domain categories
+    const s = subject.toLowerCase()
+    let normalized = 'General'
+    if (s.includes('web') || s.includes('tech') || s.includes('develop') || s.includes('cod') || s.includes('program') || s.includes('software') || s.includes('ui') || s.includes('ux') || s.includes('design') || s.includes('data')) {
+      normalized = 'Technology'
+    } else if (s.includes('business') || s.includes('entrepreneur') || s.includes('finance') || s.includes('econom') || s.includes('manage') || s.includes('strat')) {
+      normalized = 'Business'
+    } else if (s.includes('market') || s.includes('social') || s.includes('ad') || s.includes('sale') || s.includes('growth')) {
+      normalized = 'Marketing'
+    }
+    
+    allowedDomainsSet.add(normalized)
   })
 
   const allowedDomains = allowedDomainsSet.size > 0 ? Array.from(allowedDomainsSet) : ['General']

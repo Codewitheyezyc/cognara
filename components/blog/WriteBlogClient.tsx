@@ -251,11 +251,11 @@ export function WriteBlogClient({ eligibility, initialTitle, userId }: WriteBlog
               {/* Domain Restriction Selector */}
               <div className="space-y-2">
                 <label className="text-xs font-bold text-text-2 uppercase tracking-wider block">Domain Category</label>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                   <select
                     value={domain}
                     onChange={(e) => setDomain(e.target.value)}
-                    className="h-11 px-3 bg-surface border border-border rounded-xl text-sm text-text-1 focus:outline-none focus:border-primary/50 transition-colors cursor-pointer"
+                    className="w-full sm:w-auto h-11 px-3 bg-surface border border-border rounded-xl text-sm text-text-1 focus:outline-none focus:border-primary/50 transition-colors cursor-pointer"
                   >
                     {eligibility.allowed_domains?.map((d) => (
                       <option key={d} value={d}>
@@ -263,7 +263,7 @@ export function WriteBlogClient({ eligibility, initialTitle, userId }: WriteBlog
                       </option>
                     ))}
                   </select>
-                  <span className="text-[10px] text-text-3 font-semibold uppercase tracking-wider bg-surface-alt border border-border px-3 py-2 rounded-xl">
+                  <span className="text-[10px] text-text-3 font-semibold uppercase tracking-wider bg-surface-alt border border-border px-3 py-2 rounded-xl shrink-0 text-center sm:text-left">
                     🔒 Locked to your completed phase domains
                   </span>
                 </div>
@@ -271,9 +271,9 @@ export function WriteBlogClient({ eligibility, initialTitle, userId }: WriteBlog
 
               {/* Excerpt */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-text-2 uppercase tracking-wider">Excerpt</label>
+                <label className="text-xs font-bold text-text-2 uppercase tracking-wider">Short Summary</label>
                 <textarea
-                  placeholder="Summarise what this post covers..."
+                  placeholder="Write a quick summary of what this post covers..."
                   value={excerpt}
                   onChange={(e) => setExcerpt(e.target.value)}
                   className="w-full h-20 p-4 bg-surface border border-border rounded-xl text-sm text-text-1 focus:outline-none focus:border-primary/50 transition-colors resize-none"
@@ -331,8 +331,8 @@ export function WriteBlogClient({ eligibility, initialTitle, userId }: WriteBlog
               </div>
 
               {/* Submission CTA */}
-              <div className="pt-6 border-t border-border flex items-center justify-between gap-4">
-                <p className="text-[10px] text-text-3 font-semibold leading-relaxed max-w-sm">
+              <div className="pt-6 border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <p className="text-[10px] text-text-3 font-semibold leading-relaxed max-w-sm text-center sm:text-left">
                   {eligibility.author_type === 'admin'
                     ? 'Publishing as Administrator. Post will go live instantly.'
                     : 'Publishing as Community Member. Your post will go through admin review before publishing.'}
@@ -341,7 +341,7 @@ export function WriteBlogClient({ eligibility, initialTitle, userId }: WriteBlog
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="h-11 px-8 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_15px_rgba(91,142,255,0.25)] gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto h-11 px-8 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_15px_rgba(91,142,255,0.25)] gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                 >
                   {isSubmitting ? (
                     <>
