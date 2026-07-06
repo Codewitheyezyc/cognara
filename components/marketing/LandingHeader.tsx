@@ -75,6 +75,9 @@ export function LandingHeader({
             >
               Pricing
             </a>
+            <Link href="/blog" className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
+              Blog
+            </Link>
             {hasSession ? (
               <Link href="/dashboard" className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
                 Dashboard
@@ -195,6 +198,13 @@ export function LandingHeader({
             >
               Contact
             </a>
+            <Link 
+              href="/blog" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-sm text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider py-2 border-b border-border/30"
+            >
+              Blog
+            </Link>
           </nav>
           
           <div className="flex flex-col gap-3 pt-4 border-t border-border/40">

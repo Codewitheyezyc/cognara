@@ -1,8 +1,9 @@
 'use client'
 
 import React, { useEffect, useRef } from 'react'
-import { BookOpen, CheckCircle, Award, Share2 } from 'lucide-react'
+import { BookOpen, CheckCircle, Award, Share2, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/navigation'
 
 // Performant Canvas Particles Component
 function Particles() {
@@ -107,6 +108,21 @@ interface PhaseCelebrationProps {
   referralCode: string
   onClaimCertificate: () => void
   onContinue: () => void
+  domain?: string
+}
+
+function getSuggestion(domain: string, phaseName: string): string {
+  const cleanDomain = (domain || '').toLowerCase()
+  if (cleanDomain.includes('tech')) {
+    return `How I mastered ${phaseName} on Cognara and built a practical tech project.`
+  }
+  if (cleanDomain.includes('business')) {
+    return `Applying ${phaseName} principles to start and scale a business model.`
+  }
+  if (cleanDomain.includes('marketing')) {
+    return `How learning ${phaseName} helped me structure a growth marketing strategy.`
+  }
+  return `Key lessons and insights from completing the ${phaseName} phase on Cognara.`
 }
 
 export function PhaseCelebration({
@@ -123,9 +139,13 @@ export function PhaseCelebration({
   referralCode,
   onClaimCertificate,
   onContinue,
+  domain,
 }: PhaseCelebrationProps) {
   const firstName = userName?.split(' ')[0] || 'Learner'
   const [copied, setCopied] = React.useState(false)
+  const router = useRouter()
+  const cleanDomain = domain || 'General'
+  const suggestion = getSuggestion(cleanDomain, phaseName)
 
   const handleShareReferral = async () => {
     const link = `https://www.cognaralearn.com/signup?ref=${referralCode}`
@@ -295,6 +315,25 @@ export function PhaseCelebration({
           >
             Claim My Certificate
           </Button>
+
+          {/* Spark Blog suggestion rendering */}
+          <div className="bg-surface/90 border border-border/80 rounded-2xl p-4.5 text-left space-y-2.5 animate-slide-up-2 shadow-xs">
+            <div className="flex items-center gap-1.5">
+              <Sparkles size={13} className="text-primary animate-pulse" />
+              <span className="text-[10px] font-mono uppercase tracking-widest text-text-2 font-bold">
+                Spark Blog Recommendation
+              </span>
+            </div>
+            <p className="text-xs text-text-1 font-medium leading-relaxed">
+              Share your milestone! Spark recommends publishing a community post: <span className="text-[#A78BFA] font-bold">"{suggestion}"</span>
+            </p>
+            <button
+              onClick={() => router.push(`/blog/write?title=${encodeURIComponent(suggestion)}`)}
+              className="inline-flex items-center justify-center h-8 px-4 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-bold uppercase tracking-wider transition duration-150 cursor-pointer shadow-sm hover:shadow-md"
+            >
+              Write a Blog Post
+            </button>
+          </div>
           
           <Button
             onClick={onContinue}

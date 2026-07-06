@@ -58,6 +58,9 @@ export function LandingFooter() {
               <a href="#contact" className="hover:text-text-1 transition">Contact</a>
             </li>
             <li>
+              <Link href="/blog" className="hover:text-text-1 transition">Blog</Link>
+            </li>
+            <li>
               <a href="mailto:hello@cognaralearn.com" className="hover:text-text-1 transition text-primary">
                 hello@cognaralearn.com
               </a>

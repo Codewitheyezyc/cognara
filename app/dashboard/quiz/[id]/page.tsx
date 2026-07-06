@@ -247,6 +247,30 @@ export default function QuizPage() {
         setLessonTitle(lesson.title)
         setActiveLesson(lesson)
 
+        // Resolve dynamic domain from roadmap/goal
+        if (lesson.roadmap_id) {
+          supabase
+            .from('roadmaps')
+            .select('goal_id')
+            .eq('id', lesson.roadmap_id)
+            .maybeSingle()
+            .then(async (resObj: any) => {
+              const rm = resObj.data
+              if (rm?.goal_id) {
+                const { data: gl } = await supabase
+                  .from('learning_goals')
+                  .select('subject')
+                  .eq('id', rm.goal_id)
+                  .maybeSingle()
+                if (gl?.subject) {
+                  const { getDomainFromSubject } = await import('@/lib/ai/lessonCache')
+                  setLessonDomain(getDomainFromSubject(gl.subject))
+                }
+              }
+            })
+            .catch(() => {})
+        }
+
         // Resolve next lesson sibling details
         if (lesson.roadmap_id) {
           const [lessonsRes, phasesRes] = await Promise.all([
@@ -1426,6 +1450,7 @@ export default function QuizPage() {
         referralCode={profile?.referral_code || (userId ? `CGN-${userId.substring(0, 4).toUpperCase()}` : '')}
         onClaimCertificate={handleClaimCertificate}
         onContinue={handleContinueWithoutClaiming}
+        domain={lessonDomain}
       />
 
     )
