@@ -1471,14 +1471,22 @@ export default function ProfilePage() {
               <div className="p-6 bg-surface border border-border rounded-2xl shadow-xl space-y-6">
                 <div className="flex items-center justify-between border-b border-border pb-3">
                   <h3 className="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2">
-                    ✍️ My Blog Posts
+                    ✍️ <Link href="/blog/my-posts" className="hover:underline">My Blog Posts</Link>
                   </h3>
-                  <Link
-                    href="/blog/write"
-                    className="h-9 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)]"
-                  >
-                    Write a post
-                  </Link>
+                  <div className="flex gap-2">
+                    <Link
+                      href="/blog/my-posts"
+                      className="h-9 px-3 inline-flex items-center justify-center rounded-xl font-bold text-xs bg-surface-alt hover:bg-surface border border-border text-text-1 transition-all"
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/blog/write"
+                      className="h-9 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)]"
+                    >
+                      Write a post
+                    </Link>
+                  </div>
                 </div>
 
                 {userBlogPosts && userBlogPosts.length > 0 ? (
@@ -1513,14 +1521,12 @@ export default function ProfilePage() {
                               View
                             </a>
                           )}
-                          {post.status === 'rejected' && (
-                            <Link
-                              href={`/blog/write?edit=${post.id}`}
-                              className="h-8 px-3 inline-flex items-center justify-center rounded-lg text-xs font-bold border border-amber-500/20 text-amber-500 hover:bg-amber-500/10 transition-all"
-                            >
-                              Edit and resubmit
-                            </Link>
-                          )}
+                          <Link
+                            href={`/blog/edit/${post.id}`}
+                            className="h-8 px-3 inline-flex items-center justify-center rounded-lg text-xs font-bold border border-border text-text-1 hover:border-primary transition-all"
+                          >
+                            Edit
+                          </Link>
                         </div>
                       </div>
                     ))}
@@ -1614,16 +1620,24 @@ export default function ProfilePage() {
                               : 'Rejected — needs changes'}
                           </p>
                         </div>
-                        {post.status === 'published' && (
-                          <a
-                            href={`/blog/${post.slug}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="h-8 px-3 inline-flex items-center justify-center rounded-lg text-xs font-bold bg-surface hover:bg-surface-alt border border-border text-text-1 transition-all"
+                        <div className="flex gap-2">
+                          {post.status === 'published' && (
+                            <a
+                              href={`/blog/${post.slug}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="h-8 px-3 inline-flex items-center justify-center rounded-lg text-xs font-bold bg-surface hover:bg-surface-alt border border-border text-text-1 transition-all"
+                            >
+                              View
+                            </a>
+                          )}
+                          <Link
+                            href={`/blog/edit/${post.id}`}
+                            className="h-8 px-3 inline-flex items-center justify-center rounded-lg text-xs font-bold border border-border text-text-1 hover:border-primary transition-all"
                           >
-                            View
-                          </a>
-                        )}
+                            Edit
+                          </Link>
+                        </div>
                       </div>
                     ))}
 

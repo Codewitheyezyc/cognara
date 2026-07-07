@@ -281,41 +281,113 @@ export default function AdminBlogManagement() {
       </div>
 
       {/* Reject Modal */}
-      {rejectingPostId && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-surface border border-border/40 max-w-md w-full rounded-3xl p-6 shadow-2xl space-y-6 text-left animate-page-enter">
-            <h4 className="text-text-1 font-bold text-lg">Reject Article Submission</h4>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-text-3 uppercase tracking-wider block">Provide Feedback to Author</label>
-              <textarea
-                placeholder="Explain why this post is being rejected..."
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                rows={4}
-                className="w-full p-4 bg-surface border border-border rounded-xl text-xs text-text-1 focus:outline-none focus:border-primary/50 resize-none font-medium"
-              />
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setRejectingPostId(null)
-                  setRejectionReason('')
-                }}
-                className="flex-1 h-10 bg-surface hover:bg-surface-alt border border-border text-text-1 rounded-xl font-bold text-xs uppercase tracking-wider transition cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleAction(rejectingPostId, 'reject', rejectionReason)}
-                disabled={loadingActionId === rejectingPostId || !rejectionReason.trim()}
-                className="flex-1 h-10 bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
-              >
-                Reject Draft
-              </button>
+      {rejectingPostId && (() => {
+        const rejectingPost = posts.find(p => p.id === rejectingPostId)
+        const authorName = rejectingPost?.profiles?.name || 'Community Member'
+        const quickReasons = [
+          'The post is too short. Please add more detail about what you learned.',
+          'The post contains inaccurate information. Please review and correct it.',
+          'The post does not relate to your learning domain on Cognara.',
+          'The post needs better structure. Please add headings and break it into sections.',
+          'The post contains promotional content which is not allowed.',
+          'The writing needs more clarity. Please simplify and explain your points better.',
+        ]
+
+        return (
+          <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-surface border border-border/40 max-w-lg w-full rounded-3xl p-6 shadow-2xl space-y-5 text-left animate-page-enter max-h-[90vh] overflow-y-auto">
+              <div>
+                <h4 className="text-text-1 font-bold text-lg">Reject Article Submission</h4>
+                <p className="text-text-3 text-xs font-semibold mt-1">
+                  Tell the author what needs to be changed. Be specific and helpful — they will see this message directly on their dashboard and email.
+                </p>
+              </div>
+
+              {/* Post details reminder */}
+              {rejectingPost && (
+                <div className="bg-surface-alt/60 border border-border/40 rounded-xl p-3.5 space-y-1">
+                  <p className="text-text-1 text-sm font-bold truncate">
+                    &ldquo;{rejectingPost.title}&rdquo;
+                  </p>
+                  <p className="text-text-3 text-[10px] font-mono uppercase font-bold">
+                    by {authorName}
+                  </p>
+                </div>
+              )}
+
+              {/* Quick reason options */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-text-3 uppercase tracking-wider block">
+                  Quick feedback suggestions (Click to use)
+                </label>
+                <div className="grid grid-cols-1 gap-1.5 max-h-40 overflow-y-auto pr-1">
+                  {quickReasons.map((r, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setRejectionReason(r)}
+                      className={`w-full text-left text-xs p-2.5 rounded-xl border transition-all duration-150 cursor-pointer font-medium
+                        ${rejectionReason === r
+                          ? 'border-rose-500/50 bg-rose-500/10 text-rose-400'
+                          : 'border-border/40 bg-surface hover:border-rose-500/30 text-text-2 hover:text-text-1'
+                        }`}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Custom feedback message */}
+              <div className="space-y-1">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] font-bold text-text-3 uppercase tracking-wider block">
+                    Custom message
+                  </label>
+                  <span className="text-[10px] font-mono text-text-3 font-semibold">
+                    {rejectionReason.length}/500
+                  </span>
+                </div>
+                <textarea
+                  placeholder="Tell the author exactly what needs to be changed..."
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value.slice(0, 500))}
+                  rows={4}
+                  className="w-full p-4 bg-surface border border-border rounded-xl text-xs text-text-1 focus:outline-none focus:border-primary/50 resize-none font-medium"
+                />
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex flex-col gap-2 pt-2">
+                <button
+                  onClick={() => handleAction(rejectingPostId, 'reject', rejectionReason)}
+                  disabled={loadingActionId === rejectingPostId || !rejectionReason.trim()}
+                  className="w-full h-11 bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(239,68,68,0.15)]"
+                >
+                  {loadingActionId === rejectingPostId ? (
+                    <>
+                      <Loader2 size={13} className="animate-spin" />
+                      <span>Rejecting...</span>
+                    </>
+                  ) : (
+                    <span>Reject and Send Message</span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRejectingPostId(null)
+                    setRejectionReason('')
+                  }}
+                  className="w-full py-2 bg-transparent text-text-3 hover:text-text-2 font-bold text-xs uppercase tracking-wider transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
     </div>
   )

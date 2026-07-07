@@ -167,14 +167,12 @@ export function MyPostsClient({ initialPosts, userId }: MyPostsClientProps) {
                       <ArrowUpRight size={12} />
                     </Link>
                   )}
-                  {post.status === 'draft' && (
-                    <Link
-                      href={`/blog/write?id=${post.id}`}
-                      className="h-9 px-4 inline-flex items-center justify-center rounded-xl bg-[#1E2540] hover:bg-[#2E3750] border border-border text-text-1 font-bold text-xs uppercase tracking-wider transition cursor-pointer"
-                    >
-                      Edit Draft
-                    </Link>
-                  )}
+                  <Link
+                    href={`/blog/edit/${post.id}`}
+                    className="h-9 px-4 inline-flex items-center justify-center rounded-xl bg-[#1E2540] hover:bg-[#2E3750] border border-border text-text-1 font-bold text-xs uppercase tracking-wider transition cursor-pointer"
+                  >
+                    {post.status === 'rejected' ? 'Fix & Resubmit' : 'Edit'}
+                  </Link>
                 </div>
               </div>
             ))}

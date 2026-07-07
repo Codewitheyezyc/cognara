@@ -13,32 +13,17 @@ export default async function MyPostsPage() {
     redirect('/login?redirectTo=/blog/my-posts')
   }
 
-  // 2. Fetch all posts written by this user
-  const { data: posts } = await supabase
+  // 2. Fetch user's blog posts
+  const { data: posts, error } = await supabase
     .from('cognara_blog_posts')
-    .select(`
-      id,
-      title,
-      slug,
-      excerpt,
-      cover_image_url,
-      status,
-      category,
-      domain,
-      read_time_minutes,
-      view_count,
-      is_featured,
-      rejection_reason,
-      published_at,
-      created_at
-    `)
+    .select('*')
     .eq('author_id', user.id)
     .order('created_at', { ascending: false })
 
   return (
-    <MyPostsClient 
-      initialPosts={posts || []} 
-      userId={user.id} 
+    <MyPostsClient
+      initialPosts={posts || []}
+      userId={user.id}
     />
   )
 }
