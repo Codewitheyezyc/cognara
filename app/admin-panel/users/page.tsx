@@ -45,6 +45,7 @@ export default function AdminUsersList() {
   
   // Drawer / View User state
   const [selectedUser, setSelectedUser] = useState<UserItem | null>(null)
+  const [composeEmailUser, setComposeEmailUser] = useState<UserItem | null>(null)
 
   const supabase = createClient()
   const [selectedUserStats, setSelectedUserStats] = useState<{
@@ -522,6 +523,13 @@ export default function AdminUsersList() {
                               title="View Student details"
                             >
                               <Eye size={13} />
+                            </button>
+                            <button
+                              onClick={() => setComposeEmailUser(user)}
+                              className="h-11 w-11 inline-flex items-center justify-center bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-400 rounded-xl transition cursor-pointer"
+                              title="Send email to user"
+                            >
+                              <Mail size={13} />
                             </button>
                             <button
                               onClick={() => handleUpdatePlan(user.id, user.subscription_tier)}
@@ -1052,6 +1060,176 @@ export default function AdminUsersList() {
               COGNARALEARN.COM
             </div>
           </div>
+        )}
+      </div>
+
+      {composeEmailUser && (
+        <AdminEmailModal
+          user={composeEmailUser}
+          onClose={() => setComposeEmailUser(null)}
+          showToast={showToast}
+        />
+      )}
+    </div>
+  )
+}
+
+interface AdminEmailModalProps {
+  user: UserItem
+  onClose: () => void
+  showToast: (text: string, type?: 'success' | 'error') => void
+}
+
+function AdminEmailModal({ user, onClose, showToast }: AdminEmailModalProps) {
+  const [subject, setSubject] = useState('')
+  const [message, setMessage] = useState('')
+  const [isSending, setIsSending] = useState(false)
+  const [sent, setSent] = useState(false)
+
+  // Quick message templates
+  const templates = [
+    {
+      label: 'Welcome message',
+      subject: 'Welcome to Cognara',
+      message: `Hi ${user.name || 'Learner'},\n\nWelcome to Cognara. We are glad you are here.\n\nIf you need any help getting started, reply to this email and our team will be happy to assist.\n\n— The Cognara Team`
+    },
+    {
+      label: 'Check in',
+      subject: 'How is your learning going?',
+      message: `Hi ${user.name || 'Learner'},\n\nWe noticed you have been on Cognara for a while and wanted to check in.\n\nHow is your learning journey going? Is there anything we can help you with?\n\n— The Cognara Team`
+    },
+    {
+      label: 'Upgrade invite',
+      subject: 'Unlock everything on Cognara',
+      message: `Hi ${user.name || 'Learner'},\n\nYou have been making great progress on Cognara. We wanted to let you know that upgrading to Pro unlocks unlimited goals, all phases, certificates, and unlimited access to Spark — your AI mentor.\n\nUpgrade here: cognaralearn.com/upgrade\n\n— The Cognara Team`
+    },
+  ]
+
+  async function handleSend() {
+    if (!subject || !message) return
+    setIsSending(true)
+
+    try {
+      const res = await fetch('/api/admin/users/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: user.email,
+          subject,
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333333; line-height: 1.6;">
+              ${message.replace(/\n/g, '<br/>')}
+            </div>
+          `,
+          userId: user.id
+        })
+      })
+
+      if (res.ok) {
+        setSent(true)
+      } else {
+        const data = await res.json()
+        showToast(data.error || 'Failed to send email. Try again.', 'error')
+      }
+    } catch (e) {
+      showToast('Failed to send email. Try again.', 'error')
+    } finally {
+      setIsSending(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+      <div className="bg-surface border border-border/40 rounded-3xl shadow-2xl p-6 mx-4 w-full max-w-lg max-h-[90vh] overflow-y-auto text-left">
+        {sent ? (
+          <div className="text-center py-8 space-y-4">
+            <span className="text-4xl">✉️</span>
+            <h3 className="text-text-1 font-bold text-xl mt-4 mb-2">
+              Email sent
+            </h3>
+            <p className="text-text-2 text-sm mb-6">
+              Your message was sent to <strong className="text-text-1">{user.email}</strong>
+            </p>
+            <button
+              onClick={onClose}
+              className="bg-primary hover:bg-primary-hover text-white font-bold px-6 py-3 rounded-xl text-xs uppercase tracking-wider transition cursor-pointer min-h-[44px]"
+            >
+              Done
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Header */}
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h3 className="text-text-1 font-bold text-lg">
+                  Send email
+                </h3>
+                <p className="text-text-3 text-xs font-semibold uppercase tracking-wider mt-0.5">
+                  To: {user.name || 'Anonymous'} · {user.email}
+                </p>
+              </div>
+              <button
+                onClick={onClose}
+                className="text-text-3 hover:text-text-1 transition p-2 cursor-pointer text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Quick templates */}
+            <p className="text-xs font-bold text-text-2 uppercase tracking-wider mb-2">
+              Quick templates:
+            </p>
+            <div className="flex gap-2 flex-wrap mb-4">
+              {templates.map((t, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    setSubject(t.subject)
+                    setMessage(t.message)
+                  }}
+                  className="text-[10px] font-bold uppercase tracking-wider px-3 py-2 border border-border hover:border-primary text-text-2 hover:text-text-1 rounded-xl transition cursor-pointer min-h-[44px]"
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Subject */}
+            <input
+              type="text"
+              placeholder="Subject"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="w-full bg-surface-alt border border-border rounded-xl px-4 py-3 text-text-1 text-sm mb-3 focus:border-primary outline-none"
+            />
+
+            {/* Message */}
+            <textarea
+              placeholder="Write your message..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={8}
+              className="w-full bg-surface-alt border border-border rounded-xl px-4 py-3 text-text-1 text-sm mb-4 resize-none focus:border-primary outline-none"
+            />
+
+            {/* Send button */}
+            <button
+              onClick={handleSend}
+              disabled={!subject || !message || isSending}
+              className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-3 rounded-xl disabled:opacity-50 mb-3 transition cursor-pointer min-h-[44px]"
+            >
+              {isSending ? 'Sending...' : 'Send email'}
+            </button>
+
+            <button
+              onClick={onClose}
+              className="w-full text-text-3 hover:text-text-2 font-bold text-xs uppercase tracking-wider py-2 cursor-pointer"
+            >
+              Cancel
+            </button>
+          </>
         )}
       </div>
     </div>

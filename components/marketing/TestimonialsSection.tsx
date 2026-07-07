@@ -11,11 +11,24 @@ export function TestimonialsSection() {
   useEffect(() => {
     async function fetchTestimonials() {
       try {
+        // Fetch max count from settings
+        const { data: setting } = await supabase
+          .from('cognara_settings')
+          .select('value')
+          .eq('key', 'max_homepage_testimonials')
+          .maybeSingle()
+
+        const maxCount = parseInt(setting?.value || '6')
+
+        // Fetch approved and visible testimonials only
         const { data, error } = await supabase
           .from('cognara_testimonials')
           .select('*')
           .eq('is_approved', true)
-          .order('created_at', { ascending: false })
+          .eq('is_visible', true)
+          .order('approved_at', { ascending: false })
+          .limit(maxCount)
+
         if (!error && data) {
           setTestimonials(data)
         }
