@@ -13,7 +13,8 @@ import {
   ArrowRight, 
   AlertCircle, 
   PlusCircle,
-  RefreshCw
+  RefreshCw,
+  Edit
 } from 'lucide-react'
 
 interface Post {
@@ -237,6 +238,14 @@ export default function AdminBlogManagement() {
                   title="Preview article"
                 >
                   <Eye size={14} />
+                </Link>
+
+                <Link
+                  href={`/admin-panel/blog/edit/${post.id}`}
+                  className="p-3 bg-surface hover:bg-surface-alt border border-border text-text-2 hover:text-text-1 rounded-xl transition cursor-pointer flex items-center justify-center"
+                  title="Edit article"
+                >
+                  <Edit size={14} />
                 </Link>
 
                 {post.status === 'pending_review' && (
