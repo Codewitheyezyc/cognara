@@ -54,12 +54,7 @@ export default function AdminDashboardOverview() {
             quizzesToday: 14,
             avgStreak: 6,
           })
-          setActivities(data.recentActivity || [
-            { id: '1', type: 'signup', user: 'Emma Johnson', text: 'signed up for Cognara Pro', timeStr: '10m ago' },
-            { id: '2', type: 'lesson', user: 'David Smith', text: 'completed Node.js intro lesson', timeStr: '22m ago' },
-            { id: '3', type: 'quiz', user: 'Sophia Williams', text: 'scored 90% on React State Quiz', timeStr: '45m ago' },
-            { id: '4', type: 'testimonial', user: 'Alex Okoro', text: 'submitted a new testimonial', timeStr: '1h ago' },
-          ])
+          setActivities(data.activities || [])
         }
       } catch (err) {
         console.error('Failed to load stats', err)
@@ -154,7 +149,9 @@ export default function AdminDashboardOverview() {
                     <p className="text-xs text-text-1 font-semibold leading-relaxed">
                       <span className="font-bold text-primary">{act.user}</span> {act.text}
                     </p>
-                    <span className="text-[10px] text-text-3 font-semibold uppercase tracking-wider">{act.timeStr}</span>
+                    <span className="text-[10px] text-text-3 font-semibold uppercase tracking-wider">
+                      {new Date(act.timeStr).toLocaleDateString()} {new Date(act.timeStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
                   </div>
                 </div>
               ))

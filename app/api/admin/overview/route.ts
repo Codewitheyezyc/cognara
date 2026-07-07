@@ -1,17 +1,58 @@
+import { jwtVerify } from 'jose'
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient as createBaseClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 
+const getAdminClient = () => {
+  return createBaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.SUPABASE_SERVICE_ROLE_KEY !== 'placeholder_service_role_key_for_dev'
+      ? process.env.SUPABASE_SERVICE_ROLE_KEY
+      : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
+
+// Authorization Helper
+async function verifyAdminAccess() {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('cognara_admin_session')?.value
+  if (token) {
+    const secretStr = process.env.ADMIN_JWT_SECRET || 'cognara_admin_fallback_secret_key_for_development_39281'
+    const secret = new TextEncoder().encode(secretStr)
+    try {
+      const decoded = await jwtVerify(token, secret)
+      if (decoded.payload.adminId) {
+        return true
+      }
+    } catch (e) {
+      // Fallback
+    }
+  }
+
+  // Legacy fallback
+  try {
+    const tempClient = createBaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+    const { data: { user } } = await tempClient.auth.getUser()
+    if (user && (user.id === process.env.ADMIN_USER_ID || user.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID)) {
+      return true
+    }
+  } catch (e) {
+    // Ignored
+  }
+
+  return false
+}
+
 export async function GET() {
   try {
-    const supabase = await createClient()
-
-    // 1. Verify admin
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user || user.id !== process.env.ADMIN_USER_ID) {
+    const authorized = await verifyAdminAccess()
+    if (!authorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const supabase = getAdminClient()
 
     // 2. Fetch Stats Row 1: Business Metrics
     // Total Users
@@ -187,8 +228,9 @@ export async function GET() {
     })
 
     recentQuizzes?.forEach((q: any) => {
-      const name = q.profiles?.name || 'Learner'
-      const email = q.profiles?.email || ''
+      const profile = Array.isArray(q.profiles) ? q.profiles[0] : q.profiles
+      const name = profile?.name || 'Learner'
+      const email = profile?.email || ''
       const title = q.quizzes?.lessons?.title || 'Lesson'
       activities.push({
         id: `quiz-${q.attempted_at}-${email}`,
@@ -202,8 +244,9 @@ export async function GET() {
     })
 
     recentLessons?.forEach((l: any) => {
-      const name = l.profiles?.name || 'Learner'
-      const email = l.profiles?.email || ''
+      const profile = Array.isArray(l.profiles) ? l.profiles[0] : l.profiles
+      const name = profile?.name || 'Learner'
+      const email = profile?.email || ''
       const title = l.lessons?.title || 'Lesson'
       activities.push({
         id: `lesson-${l.completed_at}-${email}`,
@@ -221,7 +264,6 @@ export async function GET() {
       .sort((a, b) => b.timestamp - a.timestamp)
       .slice(0, 10)
 
-    // Return combined data
     return NextResponse.json({
       stats: {
         totalUsers: totalUsers || 0,

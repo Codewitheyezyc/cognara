@@ -1,10 +1,10 @@
+import { jwtVerify } from 'jose'
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { createClient as createBaseClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 
-// Admin Client with Service Role Key if available, else Anon Key
 const getAdminClient = () => {
   return createBaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,15 +14,45 @@ const getAdminClient = () => {
   )
 }
 
+// Authorization Helper
+async function verifyAdminAccess() {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('cognara_admin_session')?.value
+  if (token) {
+    const secretStr = process.env.ADMIN_JWT_SECRET || 'cognara_admin_fallback_secret_key_for_development_39281'
+    const secret = new TextEncoder().encode(secretStr)
+    try {
+      const decoded = await jwtVerify(token, secret)
+      if (decoded.payload.adminId) {
+        return true
+      }
+    } catch (e) {
+      // Fallback
+    }
+  }
+
+  // Legacy fallback
+  try {
+    const tempClient = createBaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+    const { data: { user } } = await tempClient.auth.getUser()
+    if (user && (user.id === process.env.ADMIN_USER_ID || user.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID)) {
+      return true
+    }
+  } catch (e) {
+    // Ignored
+  }
+
+  return false
+}
+
 export async function GET() {
   try {
-    const supabase = await createClient()
-
-    // 1. Verify admin
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user || user.id !== process.env.ADMIN_USER_ID) {
+    const authorized = await verifyAdminAccess()
+    if (!authorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const supabase = getAdminClient()
 
     // 2. Fetch all users joined with active learning goals and calculate last active date
     const { data: usersData, error: dbError } = await supabase
@@ -103,13 +133,12 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
-    const supabase = await createClient()
-
-    // 1. Verify admin
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user || user.id !== process.env.ADMIN_USER_ID) {
+    const authorized = await verifyAdminAccess()
+    if (!authorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const supabase = getAdminClient()
 
     // 2. Parse payload
     const { userId, tier } = await request.json()
@@ -127,7 +156,7 @@ export async function PUT(request: Request) {
         plan: resolvedTier,
         subscription_status: isPro ? 'active' : 'inactive',
         subscription_start_date: isPro ? new Date().toISOString() : null,
-        subscription_end_date: null // Unlimited tier or manual
+        subscription_end_date: null
       })
       .eq('id', userId)
 
@@ -145,13 +174,12 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const supabase = await createClient()
-
-    // 1. Verify admin
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user || user.id !== process.env.ADMIN_USER_ID) {
+    const authorized = await verifyAdminAccess()
+    if (!authorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const supabase = getAdminClient()
 
     // 2. Parse payload
     const { searchParams } = new URL(request.url)

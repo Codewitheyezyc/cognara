@@ -14,10 +14,11 @@ import {
 
 interface Testimonial {
   id: string
-  name: string
-  role: string | null
-  content: string
-  rating: number
+  first_name: string
+  last_initial: string | null
+  learning_goal: string | null
+  testimonial_text: string
+  star_rating: number
   is_approved: boolean
   created_at: string
 }
@@ -130,16 +131,16 @@ export default function AdminTestimonials() {
                 <div key={t.id} className="bg-surface-alt/50 border border-border/40 p-5 rounded-2xl space-y-3 relative group">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="font-bold text-text-1 text-xs">{t.name}</p>
-                      <p className="text-[10px] text-text-3 font-semibold mt-0.5">{t.role || 'Student'}</p>
+                      <p className="font-bold text-text-1 text-xs">{t.first_name} {t.last_initial || ''}</p>
+                      <p className="text-[10px] text-text-3 font-semibold mt-0.5">{t.learning_goal || 'Student'}</p>
                     </div>
                     <div className="flex gap-0.5 text-amber-400">
-                      {Array.from({ length: t.rating }).map((_, i) => (
+                      {Array.from({ length: t.star_rating || 5 }).map((_, i) => (
                         <Star key={i} size={11} fill="currentColor" stroke="none" />
                       ))}
                     </div>
                   </div>
-                  <p className="text-text-2 text-xs leading-relaxed italic">"{t.content}"</p>
+                  <p className="text-text-2 text-xs leading-relaxed italic">"{t.testimonial_text}"</p>
                   
                   <div className="flex justify-end pt-2 border-t border-border/40">
                     <button
@@ -174,16 +175,16 @@ export default function AdminTestimonials() {
                 <div key={t.id} className="bg-surface-alt/50 border border-border/40 p-5 rounded-2xl space-y-3 relative group">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="font-bold text-text-1 text-xs">{t.name}</p>
-                      <p className="text-[10px] text-text-3 font-semibold mt-0.5">{t.role || 'Student'}</p>
+                      <p className="font-bold text-text-1 text-xs">{t.first_name} {t.last_initial || ''}</p>
+                      <p className="text-[10px] text-text-3 font-semibold mt-0.5">{t.learning_goal || 'Student'}</p>
                     </div>
                     <div className="flex gap-0.5 text-amber-400">
-                      {Array.from({ length: t.rating }).map((_, i) => (
+                      {Array.from({ length: t.star_rating || 5 }).map((_, i) => (
                         <Star key={i} size={11} fill="currentColor" stroke="none" />
                       ))}
                     </div>
                   </div>
-                  <p className="text-text-2 text-xs leading-relaxed italic">"{t.content}"</p>
+                  <p className="text-text-2 text-xs leading-relaxed italic">"{t.testimonial_text}"</p>
                   
                   <div className="flex justify-end pt-2 border-t border-border/40">
                     <button

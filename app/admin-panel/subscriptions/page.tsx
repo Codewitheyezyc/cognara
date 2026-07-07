@@ -28,17 +28,13 @@ export default function AdminSubscriptions() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Fetch subscription details
     const fetchSubs = async () => {
       try {
-        // Wait 500ms to show smooth load
-        await new Promise(r => setTimeout(r, 600))
-        setSubscriptions([
-          { id: 'sub_1', user_name: 'Isaac Peter', user_email: 'admin@cognaralearn.com', plan: 'Pro Annual', status: 'active', amount: '₦45,000', payment_method: 'Paystack', started_at: '2026-06-02' },
-          { id: 'sub_2', user_name: 'Emma Johnson', user_email: 'emma.johnson@example.com', plan: 'Pro Monthly', status: 'active', amount: '₦4,500', payment_method: 'Paystack', started_at: '2026-06-25' },
-          { id: 'sub_3', user_name: 'David Smith', user_email: 'david.smith@example.com', plan: 'Pro Monthly', status: 'active', amount: '₦4,500', payment_method: 'Paystack', started_at: '2026-06-29' },
-          { id: 'sub_4', user_name: 'Sophia Williams', user_email: 'sophia@example.com', plan: 'Pro Annual', status: 'paused', amount: '₦45,000', payment_method: 'Paystack', started_at: '2026-05-15' },
-        ])
+        const res = await fetch('/api/admin/subscriptions')
+        if (res.ok) {
+          const data = await res.json()
+          setSubscriptions(data.subscriptions || [])
+        }
       } catch (err) {
         console.error(err)
       } finally {
