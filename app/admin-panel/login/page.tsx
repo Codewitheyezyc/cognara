@@ -40,13 +40,13 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0D13] flex items-center justify-center p-4 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-bg text-text-1 flex items-center justify-center p-4 relative overflow-hidden font-sans">
       {/* Background Gradients */}
       <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-primary/10 blur-[150px] pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-[#A78BFA]/10 blur-[150px] pointer-events-none" />
 
       <div className="w-full max-w-md animate-page-enter relative z-10">
-        <div className="bg-[#121620]/80 border border-border/80 rounded-3xl p-8 shadow-2xl backdrop-blur-xl">
+        <div className="bg-surface border border-border/40 rounded-3xl p-8 shadow-2xl backdrop-blur-xl">
           
           {/* Logo & Header */}
           <div className="text-center mb-8">
@@ -64,12 +64,12 @@ export default function AdminLoginPage() {
           {/* Form */}
           <form onSubmit={handleAdminLogin} className="space-y-5">
             {error && (
-              <div className="bg-rose-500/10 border border-rose-500/25 p-4 rounded-2xl text-xs font-bold text-rose-400 animate-pulse">
+              <div className="bg-rose-500/10 border border-rose-500/25 p-4 rounded-2xl text-xs font-bold text-rose-400 animate-pulse text-left">
                 ⚠️ {error}
               </div>
             )}
 
-            <div className="space-y-2">
+            <div className="space-y-2 text-left">
               <label className="text-xs font-bold text-text-2 uppercase tracking-wider block">
                 Admin Email
               </label>
@@ -82,13 +82,13 @@ export default function AdminLoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-[#0B0D13]/60 border border-border/80 rounded-2xl pl-10 pr-4 py-3 text-sm text-text-1 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-medium placeholder-text-3"
+                  className="w-full bg-bg border border-border rounded-2xl pl-10 pr-4 py-3 text-sm text-text-1 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-medium placeholder-text-3"
                   placeholder="admin@cognaralearn.com"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 text-left">
               <label className="text-xs font-bold text-text-2 uppercase tracking-wider block">
                 Password
               </label>
@@ -101,7 +101,7 @@ export default function AdminLoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-[#0B0D13]/60 border border-border/80 rounded-2xl pl-10 pr-4 py-3 text-sm text-text-1 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-medium placeholder-text-3"
+                  className="w-full bg-bg border border-border rounded-2xl pl-10 pr-4 py-3 text-sm text-text-1 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-medium placeholder-text-3"
                   placeholder="••••••••••••"
                 />
               </div>

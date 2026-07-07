@@ -133,10 +133,10 @@ export default function AdminContentQuality() {
 
       {/* Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-[#121620]/90 border border-border/80 rounded-2xl p-6">
+        <div className="bg-surface border border-border/40 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <span className="text-xs font-bold text-text-2 uppercase tracking-wider">Cached Lessons</span>
-            <div className="p-2 bg-surface rounded-xl border border-border text-primary">
+            <div className="p-2 bg-surface-alt rounded-xl border border-border/40 text-primary">
               <Database size={16} />
             </div>
           </div>
@@ -144,10 +144,10 @@ export default function AdminContentQuality() {
           <p className="text-[10px] text-text-3 font-semibold uppercase tracking-wider mt-1">Stored structures ready for review</p>
         </div>
 
-        <div className="bg-[#121620]/90 border border-border/80 rounded-2xl p-6">
+        <div className="bg-surface border border-border/40 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <span className="text-xs font-bold text-text-2 uppercase tracking-wider">Failed Validations</span>
-            <div className="p-2 bg-surface rounded-xl border border-border text-rose-500">
+            <div className="p-2 bg-surface-alt rounded-xl border border-border/40 text-rose-500">
               <ShieldAlert size={16} />
             </div>
           </div>
@@ -155,20 +155,20 @@ export default function AdminContentQuality() {
           <p className="text-[10px] text-text-3 font-semibold uppercase tracking-wider mt-1">Lessons flagged with formatting errors</p>
         </div>
 
-        <div className="bg-[#121620]/90 border border-border/80 rounded-2xl p-6 flex flex-col justify-between">
+        <div className="bg-surface border border-border/40 rounded-2xl p-6 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold text-text-2 uppercase tracking-wider">Maintenance Actions</span>
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => setConfirmAction('lessons')}
-              className="flex-1 py-2 rounded-xl bg-surface border border-border text-text-2 hover:text-text-1 font-bold text-[9px] uppercase tracking-wider transition cursor-pointer"
+              className="flex-1 py-2 rounded-xl bg-surface-alt border border-border/40 text-text-2 hover:text-text-1 font-bold text-[9px] uppercase tracking-wider transition cursor-pointer"
             >
               Reset Lessons
             </button>
             <button
               onClick={() => setConfirmAction('quizzes')}
-              className="flex-1 py-2 rounded-xl bg-surface border border-border text-text-2 hover:text-text-1 font-bold text-[9px] uppercase tracking-wider transition cursor-pointer"
+              className="flex-1 py-2 rounded-xl bg-surface-alt border border-border/40 text-text-2 hover:text-text-1 font-bold text-[9px] uppercase tracking-wider transition cursor-pointer"
             >
               Reset Quizzes
             </button>
@@ -180,7 +180,7 @@ export default function AdminContentQuality() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Left: Lessons List */}
-        <div className="bg-[#121620]/90 border border-border/80 rounded-3xl p-6">
+        <div className="bg-surface border border-border/40 rounded-3xl p-6">
           <h3 className="text-sm font-bold text-text-1 uppercase tracking-wider mb-6 flex items-center gap-2">
             <Sparkles size={16} className="text-primary" />
             <span>Successfully Cached Lessons</span>
@@ -195,7 +195,7 @@ export default function AdminContentQuality() {
               <p className="text-xs text-text-3 font-semibold uppercase tracking-wider text-center py-12">No cached lessons found</p>
             ) : (
               lessons.map(lesson => (
-                <div key={lesson.id} className="bg-surface/50 border border-border/80 hover:border-primary/20 p-4 rounded-2xl flex items-center justify-between transition duration-150">
+                <div key={lesson.id} className="bg-surface-alt/50 border border-border/40 hover:border-primary/20 p-4 rounded-2xl flex items-center justify-between transition duration-150">
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-text-1 truncate">{lesson.title}</p>
                     <div className="flex items-center gap-2 text-[10px] text-text-3 font-semibold uppercase tracking-wider mt-1">
@@ -217,7 +217,7 @@ export default function AdminContentQuality() {
         </div>
 
         {/* Right: Validation Failures */}
-        <div className="bg-[#121620]/90 border border-border/80 rounded-3xl p-6">
+        <div className="bg-surface border border-border/40 rounded-3xl p-6">
           <h3 className="text-sm font-bold text-text-1 uppercase tracking-wider mb-6 flex items-center gap-2">
             <ShieldAlert size={16} className="text-rose-500" />
             <span>Format Validation Errors</span>
@@ -252,7 +252,7 @@ export default function AdminContentQuality() {
       {/* Confirmation Modal */}
       {confirmAction && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#121620] border border-border max-w-sm w-full rounded-3xl p-6 shadow-2xl space-y-6 text-center animate-page-enter">
+          <div className="bg-surface border border-border/40 max-w-sm w-full rounded-3xl p-6 shadow-2xl space-y-6 text-center animate-page-enter">
             <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto text-amber-500">
               <AlertTriangle size={32} />
             </div>
@@ -284,7 +284,7 @@ export default function AdminContentQuality() {
       {/* Lesson Content Preview Drawer */}
       {previewLesson && (
         <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm flex items-center justify-end">
-          <div className="bg-[#121620] border-l border-border h-full max-w-2xl w-full p-8 shadow-2xl relative flex flex-col justify-between animate-page-enter text-left">
+          <div className="bg-surface border-l border-border/40 h-full max-w-2xl w-full p-8 shadow-2xl relative flex flex-col justify-between animate-page-enter text-left">
             <button 
               onClick={() => setPreviewLesson(null)} 
               className="absolute top-6 right-6 p-2 bg-surface hover:bg-surface-alt border border-border text-text-3 hover:text-text-1 rounded-xl transition cursor-pointer"
@@ -303,9 +303,9 @@ export default function AdminContentQuality() {
                 </p>
               </div>
 
-              <div className="border-t border-border/60 pt-6 space-y-4">
+              <div className="border-t border-border/40 pt-6 space-y-4">
                 <h5 className="text-xs font-bold text-text-2 uppercase tracking-wider">Lesson JSON structure</h5>
-                <pre className="p-4 bg-[#0B0D13] border border-border rounded-2xl text-[10px] text-emerald-400 overflow-x-auto whitespace-pre-wrap font-mono max-h-[380px]">
+                <pre className="p-4 bg-surface-alt border border-border/40 rounded-2xl text-[10px] text-emerald-400 overflow-x-auto whitespace-pre-wrap font-mono max-h-[380px]">
                   {JSON.stringify(previewLesson.content, null, 2)}
                 </pre>
               </div>

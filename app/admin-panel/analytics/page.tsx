@@ -72,7 +72,7 @@ export default function AdminAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Left: User Growth Chart */}
-        <div className="bg-[#121620]/90 border border-border/80 rounded-3xl p-6">
+        <div className="bg-surface border border-border/40 rounded-3xl p-6">
           <h3 className="text-sm font-bold text-text-1 uppercase tracking-wider mb-6 flex items-center gap-2">
             <TrendingUp size={16} className="text-primary" />
             <span>Student Registration Growth</span>
@@ -84,15 +84,15 @@ export default function AdminAnalytics() {
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={userGrowth} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#232936" />
-                  <XAxis dataKey="name" stroke="#68707F" fontSize={10} tickLine={false} />
-                  <YAxis stroke="#68707F" fontSize={10} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                  <XAxis dataKey="name" stroke="var(--color-text-3)" fontSize={10} tickLine={false} />
+                  <YAxis stroke="var(--color-text-3)" fontSize={10} tickLine={false} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#121620', borderColor: '#2E3545', borderRadius: '12px' }}
-                    labelStyle={{ color: '#fff', fontWeight: 'bold', fontSize: '10px' }}
-                    itemStyle={{ color: '#5B8EFF', fontSize: '11px' }}
+                    contentStyle={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)', borderRadius: '12px' }}
+                    labelStyle={{ color: 'var(--color-text-1)', fontWeight: 'bold', fontSize: '10px' }}
+                    itemStyle={{ color: 'var(--color-primary)', fontSize: '11px' }}
                   />
-                  <Line type="monotone" dataKey="users" stroke="#5B8EFF" strokeWidth={3} activeDot={{ r: 6 }} />
+                  <Line type="monotone" dataKey="users" stroke="var(--color-primary)" strokeWidth={3} activeDot={{ r: 6 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -100,7 +100,7 @@ export default function AdminAnalytics() {
         </div>
 
         {/* Right: Top Learning Subjects */}
-        <div className="bg-[#121620]/90 border border-border/80 rounded-3xl p-6">
+        <div className="bg-surface border border-border/40 rounded-3xl p-6">
           <h3 className="text-sm font-bold text-text-1 uppercase tracking-wider mb-6 flex items-center gap-2">
             <BookOpen size={16} className="text-primary" />
             <span>Most Active Subject Roadmaps</span>
@@ -112,15 +112,15 @@ export default function AdminAnalytics() {
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={topSubjects} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#232936" />
-                  <XAxis dataKey="subject" stroke="#68707F" fontSize={8} tickLine={false} />
-                  <YAxis stroke="#68707F" fontSize={10} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                  <XAxis dataKey="subject" stroke="var(--color-text-3)" fontSize={8} tickLine={false} />
+                  <YAxis stroke="var(--color-text-3)" fontSize={10} tickLine={false} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#121620', borderColor: '#2E3545', borderRadius: '12px' }}
-                    labelStyle={{ color: '#fff', fontWeight: 'bold', fontSize: '10px' }}
-                    itemStyle={{ color: '#A78BFA', fontSize: '11px' }}
+                    contentStyle={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)', borderRadius: '12px' }}
+                    labelStyle={{ color: 'var(--color-text-1)', fontWeight: 'bold', fontSize: '10px' }}
+                    itemStyle={{ color: 'var(--color-accent)', fontSize: '11px' }}
                   />
-                  <Bar dataKey="completions" fill="#A78BFA" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="completions" fill="var(--color-accent)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

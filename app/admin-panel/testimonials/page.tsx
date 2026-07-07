@@ -114,7 +114,7 @@ export default function AdminTestimonials() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Left: Pending Testimonials */}
-        <div className="bg-[#121620]/90 border border-border/80 rounded-3xl p-6">
+        <div className="bg-surface border border-border/40 rounded-3xl p-6">
           <h3 className="text-sm font-bold text-text-1 uppercase tracking-wider mb-6 flex items-center gap-2">
             <MessageSquare size={16} className="text-primary" />
             <span>Pending Review ({pending.length})</span>
@@ -127,7 +127,7 @@ export default function AdminTestimonials() {
               <p className="text-xs text-text-3 font-semibold uppercase tracking-wider text-center py-12">No pending reviews</p>
             ) : (
               pending.map(t => (
-                <div key={t.id} className="bg-surface/50 border border-border p-5 rounded-2xl space-y-3 relative group">
+                <div key={t.id} className="bg-surface-alt/50 border border-border/40 p-5 rounded-2xl space-y-3 relative group">
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="font-bold text-text-1 text-xs">{t.name}</p>
@@ -158,7 +158,7 @@ export default function AdminTestimonials() {
         </div>
 
         {/* Right: Approved Testimonials */}
-        <div className="bg-[#121620]/90 border border-border/80 rounded-3xl p-6">
+        <div className="bg-surface border border-border/40 rounded-3xl p-6">
           <h3 className="text-sm font-bold text-text-1 uppercase tracking-wider mb-6 flex items-center gap-2">
             <CheckCircle2 size={16} className="text-emerald-400" />
             <span>Approved Feed ({approved.length})</span>
@@ -171,7 +171,7 @@ export default function AdminTestimonials() {
               <p className="text-xs text-text-3 font-semibold uppercase tracking-wider text-center py-12">No approved testimonials</p>
             ) : (
               approved.map(t => (
-                <div key={t.id} className="bg-surface/50 border border-border p-5 rounded-2xl space-y-3 relative group">
+                <div key={t.id} className="bg-surface-alt/50 border border-border/40 p-5 rounded-2xl space-y-3 relative group">
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="font-bold text-text-1 text-xs">{t.name}</p>

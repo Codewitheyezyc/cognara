@@ -60,9 +60,9 @@ export default function AdminPanelLayout({
   ]
 
   return (
-    <div className="min-h-screen bg-[#0B0D13] flex font-sans">
+    <div className="min-h-screen bg-bg flex font-sans text-text-1">
       {/* Admin Sidebar */}
-      <aside className="w-64 bg-[#121620] border-r border-border/80 flex flex-col p-6 shrink-0 relative z-20">
+      <aside className="w-64 bg-surface border-r border-border/40 flex flex-col p-6 shrink-0 relative z-20">
         
         {/* Logo block */}
         <div className="mb-8 flex flex-col text-left">
@@ -118,7 +118,7 @@ export default function AdminPanelLayout({
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 min-w-0 min-h-screen relative overflow-y-auto bg-[#0B0D13]">
+      <main className="flex-1 min-w-0 min-h-screen relative overflow-y-auto bg-bg">
         {/* Background gradient shapes */}
         <div className="absolute top-0 right-0 w-[50%] h-[50%] rounded-full bg-primary/5 blur-[150px] pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[50%] h-[50%] rounded-full bg-[#A78BFA]/5 blur-[150px] pointer-events-none" />

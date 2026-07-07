@@ -64,10 +64,10 @@ export default function AdminSubscriptions() {
 
       {/* Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-[#121620]/90 border border-border/80 rounded-2xl p-6">
+        <div className="bg-surface border border-border/40 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <span className="text-xs font-bold text-text-2 uppercase tracking-wider">MRR (Naira)</span>
-            <div className="p-2 bg-surface rounded-xl border border-border text-primary">
+            <div className="p-2 bg-surface-alt rounded-xl border border-border/40 text-primary">
               <BadgeCent size={16} />
             </div>
           </div>
@@ -75,10 +75,10 @@ export default function AdminSubscriptions() {
           <p className="text-[10px] text-text-3 font-semibold uppercase tracking-wider mt-1">+12% MRR growth this month</p>
         </div>
 
-        <div className="bg-[#121620]/90 border border-border/80 rounded-2xl p-6">
+        <div className="bg-surface border border-border/40 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <span className="text-xs font-bold text-text-2 uppercase tracking-wider">Conversion rate</span>
-            <div className="p-2 bg-surface rounded-xl border border-border text-amber-500">
+            <div className="p-2 bg-surface-alt rounded-xl border border-border/40 text-amber-500">
               <TrendingUp size={16} />
             </div>
           </div>
@@ -86,10 +86,10 @@ export default function AdminSubscriptions() {
           <p className="text-[10px] text-text-3 font-semibold uppercase tracking-wider mt-1">From free tier to pro subscriptions</p>
         </div>
 
-        <div className="bg-[#121620]/90 border border-border/80 rounded-2xl p-6">
+        <div className="bg-surface border border-border/40 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <span className="text-xs font-bold text-text-2 uppercase tracking-wider">Active Pro accounts</span>
-            <div className="p-2 bg-surface rounded-xl border border-border text-indigo-400">
+            <div className="p-2 bg-surface-alt rounded-xl border border-border/40 text-indigo-400">
               <Sparkles size={16} />
             </div>
           </div>
@@ -99,7 +99,7 @@ export default function AdminSubscriptions() {
       </div>
 
       {/* Subscription List */}
-      <div className="bg-[#121620]/90 border border-border/80 rounded-3xl p-6">
+      <div className="bg-surface border border-border/40 rounded-3xl p-6">
         <h3 className="text-sm font-bold text-text-1 uppercase tracking-wider mb-6 flex items-center gap-2">
           <CreditCard size={16} className="text-primary" />
           <span>Recent Subscriber Transactions</span>

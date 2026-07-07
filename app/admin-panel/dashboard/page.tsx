@@ -95,7 +95,7 @@ export default function AdminDashboardOverview() {
             System performance and user engagement metrics
           </p>
         </div>
-        <div className="text-xs font-bold text-text-3 uppercase tracking-wider bg-[#121620] border border-border px-4 py-2.5 rounded-xl shrink-0 text-center flex items-center gap-1.5 justify-center">
+        <div className="text-xs font-bold text-text-3 uppercase tracking-wider bg-surface border border-border/40 px-4 py-2.5 rounded-xl shrink-0 text-center flex items-center gap-1.5 justify-center">
           <Clock size={12} />
           <span>Real-time Sync Active</span>
         </div>
@@ -104,10 +104,10 @@ export default function AdminDashboardOverview() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((card, i) => (
-          <div key={i} className="bg-[#121620]/90 border border-border/80 rounded-2xl p-6 relative overflow-hidden group hover:border-primary/30 transition-all">
+          <div key={i} className="bg-surface border border-border/40 rounded-2xl p-6 relative overflow-hidden group hover:border-primary/30 transition-all">
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs font-bold text-text-2 uppercase tracking-wider">{card.label}</span>
-              <div className="p-2 bg-surface rounded-xl border border-border">{card.icon}</div>
+              <div className="p-2 bg-surface-alt rounded-xl border border-border/40">{card.icon}</div>
             </div>
             {loading ? (
               <div className="h-9 w-24 bg-surface-alt rounded-lg animate-pulse" />
@@ -124,7 +124,7 @@ export default function AdminDashboardOverview() {
       {/* Grid: Activity Feed & Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: Recent Activity */}
-        <div className="lg:col-span-2 bg-[#121620]/90 border border-border/80 rounded-3xl p-6">
+        <div className="lg:col-span-2 bg-surface border border-border/40 rounded-3xl p-6">
           <h3 className="text-sm font-bold text-text-1 uppercase tracking-wider mb-6 flex items-center gap-2">
             <TrendingUp size={16} className="text-primary" />
             <span>Recent Activity Feed</span>
@@ -144,7 +144,7 @@ export default function AdminDashboardOverview() {
             ) : (
               activities.map((act) => (
                 <div key={act.id} className="flex gap-4 items-start pb-4 border-b border-border/40 last:border-b-0 last:pb-0">
-                  <div className="p-2.5 bg-surface rounded-xl border border-border shrink-0 mt-0.5 text-xs">
+                  <div className="p-2.5 bg-surface-alt rounded-xl border border-border/40 shrink-0 mt-0.5 text-xs">
                     {act.type === 'signup' && '👥'}
                     {act.type === 'lesson' && '📚'}
                     {act.type === 'quiz' && '✍️'}
@@ -163,7 +163,7 @@ export default function AdminDashboardOverview() {
         </div>
 
         {/* Right: Quick Actions */}
-        <div className="bg-[#121620]/90 border border-border/80 rounded-3xl p-6 flex flex-col justify-between">
+        <div className="bg-surface border border-border/40 rounded-3xl p-6 flex flex-col justify-between">
           <div>
             <h3 className="text-sm font-bold text-text-1 uppercase tracking-wider mb-6">
               Quick Actions
@@ -173,10 +173,10 @@ export default function AdminDashboardOverview() {
                 <button
                   key={i}
                   onClick={() => router.push(link.href)}
-                  className="w-full bg-surface/50 border border-border/80 hover:border-primary/30 p-4 rounded-2xl flex items-center justify-between text-left transition duration-150 cursor-pointer group"
+                  className="w-full bg-surface-alt/45 border border-border/40 hover:border-primary/30 p-4 rounded-2xl flex items-center justify-between text-left transition duration-150 cursor-pointer group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-[#0B0D13] border border-border rounded-xl">{link.icon}</div>
+                    <div className="p-2.5 bg-bg border border-border/40 rounded-xl">{link.icon}</div>
                     <div>
                       <p className="text-xs font-bold text-text-1 group-hover:text-primary transition">{link.title}</p>
                       <p className="text-[10px] text-text-2 mt-0.5">{link.desc}</p>

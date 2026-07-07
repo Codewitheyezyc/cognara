@@ -71,7 +71,7 @@ export default function AdminBlogWrite() {
 
   if (success) {
     return (
-      <div className="max-w-md w-full mx-auto bg-[#121620] border border-border p-8 rounded-3xl space-y-6 text-center my-16 shadow-2xl animate-page-enter">
+      <div className="max-w-md w-full mx-auto bg-surface border border-border/40 p-8 rounded-3xl space-y-6 text-center my-16 shadow-2xl animate-page-enter">
         <span className="text-4xl inline-block animate-bounce">🎉</span>
         <div className="space-y-2">
           <h2 className="text-text-1 font-bold text-2xl">Published Successfully!</h2>
@@ -236,7 +236,7 @@ export default function AdminBlogWrite() {
         </div>
 
         {/* Homepage Feature Toggle */}
-        <div className="flex items-center gap-3 bg-[#121620] border border-border p-4 rounded-2xl">
+        <div className="flex items-center gap-3 bg-surface border border-border/40 p-4 rounded-2xl">
           <input
             type="checkbox"
             id="featured"
@@ -250,7 +250,7 @@ export default function AdminBlogWrite() {
         </div>
 
         {/* Submission CTA */}
-        <div className="pt-6 border-t border-border flex items-center justify-between">
+        <div className="pt-6 border-t border-border/40 flex items-center justify-between">
           <p className="text-[10px] text-text-3 font-semibold uppercase tracking-wider">
             ⚡ Admin Action — Post publishes instantly
           </p>

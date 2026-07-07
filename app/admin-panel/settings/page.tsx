@@ -105,7 +105,7 @@ export default function AdminSettings() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Left: Provision Admin User */}
-        <div className="bg-[#121620]/90 border border-border/80 rounded-3xl p-6 h-fit">
+        <div className="bg-surface border border-border/40 rounded-3xl p-6 h-fit">
           <h3 className="text-sm font-bold text-text-1 uppercase tracking-wider mb-6 flex items-center gap-2">
             <UserPlus size={16} className="text-primary" />
             <span>Provision Admin Account</span>
@@ -133,7 +133,7 @@ export default function AdminSettings() {
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full bg-[#0B0D13]/60 border border-border/80 rounded-xl px-4 py-2.5 text-xs text-text-1 focus:outline-none focus:border-primary/50"
+                className="w-full bg-bg border border-border/40 rounded-xl px-4 py-2.5 text-xs text-text-1 focus:outline-none focus:border-primary/50"
                 placeholder="e.g. Isaac Peter"
               />
             </div>
@@ -145,7 +145,7 @@ export default function AdminSettings() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#0B0D13]/60 border border-border/80 rounded-xl px-4 py-2.5 text-xs text-text-1 focus:outline-none focus:border-primary/50"
+                className="w-full bg-bg border border-border/40 rounded-xl px-4 py-2.5 text-xs text-text-1 focus:outline-none focus:border-primary/50"
                 placeholder="e.g. name@cognaralearn.com"
               />
             </div>
@@ -157,7 +157,7 @@ export default function AdminSettings() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-[#0B0D13]/60 border border-border/80 rounded-xl px-4 py-2.5 text-xs text-text-1 focus:outline-none focus:border-primary/50"
+                className="w-full bg-bg border border-border/40 rounded-xl px-4 py-2.5 text-xs text-text-1 focus:outline-none focus:border-primary/50"
                 placeholder="••••••••••••"
               />
             </div>
@@ -167,7 +167,7 @@ export default function AdminSettings() {
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                className="w-full bg-[#0B0D13]/60 border border-border/80 rounded-xl px-3 py-2.5 text-xs text-text-1 focus:outline-none focus:border-primary/50 cursor-pointer"
+                className="w-full bg-bg border border-border/40 rounded-xl px-3 py-2.5 text-xs text-text-1 focus:outline-none focus:border-primary/50 cursor-pointer"
               >
                 <option value="admin">Admin</option>
                 <option value="super_admin">Super Admin</option>
@@ -197,7 +197,7 @@ export default function AdminSettings() {
         </div>
 
         {/* Right: Audit Logs List */}
-        <div className="lg:col-span-2 bg-[#121620]/90 border border-border/80 rounded-3xl p-6 flex flex-col">
+        <div className="lg:col-span-2 bg-surface border border-border/40 rounded-3xl p-6 flex flex-col">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-sm font-bold text-text-1 uppercase tracking-wider flex items-center gap-2">
               <ClipboardList size={16} className="text-primary" />

@@ -166,20 +166,20 @@ export default function AdminBlogManagement() {
       <div className="space-y-4">
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="bg-[#121620] border border-border p-6 rounded-3xl animate-pulse space-y-4">
+            <div key={i} className="bg-surface border border-border/40 p-6 rounded-3xl animate-pulse space-y-4">
               <div className="h-4 w-1/4 bg-surface-alt rounded" />
               <div className="h-6 w-3/4 bg-surface-alt rounded" />
               <div className="h-3 w-1/2 bg-surface-alt rounded" />
             </div>
           ))
         ) : activeList.length === 0 ? (
-          <div className="bg-[#121620] border border-border rounded-3xl p-12 text-center text-text-3 font-semibold uppercase tracking-wider flex flex-col items-center justify-center gap-2.5">
+          <div className="bg-surface border border-border/40 rounded-3xl p-12 text-center text-text-3 font-semibold uppercase tracking-wider flex flex-col items-center justify-center gap-2.5">
             <AlertCircle size={24} className="text-text-3" />
             <span>No articles in this queue</span>
           </div>
         ) : (
           activeList.map(post => (
-            <div key={post.id} className="bg-[#121620] border border-border rounded-3xl p-6 relative group overflow-hidden hover:border-primary/20 transition-all flex flex-col md:flex-row gap-6">
+            <div key={post.id} className="bg-surface border border-border/40 rounded-3xl p-6 relative group overflow-hidden hover:border-primary/20 transition-all flex flex-col md:flex-row gap-6">
               
               {/* Cover Image Preview */}
               {post.cover_image_url && (
@@ -283,7 +283,7 @@ export default function AdminBlogManagement() {
       {/* Reject Modal */}
       {rejectingPostId && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#121620] border border-border max-w-md w-full rounded-3xl p-6 shadow-2xl space-y-6 text-left animate-page-enter">
+          <div className="bg-surface border border-border/40 max-w-md w-full rounded-3xl p-6 shadow-2xl space-y-6 text-left animate-page-enter">
             <h4 className="text-text-1 font-bold text-lg">Reject Article Submission</h4>
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-text-3 uppercase tracking-wider block">Provide Feedback to Author</label>

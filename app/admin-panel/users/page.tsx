@@ -193,7 +193,7 @@ export default function AdminUsersList() {
             placeholder="Search users by name or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#121620] border border-border/80 rounded-2xl pl-10 pr-4 py-3 text-xs text-text-1 focus:outline-none focus:border-primary/50 transition-colors"
+            className="w-full bg-surface border border-border/40 rounded-2xl pl-10 pr-4 py-3 text-xs text-text-1 focus:outline-none focus:border-primary/50 transition-colors"
           />
         </div>
 
@@ -211,7 +211,7 @@ export default function AdminUsersList() {
               className={`px-4 py-2 rounded-xl font-bold text-[10px] uppercase tracking-wider border transition cursor-pointer ${
                 filterType === f.id
                   ? 'bg-primary border-primary text-white shadow-[0_0_10px_rgba(91,142,255,0.2)]'
-                  : 'bg-[#121620] border-border text-text-2 hover:bg-surface-alt hover:text-text-1'
+                  : 'bg-surface border-border/40 text-text-2 hover:bg-surface-alt hover:text-text-1'
               }`}
             >
               {f.label}
@@ -221,7 +221,7 @@ export default function AdminUsersList() {
       </div>
 
       {/* Main Table Container */}
-      <div className="bg-[#121620] border border-border/80 rounded-3xl overflow-hidden shadow-xl">
+      <div className="bg-surface border border-border/40 rounded-3xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -262,7 +262,7 @@ export default function AdminUsersList() {
                 filteredUsers.map((user) => {
                   const isPro = user.subscription_tier === 'pro' || user.subscription_tier === 'pro_monthly' || user.subscription_tier === 'pro_yearly'
                   return (
-                    <tr key={user.id} className="hover:bg-surface-alt/10 transition-colors">
+                    <tr key={user.id} className="hover:bg-surface-alt/40 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           {user.avatar_url ? (
@@ -347,7 +347,7 @@ export default function AdminUsersList() {
       {/* Delete Confirmation Modal */}
       {deleteConfirmId && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#121620] border border-border max-w-sm w-full rounded-3xl p-6 shadow-2xl space-y-6 text-center animate-page-enter">
+          <div className="bg-surface border border-border/40 max-w-sm w-full rounded-3xl p-6 shadow-2xl space-y-6 text-center animate-page-enter">
             <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto text-rose-500">
               <AlertTriangle size={32} />
             </div>
@@ -379,7 +379,7 @@ export default function AdminUsersList() {
       {/* User Details Drawer Modal */}
       {selectedUser && (
         <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm flex items-center justify-end">
-          <div className="bg-[#121620] border-l border-border h-full max-w-md w-full p-8 shadow-2xl relative flex flex-col justify-between animate-page-enter text-left">
+          <div className="bg-surface border-l border-border/40 h-full max-w-md w-full p-8 shadow-2xl relative flex flex-col justify-between animate-page-enter text-left">
             <button 
               onClick={() => setSelectedUser(null)} 
               className="absolute top-6 right-6 p-2 bg-surface hover:bg-surface-alt border border-border text-text-3 hover:text-text-1 rounded-xl transition cursor-pointer"
