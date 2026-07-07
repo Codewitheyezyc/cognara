@@ -51,7 +51,9 @@ export default async function BlogListingPage() {
 
   const mappedPosts = (posts || []).map((p: any) => ({
     ...p,
-    profiles: Array.isArray(p.profiles) ? p.profiles[0] : p.profiles
+    profiles: p.author_type === 'admin'
+      ? { name: 'Cognara Admin', avatar_url: '/logo.png' }
+      : (Array.isArray(p.profiles) ? p.profiles[0] : p.profiles)
   }))
 
   return (

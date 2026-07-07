@@ -118,12 +118,16 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   const mappedPost = {
     ...post,
-    profiles: Array.isArray(post.profiles) ? post.profiles[0] : post.profiles
+    profiles: post.author_type === 'admin'
+      ? { name: 'Cognara Admin', avatar_url: '/logo.png' }
+      : (Array.isArray(post.profiles) ? post.profiles[0] : post.profiles)
   }
 
   const mappedRelated = (related || []).map((r: any) => ({
     ...r,
-    profiles: Array.isArray(r.profiles) ? r.profiles[0] : r.profiles
+    profiles: r.author_type === 'admin'
+      ? { name: 'Cognara Admin', avatar_url: '/logo.png' }
+      : (Array.isArray(r.profiles) ? r.profiles[0] : r.profiles)
   }))
 
   return (
