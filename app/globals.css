@@ -495,3 +495,9 @@
   pointer-events: none;
   height: 0;
 }
+
+/* Touch target minimum buttons size for admin controls */
+.admin-btn {
+  min-height: 44px;
+  padding: 10px 16px;
+}

@@ -20,27 +20,32 @@ export async function canUserWriteBlog(
   userId: string,
   supabase: SupabaseClient
 ): Promise<BlogEligibilityResult> {
-  // Fetch profile
-  const { data: user, error: userErr } = await supabase
+  // Step 1 — Get user profile
+  const { data: user, error: userError } = await supabase
     .from('profiles')
-    .select('id, subscription_tier, subscription_status, free_blog_post_used, role')
+    .select('*')
     .eq('id', userId)
-    .maybeSingle()
+    .single();
 
-  if (userErr || !user) {
+  if (userError || !user) {
     return {
       eligible: false,
-      author_type: 'community',
       reason: 'unauthorized',
       message: 'User profile not found.'
-    }
+    };
   }
 
-  // Admin check
+  console.log('canUserWriteBlog — user:', {
+    id: user.id,
+    subscription_status: user.subscription_status,
+    role: user.role
+  });
+
+  // Step 2 — Admin bypass all restrictions
   const isAdmin =
     user.role === 'admin' ||
     user.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID ||
-    user.id === process.env.ADMIN_USER_ID
+    user.id === process.env.ADMIN_USER_ID;
 
   if (isAdmin) {
     return {
@@ -48,72 +53,189 @@ export async function canUserWriteBlog(
       author_type: 'admin',
       domain_restricted: false,
       allowed_domains: ['Technology', 'Business', 'Marketing', 'General']
+    };
+  }
+
+  // Step 3 — Check Pro status
+  // Accept multiple possible values for pro status
+  const isPro =
+    user.subscription_status === 'pro' ||
+    user.subscription_status === 'active' ||
+    user.subscription_status === 'pro_monthly' ||
+    user.subscription_status === 'pro_yearly' ||
+    user.subscription_tier === 'pro';
+
+  console.log('canUserWriteBlog — isPro:', isPro);
+
+  // Step 4 — Find phase completions
+  // Try every possible table name
+  let completedPhaseCount = 0;
+  let completionsList: any[] = [];
+
+  // Try table 1
+  try {
+    const { data: c1_data } = await supabase
+      .from('cognara_phase_completions')
+      .select('phase_number, domain, phase_name')
+      .eq('user_id', userId);
+    
+    if (c1_data && c1_data.length > 0) {
+      completedPhaseCount = c1_data.length;
+      completionsList = c1_data;
+    }
+    console.log('cognara_phase_completions count:', c1_data?.length);
+  } catch (e) {
+    console.log('cognara_phase_completions: not found');
+  }
+
+  // Try table 2
+  if (completedPhaseCount === 0) {
+    try {
+      const { data: phases } = await supabase
+        .from('roadmap_phases')
+        .select('id, phase_number, title')
+        .eq('user_id', userId)
+        .eq('is_completed', true);
+      
+      if (phases && phases.length > 0) {
+        completedPhaseCount = phases.length;
+        completionsList = phases.map(p => ({
+          phase_number: p.phase_number,
+          domain: p.title || 'General',
+          phase_name: p.title || 'General'
+        }));
+      }
+      console.log('roadmap_phases completed:', phases?.length);
+    } catch (e) {
+      console.log('roadmap_phases: not found');
     }
   }
 
-  const isPro = user.subscription_status === 'pro' || user.subscription_tier === 'pro'
+  // Try table 3
+  if (completedPhaseCount === 0) {
+    try {
+      const { data: progress } = await supabase
+        .from('lesson_progress')
+        .select('phase_number')
+        .eq('user_id', userId)
+        .eq('completed', true);
+      
+      if (progress && progress.length > 0) {
+        completedPhaseCount = progress.length;
+        completionsList = progress.map(p => ({
+          phase_number: p.phase_number || 1,
+          domain: 'General',
+          phase_name: 'General'
+        }));
+      }
+      console.log('lesson_progress completed:', progress?.length);
+    } catch (e) {
+      console.log('lesson_progress: not found');
+    }
+  }
 
-  // Fetch phase completions from the cognara_phase_completions table
-  const { data: completions } = await supabase
-    .from('cognara_phase_completions')
-    .select('phase_number, domain, phase_name')
-    .eq('user_id', userId)
+  console.log('Total completed phases found:', completedPhaseCount);
 
-  const completionsCount = completions?.length || 0
-
-  // 1. Pro Users:
+  // Step 5 — PRO USER LOGIC
   if (isPro) {
-    if (completionsCount < 1) {
+    // Pro user must have completed at least one phase
+    if (completedPhaseCount < 1) {
       return {
         eligible: false,
         reason: 'phase_not_completed',
         message: 'Complete your first learning phase to unlock blog writing.'
-      }
+      };
     }
 
-    // Determine allowed domains based on completions
-    const allowedDomains = resolveAllowedDomains(completions || [])
-
+    // Pro user with phase completed — full access
+    const allowedDomains = resolveAllowedDomains(completionsList);
     return {
       eligible: true,
       author_type: 'community',
       domain_restricted: true,
       allowed_domains: allowedDomains,
-      completed_phases: completions || []
-    }
+      completed_phases: completionsList
+    };
   }
 
-  // 2. Free Users:
-  const phaseOneCompletion = completions?.find(c => c.phase_number === 1)
+  // Step 6 — FREE USER LOGIC
+  else {
+    // Free user must have completed Phase 1 specifically
+    let phaseOneCompleted = false;
+    let phaseOneCompletionDetail = completionsList.find(c => c.phase_number === 1);
 
-  if (!phaseOneCompletion) {
+    if (phaseOneCompletionDetail) {
+      phaseOneCompleted = true;
+    } else {
+      try {
+        const { data: phaseOne } = await supabase
+          .from('cognara_phase_completions')
+          .select('phase_number, domain, phase_name')
+          .eq('user_id', userId)
+          .eq('phase_number', 1)
+          .single();
+        
+        if (phaseOne) {
+          phaseOneCompleted = true;
+          phaseOneCompletionDetail = phaseOne;
+          completionsList.push(phaseOne);
+        }
+      } catch (e) {
+        // Try alternative table
+        try {
+          const { data: phaseOne } = await supabase
+            .from('roadmap_phases')
+            .select('id, phase_number, title')
+            .eq('user_id', userId)
+            .eq('phase_number', 1)
+            .eq('is_completed', true)
+            .single();
+          
+          if (phaseOne) {
+            phaseOneCompleted = true;
+            phaseOneCompletionDetail = {
+              phase_number: 1,
+              domain: phaseOne.title || 'General',
+              phase_name: phaseOne.title || 'General'
+            };
+            completionsList.push(phaseOneCompletionDetail);
+          }
+        } catch (e2) {
+          console.log('Phase 1 check failed:', e2);
+        }
+      }
+    }
+
+    console.log('Phase 1 completed:', phaseOneCompleted);
+
+    if (!phaseOneCompleted) {
+      return {
+        eligible: false,
+        reason: 'phase_not_completed',
+        message: 'Complete Phase 1 to unlock your one free blog post.'
+      };
+    }
+
+    // Check if free user already used their one post
+    if (user.free_blog_post_used) {
+      return {
+        eligible: false,
+        reason: 'free_blog_used',
+        message: 'You have already written your free blog post. Upgrade to Pro to write more posts.'
+      };
+    }
+
+    // Free user eligible for one post
+    const allowedDomains = resolveAllowedDomains([phaseOneCompletionDetail]);
     return {
-      eligible: false,
-      reason: 'phase_not_completed',
-      message: 'Complete Phase 1 to unlock your one free blog post.'
-    }
-  }
-
-  if (user.free_blog_post_used) {
-    return {
-      eligible: false,
-      reason: 'free_blog_used',
-      message: 'You have already written your free blog post. Upgrade to Pro to write more posts.'
-    }
-  }
-
-  // Allowed domains for Phase 1 topics
-  const allowedDomains = resolveAllowedDomains([phaseOneCompletion])
-
-  return {
-    eligible: true,
-    author_type: 'community',
-    is_free_user: true,
-    free_posts_remaining: 1,
-    domain_restricted: true,
-    allowed_phases: [1],
-    allowed_domains: allowedDomains,
-    completed_phases: [phaseOneCompletion]
+      eligible: true,
+      author_type: 'community',
+      is_free_user: true,
+      free_posts_remaining: 1,
+      domain_restricted: true,
+      allowed_domains: allowedDomains,
+      completed_phases: [phaseOneCompletionDetail]
+    };
   }
 }
 

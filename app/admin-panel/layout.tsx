@@ -14,7 +14,9 @@ import {
   Settings, 
   LogOut, 
   Loader2,
-  User
+  User,
+  Menu,
+  X
 } from 'lucide-react'
 
 export default function AdminPanelLayout({
@@ -25,6 +27,7 @@ export default function AdminPanelLayout({
   const pathname = usePathname()
   const router = useRouter()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const isLoginPage = pathname === '/admin-panel/login'
 
@@ -62,73 +65,115 @@ export default function AdminPanelLayout({
   ]
 
   return (
-    <div className="min-h-screen bg-bg flex font-sans text-text-1">
-      {/* Admin Sidebar */}
-      <aside className="w-64 bg-surface border-r border-border/40 flex flex-col p-6 shrink-0 relative z-20">
-        
-        {/* Logo block */}
-        <div className="mb-8 flex flex-col text-left">
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-black font-heading tracking-tight text-text-1">
-              Cognara
-            </span>
-            <span className="text-[10px] font-mono bg-primary/10 border border-primary/20 text-primary px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
-              Admin
-            </span>
-          </div>
-          <span className="text-[10px] text-text-3 font-semibold uppercase tracking-wider mt-1.5">
-            Decoupled Dashboard
+    <div className="min-h-screen bg-bg flex flex-col font-sans text-text-1">
+      {/* Mobile header */}
+      <div className="md:hidden flex items-center justify-between px-6 py-4 bg-surface border-b border-border/40 shrink-0">
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-black font-heading tracking-tight text-text-1">
+            Cognara
+          </span>
+          <span className="text-[9px] font-mono bg-primary/10 border border-primary/20 text-primary px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+            Admin
           </span>
         </div>
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="text-text-1 p-2 focus:outline-none hover:bg-surface-alt rounded-lg transition cursor-pointer"
+        >
+          {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+      </div>
 
-        {/* Sidebar Nav links */}
-        <nav className="flex-1 space-y-1.5 text-left">
-          {menuItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition duration-150 text-xs font-bold uppercase tracking-wider cursor-pointer ${
-                  isActive
-                    ? 'bg-primary text-white shadow-[0_0_15px_rgba(91,142,255,0.25)]'
-                    : 'text-text-2 hover:bg-surface-alt hover:text-text-1'
-                }`}
-              >
-                <span className="shrink-0">{item.icon}</span>
-                <span>{item.label}</span>
-              </Link>
-            )
-          })}
-        </nav>
+      <div className="flex-1 flex relative">
+        {/* Admin Sidebar */}
+        <aside className={`w-64 bg-surface border-r border-border/40 flex flex-col p-6 shrink-0 fixed inset-y-0 left-0 z-50 transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}>
+          
+          {/* Logo block */}
+          <div className="mb-8 flex justify-between items-center text-left">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="text-xl font-black font-heading tracking-tight text-text-1">
+                  Cognara
+                </span>
+                <span className="text-[10px] font-mono bg-primary/10 border border-primary/20 text-primary px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                  Admin
+                </span>
+              </div>
+              <span className="text-[10px] text-text-3 font-semibold uppercase tracking-wider mt-1.5">
+                Decoupled Dashboard
+              </span>
+            </div>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="md:hidden p-2 text-text-3 hover:text-text-1 focus:outline-none hover:bg-surface-alt rounded-lg transition cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+          </div>
 
-        {/* Sidebar Footer / Logout */}
-        <div className="mt-auto pt-6 border-t border-border/60">
-          <button
-            onClick={handleAdminLogout}
-            disabled={isLoggingOut}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-rose-500 hover:bg-rose-500/10 transition duration-150 text-xs font-bold uppercase tracking-wider w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoggingOut ? (
-              <Loader2 size={16} className="animate-spin shrink-0" />
-            ) : (
-              <LogOut size={16} className="shrink-0" />
-            )}
-            <span>{isLoggingOut ? 'Signing out...' : 'Sign out'}</span>
-          </button>
-        </div>
-      </aside>
+          {/* Sidebar Nav links */}
+          <nav className="flex-1 space-y-1.5 text-left">
+            {menuItems.map((item) => {
+              const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition duration-150 text-xs font-bold uppercase tracking-wider cursor-pointer ${
+                    isActive
+                      ? 'bg-primary text-white shadow-[0_0_15px_rgba(91,142,255,0.25)]'
+                      : 'text-text-2 hover:bg-surface-alt hover:text-text-1'
+                  }`}
+                >
+                  <span className="shrink-0">{item.icon}</span>
+                  <span>{item.label}</span>
+                </Link>
+              )
+            })}
+          </nav>
 
-      {/* Main Content Area */}
-      <main className="flex-1 min-w-0 min-h-screen relative overflow-y-auto bg-bg">
-        {/* Background gradient shapes */}
-        <div className="absolute top-0 right-0 w-[50%] h-[50%] rounded-full bg-primary/5 blur-[150px] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[50%] h-[50%] rounded-full bg-[#A78BFA]/5 blur-[150px] pointer-events-none" />
-        
-        <div className="p-8 relative z-10">
-          {children}
-        </div>
-      </main>
+          {/* Sidebar Footer / Logout */}
+          <div className="mt-auto pt-6 border-t border-border/60">
+            <button
+              onClick={() => {
+                setSidebarOpen(false)
+                handleAdminLogout()
+              }}
+              disabled={isLoggingOut}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-rose-500 hover:bg-rose-500/10 transition duration-150 text-xs font-bold uppercase tracking-wider w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoggingOut ? (
+                <Loader2 size={16} className="animate-spin shrink-0" />
+              ) : (
+                <LogOut size={16} className="shrink-0" />
+              )}
+              <span>{isLoggingOut ? 'Signing out...' : 'Sign out'}</span>
+            </button>
+          </div>
+        </aside>
+
+        {/* Overlay for mobile when sidebar is open */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden animate-fade-in transition-opacity"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        {/* Main Content Area */}
+        <main className="flex-1 min-w-0 min-h-screen relative overflow-y-auto bg-bg">
+          {/* Background gradient shapes */}
+          <div className="absolute top-0 right-0 w-[50%] h-[50%] rounded-full bg-primary/5 blur-[150px] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[50%] h-[50%] rounded-full bg-[#A78BFA]/5 blur-[150px] pointer-events-none" />
+          
+          <div className="p-4 md:p-8 relative z-10">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   )
 }

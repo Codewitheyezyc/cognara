@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import html2canvas from 'html2canvas'
+import { createClient } from '@/lib/supabase/client'
 import { 
   Search, 
   Sparkles, 
@@ -44,6 +46,218 @@ export default function AdminUsersList() {
   // Drawer / View User state
   const [selectedUser, setSelectedUser] = useState<UserItem | null>(null)
 
+  const supabase = createClient()
+  const [selectedUserStats, setSelectedUserStats] = useState<{
+    current_streak: number
+    roadmap_progress: number
+  }>({ current_streak: 0, roadmap_progress: 0 })
+
+  const [milestoneStreakDays, setMilestoneStreakDays] = useState<number | null>(null)
+  const [milestoneProgressPercent, setMilestoneProgressPercent] = useState<number | null>(null)
+  const [bulkUserName, setBulkUserName] = useState('')
+  const [bulkGoalName, setBulkGoalName] = useState('')
+
+  const [awardLoading, setAwardLoading] = useState('')
+  const [awardMessage, setAwardMessage] = useState('')
+
+  useEffect(() => {
+    async function loadUserStats() {
+      if (!selectedUser) return
+      try {
+        const { data: streakRow } = await supabase
+          .from('streaks')
+          .select('current_streak')
+          .eq('user_id', selectedUser.id)
+          .maybeSingle()
+
+        const { data: activeGoal } = await supabase
+          .from('learning_goals')
+          .select('id')
+          .eq('user_id', selectedUser.id)
+          .eq('is_active', true)
+          .maybeSingle()
+
+        let progressPercent = 0
+        if (activeGoal) {
+          const { data: roadmap } = await supabase
+            .from('roadmaps')
+            .select('id')
+            .eq('goal_id', activeGoal.id)
+            .maybeSingle()
+
+          if (roadmap) {
+            const { count: totalCount } = await supabase
+              .from('lessons')
+              .select('*', { count: 'exact', head: true })
+              .eq('roadmap_id', roadmap.id)
+
+            const { count: completedCount } = await supabase
+              .from('lesson_progress')
+              .select('*', { count: 'exact', head: true })
+              .eq('user_id', selectedUser.id)
+              .eq('status', 'completed')
+
+            const totalLessons = totalCount || 0
+            const completedLessons = completedCount || 0
+            progressPercent = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
+          }
+        }
+
+        setSelectedUserStats({
+          current_streak: streakRow?.current_streak || 0,
+          roadmap_progress: progressPercent
+        })
+      } catch (err) {
+        console.error('Failed to load user stats:', err)
+      }
+    }
+    loadUserStats()
+  }, [selectedUser])
+  const generateStreakBadge = async (targetUserId: string, streakDays: number) => {
+    setMilestoneStreakDays(streakDays)
+    setBulkUserName(selectedUser?.name || 'Learner')
+    
+    await new Promise((resolve) => setTimeout(resolve, 850))
+
+    const element = document.getElementById(`streak-badge-${streakDays}`)
+    if (!element) {
+      throw new Error(`Element #streak-badge-${streakDays} not found in DOM`)
+    }
+
+    const canvas = await html2canvas(element, {
+      scale: 1,
+      useCORS: true,
+      backgroundColor: '#0F1629'
+    })
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, 'image/png', 1.0)
+    })
+
+    if (!blob) {
+      throw new Error('Canvas conversion to Blob failed')
+    }
+
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'pdzutmcceyvglgijorvn'
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'cognara_badges'
+
+    const formData = new FormData()
+    formData.append('file', blob)
+    formData.append('upload_preset', uploadPreset)
+    formData.append('folder', 'cognara/streak-badges')
+
+    const cloudinaryResponse = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      { method: 'POST', body: formData }
+    )
+
+    if (!cloudinaryResponse.ok) {
+      const errData = await cloudinaryResponse.json()
+      throw new Error(errData?.error?.message || 'Cloudinary upload failed')
+    }
+
+    const cloudinaryData = await cloudinaryResponse.json()
+    const badgeUrl = cloudinaryData.secure_url
+
+    // Save to Supabase
+    const { error: dbErr } = await supabase
+      .from('cognara_streak_badges')
+      .insert({
+        user_id: targetUserId,
+        streak_days: streakDays,
+        badge_url_png: badgeUrl,
+        admin_triggered: true,
+        admin_triggered_at: new Date().toISOString(),
+        created_at: new Date().toISOString()
+      })
+
+    if (dbErr) {
+      console.error('[Streak Badge] Failed to save to database:', dbErr)
+    }
+
+    setMilestoneStreakDays(null)
+    setBulkUserName('')
+    return badgeUrl
+  }
+
+  const generateProgressCard = async (targetUserId: string, milestonePercent: number) => {
+    // Try to get user active goal
+    const { data: userGoal } = await supabase
+      .from('learning_goals')
+      .select('*')
+      .eq('user_id', targetUserId)
+      .eq('is_active', true)
+      .maybeSingle()
+
+    const goalName = userGoal?.subject || userGoal?.goal_text || userGoal?.goal_name || 'My Learning Goal'
+    
+    setMilestoneProgressPercent(milestonePercent)
+    setBulkUserName(selectedUser?.name || 'Learner')
+    setBulkGoalName(goalName)
+    
+    await new Promise((resolve) => setTimeout(resolve, 850))
+
+    const element = document.getElementById(`progress-card-${milestonePercent}`)
+    if (!element) {
+      throw new Error(`Element #progress-card-${milestonePercent} not found in DOM`)
+    }
+
+    const canvas = await html2canvas(element, {
+      scale: 1,
+      useCORS: true,
+      backgroundColor: '#0F1629'
+    })
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, 'image/png', 1.0)
+    })
+
+    if (!blob) {
+      throw new Error('Canvas conversion to Blob failed')
+    }
+
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'pdzutmcceyvglgijorvn'
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'cognara_badges'
+
+    const formData = new FormData()
+    formData.append('file', blob)
+    formData.append('upload_preset', uploadPreset)
+    formData.append('folder', 'cognara/progress-cards')
+
+    const cloudinaryResponse = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      { method: 'POST', body: formData }
+    )
+
+    if (!cloudinaryResponse.ok) {
+      const errData = await cloudinaryResponse.json()
+      throw new Error(errData?.error?.message || 'Cloudinary upload failed')
+    }
+
+    const cloudinaryData = await cloudinaryResponse.json()
+    const cardUrl = cloudinaryData.secure_url
+
+    // Save to Supabase
+    const { error: dbErr } = await supabase
+      .from('cognara_progress_cards')
+      .insert({
+        user_id: targetUserId,
+        milestone_percent: milestonePercent,
+        card_url_png: cardUrl,
+        admin_triggered: true,
+        admin_triggered_at: new Date().toISOString(),
+        created_at: new Date().toISOString()
+      })
+
+    if (dbErr) {
+      console.error('[Progress Card] Failed to save to database:', dbErr)
+    }
+
+    setMilestoneProgressPercent(null)
+    setBulkUserName('')
+    setBulkGoalName('')
+    return cardUrl
+  }
   const fetchUsers = async () => {
     setLoading(true)
     try {
@@ -175,7 +389,7 @@ export default function AdminUsersList() {
         </div>
         <button
           onClick={fetchUsers}
-          className="h-10 px-4 inline-flex items-center gap-2 rounded-xl bg-surface border border-border text-text-1 hover:bg-surface-alt font-bold text-xs uppercase tracking-wider transition cursor-pointer"
+          className="admin-btn inline-flex items-center gap-2 rounded-xl bg-surface border border-border text-text-1 hover:bg-surface-alt font-bold text-xs uppercase tracking-wider transition cursor-pointer"
         >
           <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
           <span>Refresh</span>
@@ -184,7 +398,7 @@ export default function AdminUsersList() {
 
       {/* Toolbar / Search & Filters */}
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full md:max-w-md">
+        <div className="relative w-full md:w-80">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-text-3">
             <Search size={16} />
           </span>
@@ -193,7 +407,7 @@ export default function AdminUsersList() {
             placeholder="Search users by name or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-surface border border-border/40 rounded-2xl pl-10 pr-4 py-3 text-xs text-text-1 focus:outline-none focus:border-primary/50 transition-colors"
+            className="w-full bg-surface border border-border/40 rounded-2xl pl-10 pr-4 py-3.5 text-xs text-text-1 focus:outline-none focus:border-primary/50 transition-colors"
           />
         </div>
 
@@ -208,7 +422,7 @@ export default function AdminUsersList() {
             <button
               key={f.id}
               onClick={() => setFilterType(f.id as any)}
-              className={`px-4 py-2 rounded-xl font-bold text-[10px] uppercase tracking-wider border transition cursor-pointer ${
+              className={`px-4 min-h-[44px] rounded-xl font-bold text-[10px] uppercase tracking-wider border transition cursor-pointer flex items-center justify-center ${
                 filterType === f.id
                   ? 'bg-primary border-primary text-white shadow-[0_0_10px_rgba(91,142,255,0.2)]'
                   : 'bg-surface border-border/40 text-text-2 hover:bg-surface-alt hover:text-text-1'
@@ -222,125 +436,127 @@ export default function AdminUsersList() {
 
       {/* Main Table Container */}
       <div className="bg-surface border border-border/40 rounded-3xl overflow-hidden shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-border/60 bg-surface/50 text-[10px] font-bold text-text-3 uppercase tracking-wider">
-                <th className="px-6 py-4">Student</th>
-                <th className="px-6 py-4">Joined Date</th>
-                <th className="px-6 py-4">Current Domain</th>
-                <th className="px-6 py-4">Tier Status</th>
-                <th className="px-6 py-4">Last Activity</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/40 text-xs">
-              {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td className="px-6 py-4 flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-surface-alt" />
-                      <div className="space-y-1">
-                        <div className="h-3 w-28 bg-surface-alt rounded" />
-                        <div className="h-2 w-36 bg-surface-alt rounded" />
-                      </div>
-                    </td>
-                    <td className="px-6 py-4"><div className="h-3 w-16 bg-surface-alt rounded" /></td>
-                    <td className="px-6 py-4"><div className="h-3 w-20 bg-surface-alt rounded" /></td>
-                    <td className="px-6 py-4"><div className="h-4.5 w-12 bg-surface-alt rounded-full" /></td>
-                    <td className="px-6 py-4"><div className="h-3 w-16 bg-surface-alt rounded" /></td>
-                    <td className="px-6 py-4"><div className="h-8 w-12 bg-surface-alt rounded-lg ml-auto" /></td>
-                  </tr>
-                ))
-              ) : filteredUsers.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-text-3 font-semibold uppercase tracking-wider">
-                    No users match search filters
-                  </td>
+        <div className="overflow-x-auto -mx-4 md:mx-0">
+          <div className="min-w-[600px] px-4 md:px-0">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-border/60 bg-surface/50 text-[10px] font-bold text-text-3 uppercase tracking-wider">
+                  <th className="px-6 py-4">Student</th>
+                  <th className="px-6 py-4">Joined Date</th>
+                  <th className="px-6 py-4">Current Domain</th>
+                  <th className="px-6 py-4">Tier Status</th>
+                  <th className="px-6 py-4">Last Activity</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
-              ) : (
-                filteredUsers.map((user) => {
-                  const isPro = user.subscription_tier === 'pro' || user.subscription_tier === 'pro_monthly' || user.subscription_tier === 'pro_yearly'
-                  return (
-                    <tr key={user.id} className="hover:bg-surface-alt/40 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          {user.avatar_url ? (
-                            <img src={user.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover border border-border" />
-                          ) : (
-                            <div className="h-8 w-8 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-xs uppercase">
-                              {user.name ? user.name[0] : user.email[0]}
-                            </div>
-                          )}
-                          <div>
-                            <p className="font-bold text-text-1">{user.name || 'Anonymous Learner'}</p>
-                            <p className="text-[10px] text-text-3 font-semibold">{user.email}</p>
-                          </div>
+              </thead>
+              <tbody className="divide-y divide-border/40 text-xs">
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i} className="animate-pulse">
+                      <td className="px-6 py-4 flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full bg-surface-alt" />
+                        <div className="space-y-1">
+                          <div className="h-3 w-28 bg-surface-alt rounded" />
+                          <div className="h-2 w-36 bg-surface-alt rounded" />
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-text-2 font-medium">
-                        {new Date(user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="px-2.5 py-1 bg-surface-alt border border-border rounded-lg font-bold text-[10px] text-text-2 uppercase tracking-wider">
-                          {user.current_subject || 'None'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-bold text-[9px] uppercase tracking-wider border ${
-                          isPro 
-                            ? 'bg-amber-500/10 border-amber-500/25 text-amber-400' 
-                            : 'bg-text-3/10 border-border text-text-2'
-                        }`}>
-                          <Sparkles size={9} className={isPro ? 'text-amber-400' : 'text-text-3'} />
-                          <span>{isPro ? 'Pro' : 'Free'}</span>
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-text-3 font-semibold uppercase tracking-wider text-[10px]">
-                        {new Date(user.last_active).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => setSelectedUser(user)}
-                            className="p-2 bg-surface hover:bg-surface-alt border border-border text-text-2 hover:text-text-1 rounded-xl transition cursor-pointer"
-                            title="View Student details"
-                          >
-                            <Eye size={13} />
-                          </button>
-                          <button
-                            onClick={() => handleUpdatePlan(user.id, user.subscription_tier)}
-                            disabled={updatingUserId === user.id}
-                            className={`p-2 border rounded-xl transition cursor-pointer disabled:opacity-50 ${
-                              isPro 
-                                ? 'bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500/20' 
-                                : 'bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20'
-                            }`}
-                            title={isPro ? 'Revoke Pro subscription' : 'Grant Pro subscription'}
-                          >
-                            {updatingUserId === user.id ? (
-                              <RefreshCw size={13} className="animate-spin" />
-                            ) : isPro ? (
-                              <Lock size={13} />
-                            ) : (
-                              <Unlock size={13} />
-                            )}
-                          </button>
-                          <button
-                            onClick={() => setDeleteConfirmId(user.id)}
-                            className="p-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 rounded-xl transition cursor-pointer"
-                            title="Delete student account"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
-                      </td>
+                      <td className="px-6 py-4"><div className="h-3 w-16 bg-surface-alt rounded" /></td>
+                      <td className="px-6 py-4"><div className="h-3 w-20 bg-surface-alt rounded" /></td>
+                      <td className="px-6 py-4"><div className="h-4.5 w-12 bg-surface-alt rounded-full" /></td>
+                      <td className="px-6 py-4"><div className="h-3 w-16 bg-surface-alt rounded" /></td>
+                      <td className="px-6 py-4"><div className="h-8 w-12 bg-surface-alt rounded-lg ml-auto" /></td>
                     </tr>
-                  )
-                })
-              )}
-            </tbody>
-          </table>
+                  ))
+                ) : filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-text-3 font-semibold uppercase tracking-wider">
+                      No users match search filters
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((user) => {
+                    const isPro = user.subscription_tier === 'pro' || user.subscription_tier === 'pro_monthly' || user.subscription_tier === 'pro_yearly'
+                    return (
+                      <tr key={user.id} className="hover:bg-surface-alt/40 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            {user.avatar_url ? (
+                              <img src={user.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover border border-border" />
+                            ) : (
+                              <div className="h-8 w-8 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-xs uppercase">
+                                {user.name ? user.name[0] : user.email[0]}
+                              </div>
+                            )}
+                            <div>
+                              <p className="font-bold text-text-1">{user.name || 'Anonymous Learner'}</p>
+                              <p className="text-[10px] text-text-3 font-semibold">{user.email}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-text-2 font-medium">
+                          {new Date(user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="px-2.5 py-1 bg-surface-alt border border-border rounded-lg font-bold text-[10px] text-text-2 uppercase tracking-wider">
+                            {user.current_subject || 'None'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-bold text-[9px] uppercase tracking-wider border ${
+                            isPro 
+                              ? 'bg-amber-500/10 border-amber-500/25 text-amber-400' 
+                              : 'bg-text-3/10 border-border text-text-2'
+                          }`}>
+                            <Sparkles size={9} className={isPro ? 'text-amber-400' : 'text-text-3'} />
+                            <span>{isPro ? 'Pro' : 'Free'}</span>
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-text-3 font-semibold uppercase tracking-wider text-[10px]">
+                          {new Date(user.last_active).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => setSelectedUser(user)}
+                              className="h-11 w-11 inline-flex items-center justify-center bg-surface hover:bg-surface-alt border border-border text-text-2 hover:text-text-1 rounded-xl transition cursor-pointer"
+                              title="View Student details"
+                            >
+                              <Eye size={13} />
+                            </button>
+                            <button
+                              onClick={() => handleUpdatePlan(user.id, user.subscription_tier)}
+                              disabled={updatingUserId === user.id}
+                              className={`h-11 w-11 inline-flex items-center justify-center border rounded-xl transition cursor-pointer disabled:opacity-50 ${
+                                isPro 
+                                  ? 'bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500/20' 
+                                  : 'bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20'
+                              }`}
+                              title={isPro ? 'Revoke Pro subscription' : 'Grant Pro subscription'}
+                            >
+                              {updatingUserId === user.id ? (
+                                <RefreshCw size={13} className="animate-spin" />
+                              ) : isPro ? (
+                                <Lock size={13} />
+                              ) : (
+                                <Unlock size={13} />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirmId(user.id)}
+                              className="h-11 w-11 inline-flex items-center justify-center bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 rounded-xl transition cursor-pointer"
+                              title="Delete student account"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -387,7 +603,7 @@ export default function AdminUsersList() {
               <X size={15} />
             </button>
             
-            <div className="space-y-6">
+            <div className="space-y-6 overflow-y-auto flex-1 my-6 pr-2 scrollbar-thin">
               <div className="flex items-center gap-4">
                 {selectedUser.avatar_url ? (
                   <img src={selectedUser.avatar_url} alt="" className="h-16 w-16 rounded-full object-cover border-2 border-primary/20" />
@@ -429,6 +645,232 @@ export default function AdminUsersList() {
                   </div>
                 </div>
               </div>
+
+              {/* Awards and Badges Panel */}
+              <div className="bg-surface-alt/45 border border-border/60 rounded-2xl p-5 mt-4 space-y-4">
+                <h5 className="text-[10px] font-bold text-text-3 uppercase tracking-wider flex items-center gap-1.5">
+                  🏆 Awards and Badges
+                </h5>
+
+                {/* User stats */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-surface/50 border border-border p-3 rounded-xl text-left">
+                    <p className="text-[9px] text-text-3 font-semibold uppercase tracking-wider">Current streak</p>
+                    <p className="text-xs font-bold text-text-1 mt-0.5">
+                      🔥 {selectedUserStats.current_streak || 0} days
+                    </p>
+                  </div>
+                  <div className="bg-surface/50 border border-border p-3 rounded-xl text-left">
+                    <p className="text-[9px] text-text-3 font-semibold uppercase tracking-wider">Roadmap progress</p>
+                    <p className="text-xs font-bold text-text-1 mt-0.5">
+                      🎯 {selectedUserStats.roadmap_progress || 0}%
+                    </p>
+                  </div>
+                </div>
+
+                {/* Streak badge triggers */}
+                <div className="text-left">
+                  <p className="text-[9px] text-text-3 font-semibold uppercase tracking-wider mb-2">Streak Badges</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {[7, 30, 100].map(days => (
+                      <button
+                        key={days}
+                        disabled={awardLoading !== ''}
+                        onClick={async () => {
+                          setAwardLoading(`streak_${days}`)
+                          setAwardMessage('')
+                          try {
+                            const badgeUrl = await generateStreakBadge(selectedUser.id, days)
+                            // Insert into pending awards
+                            const { error: pendErr } = await supabase
+                              .from('cognara_pending_awards')
+                              .insert({
+                                user_id: selectedUser.id,
+                                award_type: 'streak_badge',
+                                award_data: {
+                                  badge_url: badgeUrl,
+                                  streak_days: days,
+                                  user_name: selectedUser.name || 'Learner'
+                                },
+                                is_shown: false,
+                                created_at: new Date().toISOString()
+                              })
+                            if (pendErr) throw pendErr
+                            setAwardMessage(`✓ ${days} day streak badge generated.`)
+                          } catch (e: any) {
+                            setAwardMessage(`Error: ${e.message}`)
+                          } finally {
+                            setAwardLoading('')
+                          }
+                        }}
+                        className="px-3 py-2 bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500/20 rounded-xl text-xs font-bold uppercase tracking-wider transition disabled:opacity-50 min-h-[44px] flex items-center justify-center cursor-pointer flex-1"
+                      >
+                        {awardLoading === `streak_${days}` ? '...' : `${days}D`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Progress card triggers */}
+                <div className="text-left">
+                  <p className="text-[9px] text-text-3 font-semibold uppercase tracking-wider mb-2">Progress Cards</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {[25, 50, 75].map(percent => (
+                      <button
+                        key={percent}
+                        disabled={awardLoading !== ''}
+                        onClick={async () => {
+                          setAwardLoading(`progress_${percent}`)
+                          setAwardMessage('')
+                          try {
+                            const cardUrl = await generateProgressCard(selectedUser.id, percent)
+                            // Insert into pending awards
+                            const { error: pendErr } = await supabase
+                              .from('cognara_pending_awards')
+                              .insert({
+                                user_id: selectedUser.id,
+                                award_type: 'progress_card',
+                                award_data: {
+                                  card_url: cardUrl,
+                                  milestone_percent: percent,
+                                  goal_name: selectedUser.current_subject || 'My Learning Goal',
+                                  user_name: selectedUser.name || 'Learner'
+                                },
+                                is_shown: false,
+                                created_at: new Date().toISOString()
+                              })
+                            if (pendErr) throw pendErr
+                            setAwardMessage(`✓ ${percent}% progress card generated.`)
+                          } catch (e: any) {
+                            setAwardMessage(`Error: ${e.message}`)
+                          } finally {
+                            setAwardLoading('')
+                          }
+                        }}
+                        className="px-3 py-2 bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 hover:bg-indigo-500/20 rounded-xl text-xs font-bold uppercase tracking-wider transition disabled:opacity-50 min-h-[44px] flex items-center justify-center cursor-pointer flex-1"
+                      >
+                        {awardLoading === `progress_${percent}` ? '...' : `${percent}%`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Generate all and reset buttons */}
+                <div className="flex gap-2 flex-wrap pt-2">
+                  <button
+                    disabled={awardLoading !== ''}
+                    onClick={async () => {
+                      setAwardLoading('all')
+                      setAwardMessage('')
+                      try {
+                        let generatedCount = 0
+                        // Check streak milestones
+                        const streakDays = selectedUserStats.current_streak || 0
+                        const milestones = [7, 30, 100].filter(m => streakDays >= m)
+
+                        for (const days of milestones) {
+                          const { data: exists } = await supabase
+                            .from('cognara_streak_badges')
+                            .select('id')
+                            .eq('user_id', selectedUser.id)
+                            .eq('streak_days', days)
+                            .maybeSingle()
+
+                          if (!exists) {
+                            const badgeUrl = await generateStreakBadge(selectedUser.id, days)
+                            await supabase
+                              .from('cognara_pending_awards')
+                              .insert({
+                                user_id: selectedUser.id,
+                                award_type: 'streak_badge',
+                                award_data: {
+                                  badge_url: badgeUrl,
+                                  streak_days: days,
+                                  user_name: selectedUser.name || 'Learner'
+                                },
+                                is_shown: false,
+                                created_at: new Date().toISOString()
+                              })
+                            generatedCount++
+                          }
+                        }
+
+                        // Check progress milestones
+                        const progress = selectedUserStats.roadmap_progress || 0
+                        const progressMilestones = [25, 50, 75].filter(m => progress >= m)
+
+                        for (const percent of progressMilestones) {
+                          const { data: exists } = await supabase
+                            .from('cognara_progress_cards')
+                            .select('id')
+                            .eq('user_id', selectedUser.id)
+                            .eq('milestone_percent', percent)
+                            .maybeSingle()
+
+                          if (!exists) {
+                            const cardUrl = await generateProgressCard(selectedUser.id, percent)
+                            await supabase
+                              .from('cognara_pending_awards')
+                              .insert({
+                                user_id: selectedUser.id,
+                                award_type: 'progress_card',
+                                award_data: {
+                                  card_url: cardUrl,
+                                  milestone_percent: percent,
+                                  goal_name: selectedUser.current_subject || 'My Learning Goal',
+                                  user_name: selectedUser.name || 'Learner'
+                                },
+                                is_shown: false,
+                                created_at: new Date().toISOString()
+                              })
+                            generatedCount++
+                          }
+                        }
+
+                        setAwardMessage(`✓ Generated ${generatedCount} missing awards.`)
+                      } catch (e: any) {
+                        setAwardMessage(`Error: ${e.message}`)
+                      } finally {
+                        setAwardLoading('')
+                      }
+                    }}
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition disabled:opacity-50 min-h-[44px] flex items-center justify-center cursor-pointer"
+                  >
+                    {awardLoading === 'all' ? 'Generating...' : 'Generate All'}
+                  </button>
+
+                  <button
+                    onClick={async () => {
+                      setAwardMessage('')
+                      try {
+                        const { error: resetErr } = await supabase
+                          .from('cognara_pending_awards')
+                          .update({ 
+                            is_shown: false,
+                            shown_at: null
+                          })
+                          .eq('user_id', selectedUser.id)
+                        if (resetErr) throw resetErr
+                        setAwardMessage('✓ Pending awards reset.')
+                      } catch (e: any) {
+                        setAwardMessage(`Error: ${e.message}`)
+                      }
+                    }}
+                    className="px-4 py-2.5 border border-border text-text-1 hover:bg-surface-alt font-bold text-xs uppercase tracking-wider rounded-xl min-h-[44px] flex items-center justify-center cursor-pointer"
+                  >
+                    Reset Shown
+                  </button>
+                </div>
+
+                {/* Result message */}
+                {awardMessage && (
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center w-full">
+                    <p className="text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                      {awardMessage}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="pt-6 border-t border-border/60 flex flex-col gap-3">
@@ -449,6 +891,169 @@ export default function AdminUsersList() {
           </div>
         </div>
       )}
+
+      {/* Hidden Templates for html2canvas Capture */}
+      <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+        {milestoneStreakDays !== null && (
+          <div
+            id={`streak-badge-${milestoneStreakDays}`}
+            style={{
+              width: '1200px',
+              height: '630px',
+              backgroundColor: '#0F1629',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontFamily: 'Inter, sans-serif',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'radial-gradient(circle at 50% 50%, #5B8EFF15 0%, transparent 70%)'
+            }} />
+            
+            <span style={{ fontSize: '100px', marginBottom: '24px', lineHeight: 1 }}>
+              {milestoneStreakDays === 7 ? '🔥' : milestoneStreakDays === 30 ? '⚡' : '👑'}
+            </span>
+            
+            <div style={{
+              fontSize: '48px',
+              fontWeight: '900',
+              color: '#FFFFFF',
+              marginBottom: '12px',
+              letterSpacing: '0.05em'
+            }}>
+              {milestoneStreakDays} DAY STREAK
+            </div>
+            
+            <div style={{
+              fontSize: '24px',
+              color: '#5B8EFF',
+              fontWeight: '700',
+              marginBottom: '24px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em'
+            }}>
+              Streak Milestone Badge
+            </div>
+            
+            <div style={{
+              fontSize: '28px',
+              color: '#FFFFFF',
+              fontWeight: '600',
+              marginBottom: '12px'
+            }}>
+              {bulkUserName || 'Learner'}
+            </div>
+            
+            <div style={{
+              fontSize: '18px',
+              color: '#94A3B8',
+              maxWidth: '800px',
+              textAlign: 'center',
+              lineHeight: 1.4,
+              marginBottom: '40px'
+            }}>
+              {milestoneStreakDays === 7 
+                ? 'Showing absolute dedication with a 7-day streak! The habit is formed.'
+                : milestoneStreakDays === 30
+                ? 'Unstoppable consistency! 30 days of learning and growing every single day.'
+                : 'A legendary achievement! 100 days of pure focus, dedication, and passion.'}
+            </div>
+
+            <div style={{
+              fontSize: '16px',
+              color: '#5B8EFF',
+              fontWeight: '600',
+              letterSpacing: '0.15em'
+            }}>
+              COGNARALEARN.COM
+            </div>
+          </div>
+        )}
+
+        {milestoneProgressPercent !== null && (
+          <div
+            id={`progress-card-${milestoneProgressPercent}`}
+            style={{
+              width: '1200px',
+              height: '630px',
+              backgroundColor: '#0F1629',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontFamily: 'Inter, sans-serif',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'radial-gradient(circle at 50% 50%, #5B8EFF15 0%, transparent 70%)'
+            }} />
+            
+            <span style={{ fontSize: '100px', marginBottom: '24px', lineHeight: 1 }}>
+              🎯
+            </span>
+            
+            <div style={{
+              fontSize: '48px',
+              fontWeight: '900',
+              color: '#FFFFFF',
+              marginBottom: '12px',
+              letterSpacing: '0.05em'
+            }}>
+              {milestoneProgressPercent}% COMPLETE
+            </div>
+            
+            <div style={{
+              fontSize: '24px',
+              color: '#5B8EFF',
+              fontWeight: '700',
+              marginBottom: '24px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em'
+            }}>
+              {bulkGoalName || 'Learning Milestone'}
+            </div>
+            
+            <div style={{
+              fontSize: '28px',
+              color: '#FFFFFF',
+              fontWeight: '600',
+              marginBottom: '12px'
+            }}>
+              {bulkUserName || 'Learner'}
+            </div>
+            
+            <div style={{
+              fontSize: '18px',
+              color: '#94A3B8',
+              maxWidth: '800px',
+              textAlign: 'center',
+              lineHeight: 1.4,
+              marginBottom: '40px'
+            }}>
+              You are {milestoneProgressPercent}% through your learning journey. Keep pushing towards your goal!
+            </div>
+
+            <div style={{
+              fontSize: '16px',
+              color: '#5B8EFF',
+              fontWeight: '600',
+              letterSpacing: '0.15em'
+            }}>
+              COGNARALEARN.COM
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
