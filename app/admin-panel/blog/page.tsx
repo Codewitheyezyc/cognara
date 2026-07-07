@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { 
@@ -312,19 +313,21 @@ export default function AdminBlogManagement() {
       </div>
 
       {/* Reject Modal */}
-      {rejectingPostId && (() => {
-        const rejectingPost = posts.find(p => p.id === rejectingPostId)
-        const authorName = rejectingPost?.profiles?.name || 'Community Member'
-        const quickReasons = [
-          'The post is too short. Please add more detail about what you learned.',
-          'The post contains inaccurate information. Please review and correct it.',
-          'The post does not relate to your learning domain on Cognara.',
-          'The post needs better structure. Please add headings and break it into sections.',
-          'The post contains promotional content which is not allowed.',
-          'The writing needs more clarity. Please simplify and explain your points better.',
-        ]
+      {rejectingPostId && (
+        <Portal>
+          {(() => {
+            const rejectingPost = posts.find(p => p.id === rejectingPostId)
+            const authorName = rejectingPost?.profiles?.name || 'Community Member'
+            const quickReasons = [
+              'The post is too short. Please add more detail about what you learned.',
+              'The post contains inaccurate information. Please review and correct it.',
+              'The post does not relate to your learning domain on Cognara.',
+              'The post needs better structure. Please add headings and break it into sections.',
+              'The post contains promotional content which is not allowed.',
+              'The writing needs more clarity. Please simplify and explain your points better.',
+            ]
 
-        return (
+            return (
           <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="bg-surface border border-border/40 max-w-lg w-full rounded-3xl p-6 shadow-2xl space-y-5 text-left animate-page-enter max-h-[90vh] overflow-y-auto">
               <div>
@@ -419,7 +422,17 @@ export default function AdminBlogManagement() {
           </div>
         )
       })()}
+        </Portal>
+      )}
 
     </div>
   )
+}
+
+function Portal({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+  return mounted ? createPortal(children, document.body) : null
 }

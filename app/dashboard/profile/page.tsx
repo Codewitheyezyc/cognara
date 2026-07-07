@@ -1469,20 +1469,20 @@ export default function ProfilePage() {
             {/* MY BLOG POSTS SECTION */}
             {isPro && hasCompletedPhase && (
               <div className="p-6 bg-surface border border-border rounded-2xl shadow-xl space-y-6">
-                <div className="flex items-center justify-between border-b border-border pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-3">
                   <h3 className="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2">
                     ✍️ <Link href="/blog/my-posts" className="hover:underline">My Blog Posts</Link>
                   </h3>
                   <div className="flex gap-2">
                     <Link
                       href="/blog/my-posts"
-                      className="h-9 px-3 inline-flex items-center justify-center rounded-xl font-bold text-xs bg-surface-alt hover:bg-surface border border-border text-text-1 transition-all"
+                      className="h-9 px-3 inline-flex items-center justify-center rounded-xl font-bold text-xs bg-surface-alt hover:bg-surface border border-border text-text-1 transition-all whitespace-nowrap"
                     >
                       Dashboard
                     </Link>
                     <Link
                       href="/blog/write"
-                      className="h-9 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)]"
+                      className="h-9 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)] whitespace-nowrap"
                     >
                       Write a post
                     </Link>

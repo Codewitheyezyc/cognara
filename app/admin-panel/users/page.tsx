@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import html2canvas from 'html2canvas'
 import { createClient } from '@/lib/supabase/client'
 import { 
@@ -570,34 +571,36 @@ export default function AdminUsersList() {
 
       {/* Delete Confirmation Modal */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-surface border border-border/40 max-w-sm w-full rounded-3xl p-6 shadow-2xl space-y-6 text-center animate-page-enter">
-            <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto text-rose-500">
-              <AlertTriangle size={32} />
-            </div>
-            <div className="space-y-2">
-              <h4 className="text-text-1 font-bold text-lg">Are you absolutely sure?</h4>
-              <p className="text-text-2 text-xs leading-relaxed">
-                This action is permanent. Deleting this account removes all certificates, progress, and goals. Normal database triggers will remove authentication.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setDeleteConfirmId(null)}
-                className="flex-1 h-10 bg-surface hover:bg-surface-alt border border-border text-text-1 rounded-xl font-bold text-xs uppercase tracking-wider transition cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteUser}
-                disabled={deleteLoading}
-                className="flex-1 h-10 bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
-              >
-                {deleteLoading ? <RefreshCw size={12} className="animate-spin" /> : 'Yes, Delete'}
-              </button>
+        <Portal>
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-surface border border-border/40 max-w-sm w-full rounded-3xl p-6 shadow-2xl space-y-6 text-center animate-page-enter">
+              <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto text-rose-500">
+                <AlertTriangle size={32} />
+              </div>
+              <div className="space-y-2">
+                <h4 className="text-text-1 font-bold text-lg">Are you absolutely sure?</h4>
+                <p className="text-text-2 text-xs leading-relaxed">
+                  This action is permanent. Deleting this account removes all certificates, progress, and goals. Normal database triggers will remove authentication.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeleteConfirmId(null)}
+                  className="flex-1 h-10 bg-surface hover:bg-surface-alt border border-border text-text-1 rounded-xl font-bold text-xs uppercase tracking-wider transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteUser}
+                  disabled={deleteLoading}
+                  className="flex-1 h-10 bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {deleteLoading ? <RefreshCw size={12} className="animate-spin" /> : 'Yes, Delete'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </Portal>
       )}
 
       {/* User Details Drawer Modal */}
@@ -1064,14 +1067,24 @@ export default function AdminUsersList() {
       </div>
 
       {composeEmailUser && (
-        <AdminEmailModal
-          user={composeEmailUser}
-          onClose={() => setComposeEmailUser(null)}
-          showToast={showToast}
-        />
+        <Portal>
+          <AdminEmailModal
+            user={composeEmailUser}
+            onClose={() => setComposeEmailUser(null)}
+            showToast={showToast}
+          />
+        </Portal>
       )}
     </div>
   )
+}
+
+function Portal({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+  return mounted ? createPortal(children, document.body) : null
 }
 
 interface AdminEmailModalProps {
