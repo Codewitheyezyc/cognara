@@ -25,6 +25,11 @@ interface SubscriptionItem {
 
 export default function AdminSubscriptions() {
   const [subscriptions, setSubscriptions] = useState<SubscriptionItem[]>([])
+  const [metrics, setMetrics] = useState({
+    mrr: 0,
+    activeCount: 0,
+    conversionRate: 0
+  })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -34,6 +39,9 @@ export default function AdminSubscriptions() {
         if (res.ok) {
           const data = await res.json()
           setSubscriptions(data.subscriptions || [])
+          if (data.metrics) {
+            setMetrics(data.metrics)
+          }
         }
       } catch (err) {
         console.error(err)
@@ -67,8 +75,8 @@ export default function AdminSubscriptions() {
               <BadgeCent size={16} />
             </div>
           </div>
-          <p className="text-3xl font-black text-text-1 font-heading">₦135,000</p>
-          <p className="text-[10px] text-text-3 font-semibold uppercase tracking-wider mt-1">+12% MRR growth this month</p>
+          <p className="text-3xl font-black text-text-1 font-heading">₦{metrics.mrr.toLocaleString()}</p>
+          <p className="text-[10px] text-text-3 font-semibold uppercase tracking-wider mt-1">Calculated monthly recurring revenue</p>
         </div>
 
         <div className="bg-surface border border-border/40 rounded-2xl p-6">
@@ -78,7 +86,7 @@ export default function AdminSubscriptions() {
               <TrendingUp size={16} />
             </div>
           </div>
-          <p className="text-3xl font-black text-text-1 font-heading">25.4%</p>
+          <p className="text-3xl font-black text-text-1 font-heading">{metrics.conversionRate}%</p>
           <p className="text-[10px] text-text-3 font-semibold uppercase tracking-wider mt-1">From free tier to pro subscriptions</p>
         </div>
 
@@ -89,7 +97,7 @@ export default function AdminSubscriptions() {
               <Sparkles size={16} />
             </div>
           </div>
-          <p className="text-3xl font-black text-text-1 font-heading">18</p>
+          <p className="text-3xl font-black text-text-1 font-heading">{metrics.activeCount}</p>
           <p className="text-[10px] text-text-3 font-semibold uppercase tracking-wider mt-1">Total active subscribers</p>
         </div>
       </div>

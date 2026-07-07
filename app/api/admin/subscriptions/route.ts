@@ -57,6 +57,25 @@ export async function GET() {
       return NextResponse.json({ error: 'Failed to fetch subscriptions' }, { status: 500 })
     }
 
+    // Fetch total users count for conversion rate calculation
+    const { count: totalUsers } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+
+    const activeSubs = (subs || []).filter((s: any) => s.status === 'active')
+    let mrr = 0
+    activeSubs.forEach((s: any) => {
+      const amountNaira = s.amount_paid ? s.amount_paid / 100 : 0
+      if (s.plan === 'pro_yearly' || s.plan === 'pro_annual') {
+        mrr += amountNaira / 12
+      } else {
+        mrr += amountNaira
+      }
+    })
+
+    const totalUsersCount = totalUsers || 1
+    const conversionRate = (activeSubs.length / totalUsersCount) * 100
+
     const formatted = (subs || []).map((s: any) => {
       const profile = Array.isArray(s.profiles) ? s.profiles[0] : s.profiles
       const amountNaira = s.amount_paid ? s.amount_paid / 100 : 0
@@ -72,7 +91,14 @@ export async function GET() {
       }
     })
 
-    return NextResponse.json({ subscriptions: formatted })
+    return NextResponse.json({
+      subscriptions: formatted,
+      metrics: {
+        mrr,
+        activeCount: activeSubs.length,
+        conversionRate: parseFloat(conversionRate.toFixed(1))
+      }
+    })
   } catch (err: any) {
     console.error('[Admin Subscriptions API Error]', err)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
