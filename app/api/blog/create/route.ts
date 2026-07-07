@@ -134,6 +134,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to create blog post.' }, { status: 500 })
     }
 
+    // 5.5 If community/free user - mark free blog post as used
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('subscription_status, subscription_tier')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    const isPro = profile?.subscription_status === 'pro' || profile?.subscription_tier === 'pro'
+    if (!isPro && eligibility.is_free_user) {
+      await supabase
+        .from('profiles')
+        .update({ free_blog_post_used: true })
+        .eq('id', user.id)
+    }
+
     // 6. Notify admin if community submission
     if (!isPostAdmin && process.env.RESEND_API_KEY) {
       try {

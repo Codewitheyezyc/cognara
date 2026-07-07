@@ -43,6 +43,12 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
 
+    const { canClaimCertificate } = await import('@/lib/certificates/claim')
+    const claimCheck = await canClaimCertificate(user.id, 0, true)
+    if (!claimCheck.canClaim) {
+      return NextResponse.json({ error: claimCheck.message || 'Pro subscription required to claim this certificate' }, { status: 403 })
+    }
+
     // 4. Fetch subject from learning goal
     let subject = 'General'
     if (roadmap.goal_id) {

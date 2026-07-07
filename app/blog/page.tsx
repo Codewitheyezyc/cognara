@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { BlogListingClient } from '@/components/blog/BlogListingClient'
+import { batchResolveBlogPostAuthors } from '@/lib/blog/author'
 
 export const dynamic = 'force-dynamic'
 
@@ -49,12 +50,7 @@ export default async function BlogListingPage() {
   const { data: { session } } = await supabase.auth.getSession()
   const userId = session?.user?.id || null
 
-  const mappedPosts = (posts || []).map((p: any) => ({
-    ...p,
-    profiles: p.author_type === 'admin'
-      ? { name: 'Cognara Admin', avatar_url: '/logo.png' }
-      : (Array.isArray(p.profiles) ? p.profiles[0] : p.profiles)
-  }))
+  const mappedPosts = await batchResolveBlogPostAuthors(posts || [], supabase)
 
   return (
     <BlogListingClient 

@@ -38,6 +38,12 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Phase not found' }, { status: 404 })
     }
 
+    const { canClaimCertificate } = await import('@/lib/certificates/claim')
+    const claimCheck = await canClaimCertificate(user.id, phaseData.phase_number, false)
+    if (!claimCheck.canClaim) {
+      return NextResponse.json({ error: claimCheck.message || 'Pro subscription required to claim this certificate' }, { status: 403 })
+    }
+
     // 3. Fetch lessons for the phase and verify completion
     const { data: phaseLessons } = await supabase
       .from('lessons')

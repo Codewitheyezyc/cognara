@@ -49,6 +49,12 @@ export function WriteBlogClient({ eligibility, initialTitle, userId }: WriteBlog
   const [seoTitle, setSeoTitle] = useState('')
   const [seoDescription, setSeoDescription] = useState('')
 
+  useEffect(() => {
+    if (eligibility?.allowed_domains && eligibility.allowed_domains.length > 0 && !domain) {
+      setDomain(eligibility.allowed_domains[0])
+    }
+  }, [eligibility, domain])
+
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -251,6 +257,18 @@ export function WriteBlogClient({ eligibility, initialTitle, userId }: WriteBlog
 
             {showBlogEditor ? (
               <form onSubmit={handleSubmit} className="space-y-6">
+                
+                {/* Free user writing their one post */}
+                {eligibility?.is_free_user && (
+                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 mb-6 text-left">
+                    <p className="text-amber-500 text-sm font-semibold mb-1">
+                      Your one free blog post
+                    </p>
+                    <p className="text-amber-500/80 text-xs">
+                      As a free user you can write one blog post about what you learned in Phase 1. Upgrade to Pro to write about every phase you complete with no limits.
+                    </p>
+                  </div>
+                )}
                 
                 {/* Title & Category Row */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

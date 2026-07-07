@@ -436,14 +436,30 @@ export function SkillTree({
 
                           <div className="border-t border-border/40 pt-2.5 mt-0.5">
                             {eligibility?.eligible ? (
-                              <button
-                                onClick={() => {
-                                  window.open(`/api/certificate/generate?phaseId=${phase.id}`, '_blank')
-                                }}
-                                className="w-full py-2 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-text-1 text-xs font-bold rounded-lg cursor-pointer transition-colors shadow-[0_0_12px_rgba(245,158,11,0.25)] flex items-center justify-center gap-1.5"
-                              >
-                                Download Phase Certificate 🎓
-                              </button>
+                              !isPro && phase.phase_number > 1 ? (
+                                <button
+                                  onClick={() => {
+                                    setPaywallLesson({
+                                      title: 'Unlock Phase Certificates',
+                                      description: 'Upgrade to Pro to claim and download all your Phase certificates. Phase 2 and beyond are available to Pro members.',
+                                      phaseNumber: phase.phase_number
+                                    })
+                                    setPaywallOpen(true)
+                                  }}
+                                  className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg cursor-pointer transition-colors text-center"
+                                >
+                                  Upgrade to claim certificate
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => {
+                                    window.open(`/api/certificate/generate?phaseId=${phase.id}`, '_blank')
+                                  }}
+                                  className="w-full py-2 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-text-1 text-xs font-bold rounded-lg cursor-pointer transition-colors shadow-[0_0_12px_rgba(245,158,11,0.25)] flex items-center justify-center gap-1.5"
+                                >
+                                  Download Phase Certificate 🎓
+                                </button>
+                              )
                             ) : (
                               <button
                                 disabled

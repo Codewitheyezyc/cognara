@@ -2,6 +2,7 @@ import { jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { createClient as createBaseClient } from '@supabase/supabase-js'
+import { batchResolveBlogPostAuthors } from '@/lib/blog/author'
 
 export const dynamic = 'force-dynamic'
 
@@ -54,12 +55,7 @@ export async function GET() {
     }
 
     // Map profile values safely
-    const mappedPosts = (posts || []).map((p: any) => ({
-      ...p,
-      profiles: p.author_type === 'admin'
-        ? { name: 'Cognara Admin', email: 'admin@cognaralearn.com', avatar_url: '/logo.png' }
-        : (Array.isArray(p.profiles) ? p.profiles[0] : p.profiles)
-    }))
+    const mappedPosts = await batchResolveBlogPostAuthors(posts || [], supabase)
 
     return NextResponse.json({ posts: mappedPosts })
   } catch (err: any) {

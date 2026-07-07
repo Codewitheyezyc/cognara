@@ -308,7 +308,7 @@ export function RoadmapPhaseCard({
                 </div>
               )}
               {/* Phase Certificate Eligibility Card Block */}
-              {lessons.length > 0 && (isPro || phaseNumber === 1) && (
+              {lessons.length > 0 && (
                 <div 
                   className="p-5 space-y-4"
                   style={{
@@ -316,69 +316,102 @@ export function RoadmapPhaseCard({
                     borderTop: '1px solid var(--color-border)'
                   }}
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="text-left">
-                      <h4 className="text-sm font-bold text-text-1 flex items-center gap-1.5">
-                        🎓 Phase {phaseNumber} Certificate
-                      </h4>
-                      <p className="text-text-3 text-[11px] mt-0.5">
-                        {eligibility?.eligible 
-                          ? 'Congratulations! You have completed all requirements for this phase certificate.'
-                          : `${eligibility?.completedLessons || 0} of ${eligibility?.totalLessons || 0} lessons completed · ${eligibility?.passedQuizzes || 0} of ${eligibility?.totalQuizzes || 0} quizzes passed`
-                        }
-                        {eligibility?.averageScore !== undefined && eligibility.averageScore > 0 && (
-                          <span> · Average Score: {eligibility.averageScore}% (60% required)</span>
-                        )}
+                  {/* Phase 1 completion — free user */}
+                  {phaseNumber === 1 && !isPro && (
+                    <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 mb-4">
+                      <p className="text-green-500 text-sm text-center">
+                        🎉 Your Phase 1 certificate is free — no upgrade needed!
                       </p>
                     </div>
+                  )}
 
-                    <div>
-                      {eligibility?.eligible ? (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            window.open(`/api/certificate/generate?phaseId=${phaseId}`, '_blank')
-                          }}
-                          className="px-4 py-2 bg-success/10 border border-success/30 hover:bg-success/20 text-success text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shadow-[0_0_12px_rgba(52,211,153,0.15)] w-full sm:w-auto justify-center"
-                        >
-                          🎓 Download Phase Certificate
-                        </button>
-                      ) : (
-                        <button
-                          disabled
-                          className="px-4 py-2 bg-surface border border-border text-text-3 text-xs font-bold rounded-lg opacity-60 cursor-not-allowed flex items-center gap-1.5 w-full sm:w-auto justify-center"
-                        >
-                          🔒 Complete requirements to unlock
-                        </button>
-                      )}
+                  {/* Phase 2+ completion — free user */}
+                  {phaseNumber > 1 && !isPro ? (
+                    <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 mb-2 text-center">
+                      <p className="text-amber-500 text-sm">
+                        Phase {phaseNumber} certificates are available on Pro.
+                      </p>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedLesson({
+                            title: 'Unlock Phase Certificates',
+                            description: `Upgrade to Pro to claim all your Phase certificates.`
+                          })
+                          setIsModalOpen(true)
+                        }}
+                        className="w-full mt-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-2 rounded-xl transition-colors cursor-pointer"
+                      >
+                        Upgrade to claim this certificate
+                      </button>
                     </div>
-                  </div>
+                  ) : (
+                    <>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="text-left">
+                          <h4 className="text-sm font-bold text-text-1 flex items-center gap-1.5">
+                            🎓 Phase {phaseNumber} Certificate
+                          </h4>
+                          <p className="text-text-3 text-[11px] mt-0.5">
+                            {eligibility?.eligible 
+                              ? 'Congratulations! You have completed all requirements for this phase certificate.'
+                              : `${eligibility?.completedLessons || 0} of ${eligibility?.totalLessons || 0} lessons completed · ${eligibility?.passedQuizzes || 0} of ${eligibility?.totalQuizzes || 0} quizzes passed`
+                            }
+                            {eligibility?.averageScore !== undefined && eligibility.averageScore > 0 && (
+                              <span> · Average Score: {eligibility.averageScore}% (60% required)</span>
+                            )}
+                          </p>
+                        </div>
 
-                  {/* Requirements Checklist */}
-                  {eligibility && !eligibility.eligible && (
-                    <div className="bg-surface border border-border/80 rounded-xl p-4 space-y-2.5 text-left">
-                      <span className="text-[11px] font-semibold text-text-2 uppercase tracking-wider block">
-                        To earn this certificate complete the following:
-                      </span>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                        {eligibility.details.map((detail, dIdx) => (
-                          <div key={dIdx} className="flex items-start gap-2 text-text-1">
-                            <span>{detail.completed && detail.quizPassed ? '✅' : '❌'}</span>
-                            <div className="flex-1 min-w-0">
-                              <span className="font-semibold block truncate leading-tight">{detail.title}</span>
-                              <span className="text-text-3 text-[10px]">
-                                {detail.completed ? 'Completed' : 'Not completed'} • {detail.quizPassed ? `Quiz passed (${detail.score}%)` : detail.score !== null ? `Quiz failed (${detail.score}%)` : 'Quiz not passed yet'}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
+                        <div>
+                          {eligibility?.eligible ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                window.open(`/api/certificate/generate?phaseId=${phaseId}`, '_blank')
+                              }}
+                              className="px-4 py-2 bg-success/10 border border-success/30 hover:bg-success/20 text-success text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shadow-[0_0_12px_rgba(52,211,153,0.15)] w-full sm:w-auto justify-center"
+                            >
+                              🎓 Download Phase Certificate
+                            </button>
+                          ) : (
+                            <button
+                              disabled
+                              className="px-4 py-2 bg-surface border border-border text-text-3 text-xs font-bold rounded-lg opacity-60 cursor-not-allowed flex items-center gap-1.5 w-full sm:w-auto justify-center"
+                            >
+                              🔒 Complete requirements to unlock
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      {eligibility.averageScore < 60 && eligibility.averageScore > 0 && (
-                        <div className="text-[10px] text-accent font-semibold pt-1 border-t border-border/40">
-                          ⚠️ Note: Average score is currently {eligibility.averageScore}%. You need at least 60% average score to earn the certificate. Retake quizzes to raise your average.
+
+                      {/* Requirements Checklist */}
+                      {eligibility && !eligibility.eligible && (
+                        <div className="bg-surface border border-border/80 rounded-xl p-4 space-y-2.5 text-left">
+                          <span className="text-[11px] font-semibold text-text-2 uppercase tracking-wider block">
+                            To earn this certificate complete the following:
+                          </span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                            {eligibility.details.map((detail: any, dIdx: number) => (
+                              <div key={dIdx} className="flex items-start gap-2 text-text-1">
+                                <span>{detail.completed && detail.quizPassed ? '✅' : '❌'}</span>
+                                <div className="flex-1 min-w-0">
+                                  <span className="font-semibold block truncate leading-tight">{detail.title}</span>
+                                  <span className="text-text-3 text-[10px]">
+                                    {detail.completed ? 'Completed' : 'Not completed'} • {detail.quizPassed ? `Quiz passed (${detail.score}%)` : detail.score !== null ? `Quiz failed (${detail.score}%)` : 'Quiz not passed yet'}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          {eligibility.averageScore < 60 && eligibility.averageScore > 0 && (
+                            <div className="text-[10px] text-accent font-semibold pt-1 border-t border-border/40">
+                              ⚠️ Note: Average score is currently {eligibility.averageScore}%. You need at least 60% average score to earn the certificate. Retake quizzes to raise your average.
+                            </div>
+                          )}
                         </div>
                       )}
-                    </div>
+                    </>
                   )}
                 </div>
               )}

@@ -13,7 +13,8 @@ import {
   BarChart3, 
   Settings, 
   LogOut, 
-  Loader2 
+  Loader2,
+  User
 } from 'lucide-react'
 
 export default function AdminPanelLayout({
@@ -57,6 +58,7 @@ export default function AdminPanelLayout({
     { href: '/admin-panel/content', icon: <BookOpen size={16} />, label: 'Content' },
     { href: '/admin-panel/analytics', icon: <BarChart3 size={16} />, label: 'Analytics' },
     { href: '/admin-panel/settings', icon: <Settings size={16} />, label: 'Settings' },
+    { href: '/admin-panel/profile', icon: <User size={16} />, label: 'Profile' },
   ]
 
   return (

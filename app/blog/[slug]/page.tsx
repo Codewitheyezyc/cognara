@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { BlogPostClient } from '@/components/blog/BlogPostClient'
+import { getBlogPostAuthor, batchResolveBlogPostAuthors } from '@/lib/blog/author'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -116,19 +117,14 @@ export default async function BlogPostPage({ params }: PageProps) {
     .or(`category.eq.${post.category},domain.eq.${post.domain}`)
     .limit(3)
 
+  const authorData = await getBlogPostAuthor(post.author_id, post.author_type, supabase)
+
   const mappedPost = {
     ...post,
-    profiles: post.author_type === 'admin'
-      ? { name: 'Cognara Admin', avatar_url: '/logo.png' }
-      : (Array.isArray(post.profiles) ? post.profiles[0] : post.profiles)
+    profiles: authorData || { name: 'Cognara Author', avatar_url: null }
   }
 
-  const mappedRelated = (related || []).map((r: any) => ({
-    ...r,
-    profiles: r.author_type === 'admin'
-      ? { name: 'Cognara Admin', avatar_url: '/logo.png' }
-      : (Array.isArray(r.profiles) ? r.profiles[0] : r.profiles)
-  }))
+  const mappedRelated = await batchResolveBlogPostAuthors(related || [], supabase)
 
   return (
     <BlogPostClient 

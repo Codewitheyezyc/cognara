@@ -154,6 +154,8 @@ export default function ProfilePage() {
   const [progressCards, setProgressCards] = useState<any[]>([])
   const [userBlogPosts, setUserBlogPosts] = useState<any[]>([])
   const [hasCompletedPhase, setHasCompletedPhase] = useState(false)
+  const [blogEligibility, setBlogEligibility] = useState<any>(null)
+  const [completedPhases, setCompletedPhases] = useState(0)
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
 
   // Layout & UI States
@@ -381,6 +383,23 @@ export default function ProfilePage() {
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id)
         setHasCompletedPhase(completionsCount !== null && completionsCount > 0)
+
+        // 9.5 Fetch blog eligibility from endpoint and completions count from database
+        try {
+          const eligRes = await fetch('/api/blog/eligibility')
+          if (eligRes.ok) {
+            const eligData = await eligRes.json()
+            setBlogEligibility(eligData.eligibility)
+          }
+        } catch (e) {
+          console.error('Error loading blog eligibility:', e)
+        }
+
+        const { count: compPhasesCount } = await supabase
+          .from('cognara_phase_completions')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+        setCompletedPhases(compPhasesCount || 0)
 
         setStats({
           completedLessonsCount: completedIds.size,
@@ -1550,25 +1569,120 @@ export default function ProfilePage() {
             )}
 
             {!isPro && (
-              <div className="p-6 bg-surface border border-border rounded-2xl shadow-xl space-y-6">
+              <div className="p-6 bg-surface border border-border rounded-2xl shadow-xl space-y-6 text-left">
                 <h3 className="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2 border-b border-border pb-3">
                   ✍️ My Blog Posts
                 </h3>
-                <div className="py-8 px-4 text-center rounded-xl bg-surface-alt/20 border border-dashed border-border flex flex-col items-center justify-center space-y-3">
-                  <span className="text-3xl select-none">✍️</span>
-                  <p className="text-text-1 font-bold text-sm">
-                    Blog writing is a Pro feature
-                  </p>
-                  <p className="text-text-2 text-xs max-w-xs leading-relaxed font-semibold">
-                    Upgrade to Pro and complete your first learning phase to share your story on the Cognara blog.
-                  </p>
-                  <button
-                    onClick={() => setIsUpgradeModalOpen(true)}
-                    className="h-10 px-5 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)] cursor-pointer"
-                  >
-                    See Pro plans
-                  </button>
-                </div>
+
+                {/* Free user — Phase 1 not completed yet */}
+                {blogEligibility?.reason === 'phase_not_completed' && (
+                  <div className="py-8 px-4 text-center rounded-xl bg-surface-alt/20 border border-dashed border-border flex flex-col items-center justify-center space-y-3">
+                    <span className="text-3xl">✍️</span>
+                    <p className="text-text-1 font-bold mt-3 mb-1">
+                      Complete Phase 1 to unlock blogging
+                    </p>
+                    <p className="text-text-2 text-xs max-w-xs leading-relaxed font-semibold mb-4">
+                      Finish your first learning phase and you will get one free blog post to share what you learned.
+                    </p>
+                    <Link
+                      href="/dashboard"
+                      className="h-10 px-5 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)]"
+                    >
+                      Go to my roadmap →
+                    </Link>
+                  </div>
+                )}
+
+                {/* Free user — already used their one free post */}
+                {blogEligibility?.reason === 'free_blog_used' && (
+                  <div className="space-y-3">
+                    {/* Show their existing post */}
+                    {userBlogPosts?.map((post: any) => (
+                      <div
+                        key={post.id}
+                        className="bg-surface-alt/40 border border-border rounded-xl p-4 flex items-center justify-between"
+                      >
+                        <div>
+                          <p className="text-text-1 font-bold text-sm">
+                            {post.title}
+                          </p>
+                          <p className="text-text-3 text-xs mt-1 font-semibold">
+                            {post.status === 'published'
+                              ? `Published · ${post.read_time_minutes} min read`
+                              : post.status === 'pending_review'
+                              ? 'Pending review'
+                              : 'Rejected — needs changes'}
+                          </p>
+                        </div>
+                        {post.status === 'published' && (
+                          <a
+                            href={`/blog/${post.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="h-8 px-3 inline-flex items-center justify-center rounded-lg text-xs font-bold bg-surface hover:bg-surface-alt border border-border text-text-1 transition-all"
+                          >
+                            View
+                          </a>
+                        )}
+                      </div>
+                    ))}
+
+                    {/* Locked — upgrade to write more */}
+                    <div className="py-8 px-4 text-center rounded-xl bg-surface-alt/10 border border-dashed border-border flex flex-col items-center justify-center space-y-3">
+                      <span className="text-2xl">🔒</span>
+                      <p className="text-text-1 font-bold mt-2 mb-1">
+                        Write more posts with Pro
+                      </p>
+                      <p className="text-text-2 text-xs max-w-xs leading-relaxed font-semibold mb-4">
+                        You have used your one free blog post. Upgrade to Pro to write about every phase you complete — unlimited posts.
+                      </p>
+                      <button
+                        onClick={() => setIsUpgradeModalOpen(true)}
+                        className="h-10 px-5 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)] cursor-pointer"
+                      >
+                        Upgrade to Pro
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Free user — Phase 1 complete, free post not yet used */}
+                {blogEligibility?.eligible && blogEligibility?.is_free_user && (
+                  <div className="py-8 px-4 text-center rounded-xl bg-surface-alt/20 border border-dashed border-border flex flex-col items-center justify-center space-y-3">
+                    <span className="text-3xl">✍️</span>
+                    <p className="text-text-1 font-bold mt-3 mb-1">
+                      You have 1 free blog post
+                    </p>
+                    <p className="text-text-2 text-xs max-w-xs leading-relaxed font-semibold mb-2">
+                      You completed Phase 1. Share what you learned with the Cognara community.
+                    </p>
+                    <p className="text-xs text-amber-500 font-semibold mb-4">
+                      This is your one free post. Upgrade to Pro for unlimited blog posts.
+                    </p>
+                    <Link
+                      href="/blog/write"
+                      className="h-10 px-5 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)]"
+                    >
+                      Write my free post
+                    </Link>
+                  </div>
+                )}
+
+                {/* Locked phases blog for free users */}
+                {completedPhases > 1 && (
+                  <div className="mt-4 bg-surface-alt/30 border border-dashed border-border rounded-xl p-4 text-center">
+                    <span className="text-xl">🔒</span>
+                    <p className="text-text-2 text-xs font-semibold mt-2">
+                      Blog writing for Phase 2 and beyond is available on Pro.
+                    </p>
+                    <button
+                      onClick={() => setIsUpgradeModalOpen(true)}
+                      className="text-xs text-indigo-500 font-semibold mt-2 underline cursor-pointer hover:text-indigo-400 transition-colors"
+                    >
+                      Upgrade to Pro
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 

@@ -22,10 +22,12 @@ export function PricingSection() {
     { label: '1 learning goal at a time', included: true },
     { label: 'Start at the beginner level', included: true },
     { label: 'Lessons, quizzes, and tracking', included: true },
+    { label: 'Phase 1 completion certificate', included: true },
+    { label: 'Phase 2 & beyond certificates', included: false },
+    { label: 'Goal completion certificates', included: false },
     { label: 'Fast support from Spark (your AI helper)', included: false },
     { label: 'Learn as many things as you want', included: false },
     { label: 'Learn as deep as you want to go', included: false },
-    { label: 'Shareable certificates when you complete a phase', included: false },
     { label: 'Learn without an internet connection', included: false }
   ]
 
@@ -33,7 +35,8 @@ export function PricingSection() {
     'Everything in the Free plan',
     'Learn as many things as you want',
     'Learn as deep as you want to go',
-    'Shareable certificates when you complete a phase',
+    'Phase 2 & beyond certificates',
+    'Goal completion certificates',
     'Learn without an internet connection',
     'Fast support from Spark (your AI helper)',
     'Practical projects and homework',
