@@ -86,7 +86,15 @@ export default function AdminBlogManagement() {
 
       if (res.ok) {
         const data = await res.json()
-        setPosts(prev => prev.map(p => p.id === postId ? { ...p, ...data.post } : p))
+        setPosts(prev => prev.map(p => {
+          if (p.id === postId) {
+            return { ...p, ...data.post }
+          }
+          if (data.unfeaturedPostId && p.id === data.unfeaturedPostId) {
+            return { ...p, is_featured: false }
+          }
+          return p
+        }))
         if (action === 'reject') {
           setRejectingPostId(null)
           setRejectionReason('')
@@ -102,6 +110,7 @@ export default function AdminBlogManagement() {
   const pending = posts.filter(p => p.status === 'pending_review')
   const published = posts.filter(p => p.status === 'published')
   const rejected = posts.filter(p => p.status === 'rejected')
+  const featuredCount = published.filter(p => p.is_featured).length
 
   const activeList = activeTab === 'published' ? published : activeTab === 'rejected' ? rejected : pending
 
@@ -161,6 +170,19 @@ export default function AdminBlogManagement() {
             </span>
           </button>
         ))}
+      </div>
+
+      {/* Featured Slots Alert Banner */}
+      <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl px-5 py-4 flex items-center gap-3">
+        <span className="text-amber-500 text-lg">★</span>
+        <p className="text-amber-500 text-xs font-bold uppercase tracking-wider leading-relaxed">
+          <strong>{featuredCount} of 3</strong> featured slots used on the homepage.
+          {featuredCount >= 3 && (
+            <span className="block sm:inline sm:ml-1 opacity-90 font-medium">
+              (Featuring a new post will automatically replace the oldest featured post).
+            </span>
+          )}
+        </p>
       </div>
 
       {/* Content List */}

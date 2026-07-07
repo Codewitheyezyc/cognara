@@ -1,5 +1,9 @@
 import { Metadata } from 'next'
 import { MarketingPageClient } from '@/components/marketing/MarketingPageClient'
+import { createClient } from '@/lib/supabase/server'
+import { batchResolveBlogPostAuthors } from '@/lib/blog/author'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: "Cognara — Your goal. Your roadmap. Your AI mentor.",
@@ -33,7 +37,50 @@ export const metadata: Metadata = {
   }
 }
 
-export default function MarketingPage() {
+async function getFeaturedBlogPosts(supabase: any) {
+  try {
+    const { data: posts } = await supabase
+      .from('cognara_blog_posts')
+      .select(`
+        id,
+        title,
+        slug,
+        excerpt,
+        cover_image_url,
+        category,
+        read_time_minutes,
+        published_at,
+        author_type,
+        author_id
+      `)
+      .eq('status', 'published')
+      .eq('is_featured', true)
+      .order('published_at', { ascending: false })
+      .limit(3);
+
+    if (!posts || posts.length === 0) return [];
+
+    // Get author info for each post
+    // Use the batch resolver to avoid incorrect columns (profiles.full_name) and single queries in loop
+    const resolvedPosts = await batchResolveBlogPostAuthors(posts, supabase);
+
+    return resolvedPosts.map((post: any) => ({
+      ...post,
+      author: {
+        full_name: post.profiles?.name || 'The Cognara Team',
+        avatar_url: post.profiles?.avatar_url
+      }
+    }));
+  } catch (err) {
+    console.error('Error fetching featured blog posts:', err);
+    return [];
+  }
+}
+
+export default async function MarketingPage() {
+  const supabase = await createClient()
+  const featuredPosts = await getFeaturedBlogPosts(supabase)
+
   const orgSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -78,7 +125,7 @@ export default function MarketingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
       />
-      <MarketingPageClient />
+      <MarketingPageClient featuredPosts={featuredPosts} />
     </>
   )
 }

@@ -91,6 +91,7 @@ export async function POST(request: Request) {
     let updateFields: any = {}
     let notificationSubject = ''
     let notificationHtml = ''
+    let unfeaturedPostId: string | null = null
 
     if (action === 'approve') {
       updateFields = {
@@ -163,8 +164,40 @@ export async function POST(request: Request) {
         </div>
       `
     } else if (action === 'feature') {
+      const nextFeatured = !post.is_featured
       updateFields = {
-        is_featured: !post.is_featured
+        is_featured: nextFeatured
+      }
+
+      if (nextFeatured) {
+        // Count currently featured posts
+        const { count } = await supabase
+          .from('cognara_blog_posts')
+          .select('id', { count: 'exact', head: true })
+          .eq('is_featured', true)
+          .eq('status', 'published')
+
+        if (count && count >= 3) {
+          // Find the oldest featured post
+          const { data: oldest } = await supabase
+            .from('cognara_blog_posts')
+            .select('id, title')
+            .eq('is_featured', true)
+            .eq('status', 'published')
+            .order('published_at', { ascending: true })
+            .limit(1)
+            .maybeSingle()
+
+          if (oldest) {
+            await supabase
+              .from('cognara_blog_posts')
+              .update({ is_featured: false })
+              .eq('id', oldest.id)
+
+            unfeaturedPostId = oldest.id
+            console.log('Auto-unfeatured oldest post:', oldest.title)
+          }
+        }
       }
     } else {
       return NextResponse.json({ error: 'Invalid action parameter' }, { status: 400 })
@@ -207,7 +240,7 @@ export async function POST(request: Request) {
       created_at: new Date().toISOString()
     })
 
-    return NextResponse.json({ success: true, post: updatedPost })
+    return NextResponse.json({ success: true, post: updatedPost, unfeaturedPostId })
   } catch (err: any) {
     console.error('[Admin Blog Review Error]', err)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
