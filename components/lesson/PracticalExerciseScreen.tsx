@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { CheckCircle2, SkipForward, Wrench, Clock, Zap, ChevronRight } from 'lucide-react'
 import { Spark } from '@/components/mascot/Spark'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/toast'
 import dynamic from 'next/dynamic'
 import { DesktopSuggestion } from '@/components/ui/DesktopSuggestion'
 
@@ -57,9 +58,11 @@ export function PracticalExerciseScreen({
   isPro = false,
 }: PracticalExerciseScreenProps) {
   const supabase = createClient()
+  const { toast } = useToast()
   const [isSaving, setIsSaving] = useState(false)
   const [isSkipping, setIsSkipping] = useState(false)
   const [showCxpAnim, setShowCxpAnim] = useState(false)
+  const [practicalStatus, setPracticalStatus] = useState<'pending' | 'completed' | 'skipped'>('pending')
 
   // Mobile device suggestion states
   const [showMonacoSuggestion, setShowMonacoSuggestion] = useState(false)
@@ -89,7 +92,7 @@ export function PracticalExerciseScreen({
     setIsSaving(true)
     try {
       // 1. Mark as completed in DB
-      await supabase.from('cognara_practical_completions').insert({
+      const { error } = await supabase.from('cognara_practical_completions').insert({
         user_id: userId,
         lesson_cache_id: lessonCacheId || null,
         goal_id: goalId || null,
@@ -99,13 +102,24 @@ export function PracticalExerciseScreen({
         completed_at: new Date().toISOString(),
       })
 
+      if (error) {
+        console.error('Practical completion insert error:', error)
+        toast('Something went wrong saving your progress. Please try again.', 'error')
+        setIsSaving(false)
+        return
+      }
+
       // 2. Award 50 CXP via RPC
-      await supabase.rpc('award_user_cxp', {
+      const { error: rpcErr } = await supabase.rpc('award_user_cxp', {
         user_id_input: userId,
         amount_input: CXP_REWARD,
         source_input: 'practical_completion',
         description_input: `Completed practical: ${topicName}`,
       })
+
+      if (rpcErr) {
+        console.error('[PracticalExercise] RPC error:', rpcErr)
+      }
 
       // 3. Check milestones (fire-and-forget — non-blocking)
       fetch('/api/practical/check-milestones', {
@@ -114,7 +128,9 @@ export function PracticalExerciseScreen({
         body: JSON.stringify({ userId }),
       }).catch(() => {/* non-critical */})
 
-      // 4. Show CXP animation then advance
+      // 4. Update status and show animation
+      setPracticalStatus('completed')
+      toast('+50 CXP earned ✓')
       setShowCxpAnim(true)
       setTimeout(() => {
         setShowCxpAnim(false)
@@ -122,7 +138,8 @@ export function PracticalExerciseScreen({
       }, 1800)
     } catch (err) {
       console.error('[PracticalExercise] Failed to save completion:', err)
-      onComplete() // Don't block user on error
+      toast('Failed to save completion. Please check your internet connection.', 'error')
+      setIsSaving(false)
     }
   }
 
@@ -130,7 +147,7 @@ export function PracticalExerciseScreen({
     if (isSkipping) return
     setIsSkipping(true)
     try {
-      await supabase.from('cognara_practical_completions').insert({
+      const { error } = await supabase.from('cognara_practical_completions').insert({
         user_id: userId,
         lesson_cache_id: lessonCacheId || null,
         goal_id: goalId || null,
@@ -139,6 +156,10 @@ export function PracticalExerciseScreen({
         status: 'skipped',
         created_at: new Date().toISOString(),
       })
+      if (error) {
+        console.error('[PracticalExercise] Skip error:', error)
+      }
+      setPracticalStatus('skipped')
     } catch (err) {
       console.error('[PracticalExercise] Failed to save skip:', err)
     } finally {
@@ -380,29 +401,43 @@ export function PracticalExerciseScreen({
 
       {/* Action buttons */}
       <div className="w-full flex flex-col gap-3">
-        <button
-          onClick={handleComplete}
-          disabled={isSaving || showCxpAnim}
-          className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.25)] transition-all duration-200 flex items-center justify-center gap-2 text-[14px] disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {isSaving ? (
-            <span>Saving...</span>
-          ) : (
-            <>
-              <CheckCircle2 className="h-4.5 w-4.5" />
-              <span>I completed the exercise ✓</span>
-            </>
-          )}
-        </button>
+        {practicalStatus === 'completed' ? (
+          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-center animate-page-enter">
+            <span className="text-2xl select-none">✅</span>
+            <p className="text-emerald-500 font-bold mt-2 text-sm uppercase tracking-wider">
+              Practical completed
+            </p>
+            <p className="text-emerald-500/70 text-xs font-semibold mt-0.5">
+              +{CXP_REWARD} CXP earned
+            </p>
+          </div>
+        ) : (
+          <>
+            <button
+              onClick={handleComplete}
+              disabled={isSaving || showCxpAnim}
+              className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-xl shadow-[0_0_24px_rgba(91,142,255,0.25)] transition-all duration-200 flex items-center justify-center gap-2 text-[14px] disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isSaving ? (
+                <span>Saving...</span>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-4.5 w-4.5" />
+                  <span>I completed the exercise ✓</span>
+                </>
+              )}
+            </button>
 
-        <button
-          onClick={handleSkip}
-          disabled={isSkipping || isSaving}
-          className="w-full h-11 bg-transparent hover:bg-surface-alt border border-border text-text-2 hover:text-text-1 font-semibold rounded-xl text-[13px] transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
-        >
-          <SkipForward className="h-3.5 w-3.5" />
-          <span>Skip for now</span>
-        </button>
+            <button
+              onClick={handleSkip}
+              disabled={isSkipping || isSaving}
+              className="w-full h-11 bg-transparent hover:bg-surface-alt border border-border text-text-2 hover:text-text-1 font-semibold rounded-xl text-[13px] transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+            >
+              <SkipForward className="h-3.5 w-3.5" />
+              <span>Skip for now</span>
+            </button>
+          </>
+        )}
       </div>
     </div>
   )
