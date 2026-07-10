@@ -12,20 +12,39 @@ import {
   AlertTriangle, 
   RefreshCw, 
   X,
-  Mail
+  Mail,
+  Search
 } from 'lucide-react'
+
+interface UserProfile {
+  id: string
+  name: string | null
+  email: string
+  subscription_status: string | null
+}
 
 export default function AdminBroadcastPage() {
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
-  const [audience, setAudience] = useState<'all' | 'free' | 'pro'>('all')
+  const [audience, setAudience] = useState<'all' | 'free' | 'pro' | 'individual'>('all')
+  
+  // All users fetched from DB
+  const [allUsers, setAllUsers] = useState<UserProfile[]>([])
+  const [loadingUsers, setLoadingUsers] = useState(true)
+
+  // Selected individual user for "individual" audience
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showDropdown, setShowDropdown] = useState(false)
+
+  // Sending progress states
   const [isSending, setIsSending] = useState(false)
   const [progress, setProgress] = useState(0)
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null)
-  const [recipientCount, setRecipientCount] = useState(0)
   
   // Preview State
   const [showPreview, setShowPreview] = useState(false)
+  const [previewUserId, setPreviewUserId] = useState<string>('')
 
   // Toast notifications
   const [toastMsg, setToastMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
@@ -37,29 +56,60 @@ export default function AdminBroadcastPage() {
     setTimeout(() => setToastMsg(null), 3000)
   }
 
+  // Load all users on mount
   useEffect(() => {
-    loadRecipientCount()
-  }, [audience])
+    async function loadUsers() {
+      try {
+        setLoadingUsers(true)
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, name, email, subscription_status')
+          .order('name', { ascending: true })
 
-  async function loadRecipientCount() {
-    try {
-      let query = supabase
-        .from('profiles')
-        .select('id', { count: 'exact', head: true })
-
-      if (audience === 'free') {
-        query = query.not('subscription_status', 'in', '("active","pro")')
-      } else if (audience === 'pro') {
-        query = query.in('subscription_status', ['active', 'pro'])
+        if (error) throw error
+        setAllUsers(data || [])
+      } catch (err) {
+        console.error('Failed to load profiles:', err)
+        showToast('Failed to load user records', 'error')
+      } finally {
+        setLoadingUsers(false)
       }
-
-      const { count, error } = await query
-      if (error) throw error
-      setRecipientCount(count || 0)
-    } catch (err) {
-      console.error('Failed to load recipient count:', err)
     }
+    loadUsers()
+  }, [])
+
+  // Derive target recipients list based on audience selector
+  const getTargetRecipients = (): UserProfile[] => {
+    if (audience === 'all') {
+      return allUsers
+    }
+    if (audience === 'free') {
+      return allUsers.filter(u => u.subscription_status !== 'active' && u.subscription_status !== 'pro')
+    }
+    if (audience === 'pro') {
+      return allUsers.filter(u => u.subscription_status === 'active' || u.subscription_status === 'pro')
+    }
+    if (audience === 'individual') {
+      return selectedUser ? [selectedUser] : []
+    }
+    return []
   }
+
+  const recipients = getTargetRecipients()
+  const recipientCount = recipients.length
+
+  // Initialize/Update previewUserId when recipients change
+  useEffect(() => {
+    if (recipients.length > 0) {
+      // Keep existing preview selection if it is still in the active list
+      const isStillAvailable = recipients.some(r => r.id === previewUserId)
+      if (!isStillAvailable) {
+        setPreviewUserId(recipients[0].id)
+      }
+    } else {
+      setPreviewUserId('')
+    }
+  }, [recipients, previewUserId])
 
   async function handleSendBroadcast() {
     if (!subject.trim() || !message.trim()) {
@@ -67,8 +117,13 @@ export default function AdminBroadcastPage() {
       return
     }
 
+    if (audience === 'individual' && !selectedUser) {
+      showToast('Please select a recipient first', 'error')
+      return
+    }
+
     const confirmed = window.confirm(
-      `Send this email to ${recipientCount} users? This cannot be undone.`
+      `Send this email to ${recipientCount} user(s)? This cannot be undone.`
     )
     if (!confirmed) return
 
@@ -77,33 +132,10 @@ export default function AdminBroadcastPage() {
     setResult(null)
 
     try {
-      // 1. Fetch recipients
-      let query = supabase
-        .from('profiles')
-        .select('id, email, name')
-
-      if (audience === 'free') {
-        query = query.not('subscription_status', 'in', '("active","pro")')
-      } else if (audience === 'pro') {
-        query = query.in('subscription_status', ['active', 'pro'])
-      }
-
-      const { data: recipients, error: fetchErr } = await query
-      if (fetchErr) throw fetchErr
-
-      if (!recipients || recipients.length === 0) {
-        setResult({ 
-          success: false, 
-          message: 'No recipients found' 
-        })
-        setIsSending(false)
-        return
-      }
-
       let sent = 0
       let failed = 0
 
-      // 2. Loop through recipients
+      // Loop through recipients
       for (const recipient of recipients) {
         try {
           const firstName = recipient.name?.split(' ')[0] || 'there'
@@ -150,7 +182,7 @@ export default function AdminBroadcastPage() {
         await new Promise(resolve => setTimeout(resolve, 100))
       }
 
-      // 3. Log broadcast to audit log
+      // Log broadcast in admin audit log
       const logRes = await fetch('/api/admin/broadcast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -167,7 +199,7 @@ export default function AdminBroadcastPage() {
       if (logRes.ok) {
         setResult({
           success: true,
-          message: `Sent to ${sent} users. ${failed > 0 ? `${failed} failed.` : 'All delivered successfully.'}`
+          message: `Sent to ${sent} user(s). ${failed > 0 ? `${failed} failed.` : 'All delivered successfully.'}`
         })
       } else {
         setResult({
@@ -186,11 +218,22 @@ export default function AdminBroadcastPage() {
     }
   }
 
-  // Get preview content
+  // Filter users by search term
+  const searchedUsers = searchQuery.trim()
+    ? allUsers.filter(u => 
+        (u.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+         u.email?.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+    : allUsers.slice(0, 8)
+
+  // Resolve dynamic preview body text
+  const currentPreviewUser = allUsers.find(u => u.id === previewUserId) || recipients[0] || null
+  const previewName = currentPreviewUser?.name?.split(' ')[0] || 'Learner'
+
   const previewHtml = message
     ? message
-        .replace(/\[First Name\]/g, 'Learner')
-        .replace(/\[first name\]/g, 'Learner')
+        .replace(/\[First Name\]/g, previewName)
+        .replace(/\[first name\]/g, previewName)
         .split('\n')
         .map((paragraph, index) => (
           <p key={index} className="mb-3 text-text-2 text-sm leading-relaxed font-medium">
@@ -232,11 +275,12 @@ export default function AdminBroadcastPage() {
             <label className="text-xs font-extrabold text-text-2 uppercase tracking-widest block">
               Who should receive this?
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
               {[
                 { value: 'all', label: 'All users' },
-                { value: 'free', label: 'Free users only' },
-                { value: 'pro', label: 'Pro users only' },
+                { value: 'free', label: 'Free users' },
+                { value: 'pro', label: 'Pro users' },
+                { value: 'individual', label: 'Individual...' },
               ].map(option => (
                 <label
                   key={option.value}
@@ -251,17 +295,100 @@ export default function AdminBroadcastPage() {
                     name="audience"
                     value={option.value}
                     checked={audience === option.value}
-                    onChange={(e) => setAudience(e.target.value as any)}
+                    onChange={(e) => {
+                      setAudience(e.target.value as any)
+                      if (e.target.value !== 'individual') {
+                        setSelectedUser(null)
+                      }
+                    }}
                     className="w-4 h-4 accent-primary"
                   />
-                  <span className="text-sm font-bold">
+                  <span className="text-sm font-bold whitespace-nowrap">
                     {option.label}
                   </span>
                 </label>
               ))}
             </div>
-            <p className="text-text-3 text-[11px] font-bold uppercase tracking-wider">
-              Target Audience Size: <span className="text-primary font-extrabold">{recipientCount} users</span>
+
+            {/* Individual user selection dropdown */}
+            {audience === 'individual' && (
+              <div className="relative mt-3 p-4 bg-surface-alt/40 border border-border/80 rounded-2xl space-y-3">
+                <label className="text-[11px] font-bold text-text-2 uppercase tracking-wider block">
+                  Select Target User:
+                </label>
+                <div className="flex gap-2 relative">
+                  <div className="relative flex-1">
+                    <Search size={14} className="absolute left-4 top-3.5 text-text-3" />
+                    <input
+                      type="text"
+                      placeholder="Search users by name or email..."
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value)
+                        setShowDropdown(true)
+                      }}
+                      onFocus={() => setShowDropdown(true)}
+                      className="w-full bg-surface border border-border rounded-xl pl-10 pr-4 py-2.5 text-text-1 text-xs focus:border-primary outline-none"
+                    />
+                  </div>
+                  {searchQuery && (
+                    <button
+                      onClick={() => {
+                        setSearchQuery('')
+                        setShowDropdown(false)
+                      }}
+                      className="px-3 border border-border hover:bg-surface text-text-2 rounded-xl text-xs transition cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+
+                {/* Dropdown list */}
+                {showDropdown && (
+                  <div className="absolute left-4 right-4 z-40 bg-surface border border-border rounded-xl shadow-xl mt-1 max-h-56 overflow-y-auto">
+                    {searchedUsers.length === 0 ? (
+                      <p className="text-xs text-text-3 p-3 italic">No matching users found</p>
+                    ) : (
+                      searchedUsers.map(user => (
+                        <button
+                          key={user.id}
+                          onClick={() => {
+                            setSelectedUser(user)
+                            setSearchQuery('')
+                            setShowDropdown(false)
+                          }}
+                          className="w-full text-left px-4 py-2.5 hover:bg-surface-alt transition text-xs text-text-2 hover:text-text-1 flex justify-between border-b border-border/20 last:border-b-0 cursor-pointer"
+                        >
+                          <span className="font-bold">{user.name || 'Anonymous'}</span>
+                          <span className="text-text-3">{user.email}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                {/* Selected User Display Banner */}
+                {selectedUser && (
+                  <div className="p-3.5 bg-primary/5 border border-primary/20 rounded-xl flex items-center justify-between text-xs">
+                    <div>
+                      <p className="font-bold text-text-1">{selectedUser.name || 'Anonymous'}</p>
+                      <p className="text-text-3 mt-0.5">{selectedUser.email}</p>
+                    </div>
+                    <button
+                      onClick={() => setSelectedUser(null)}
+                      className="text-text-3 hover:text-rose-400 font-bold p-1 cursor-pointer"
+                      title="Deselect user"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <p className="text-text-3 text-[11px] font-bold uppercase tracking-wider mt-2">
+              Target Audience Size: <span className="text-primary font-extrabold">{recipientCount} user(s)</span>
             </p>
           </div>
 
@@ -327,8 +454,15 @@ export default function AdminBroadcastPage() {
           {/* Buttons */}
           <div className="flex gap-3">
             <button
-              onClick={() => setShowPreview(true)}
-              className="h-12 px-6 border border-border text-text-2 hover:text-text-1 rounded-2xl font-bold text-xs uppercase tracking-wider transition cursor-pointer flex items-center gap-2 bg-surface-alt/45"
+              onClick={() => {
+                if (recipientCount === 0) {
+                  showToast('No recipients available for preview', 'error')
+                  return
+                }
+                setShowPreview(true)
+              }}
+              disabled={recipientCount === 0}
+              className="h-12 px-6 border border-border text-text-2 hover:text-text-1 rounded-2xl font-bold text-xs uppercase tracking-wider transition cursor-pointer flex items-center gap-2 bg-surface-alt/45 disabled:opacity-50"
             >
               <Eye size={14} />
               <span>Preview</span>
@@ -346,7 +480,7 @@ export default function AdminBroadcastPage() {
               ) : (
                 <>
                   <Send size={14} />
-                  <span>Send to {recipientCount} users</span>
+                  <span>Send to {recipientCount} user(s)</span>
                 </>
               )}
             </button>
@@ -378,6 +512,27 @@ export default function AdminBroadcastPage() {
                 >
                   ✕
                 </button>
+              </div>
+
+              {/* Dynamic Recipient Selector */}
+              <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center justify-between border-b border-border/40 pb-3 mb-3">
+                <label className="text-xs font-bold text-text-3 uppercase tracking-wider">
+                  Preview personalization for:
+                </label>
+                <select
+                  value={previewUserId}
+                  onChange={(e) => setPreviewUserId(e.target.value)}
+                  className="bg-surface-alt border border-border rounded-xl px-3 py-1.5 text-text-1 text-xs font-bold focus:border-primary outline-none max-w-xs cursor-pointer"
+                >
+                  {recipients.slice(0, 50).map(r => (
+                    <option key={r.id} value={r.id}>
+                      {r.name || 'Anonymous'} ({r.email})
+                    </option>
+                  ))}
+                  {recipients.length > 50 && (
+                    <option disabled>... and {recipients.length - 50} more</option>
+                  )}
+                </select>
               </div>
 
               {/* Email Client Wrapper */}
