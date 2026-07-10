@@ -6,6 +6,7 @@ import { Menu, X, Share2, PlusSquare } from 'lucide-react'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { Logo } from '@/components/ui/Logo'
 import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 
 interface LandingHeaderProps {
   mobileMenuOpen: boolean
@@ -20,6 +21,29 @@ export function LandingHeader({
 }: LandingHeaderProps) {
   const [isScrolled, setIsScrolled] = React.useState(false)
   const [hasSession, setHasSession] = React.useState<boolean | null>(null)
+  const router = useRouter()
+
+  const handleLoginClick = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    const supabase = createClient()
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      router.push('/dashboard')
+    } else {
+      router.push('/login')
+    }
+  }
+
+  const handleGetStartedClick = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    const supabase = createClient()
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      router.push('/dashboard')
+    } else {
+      router.push('/signup')
+    }
+  }
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -104,15 +128,12 @@ export function LandingHeader({
             >
               Blog
             </Link>
-            {hasSession ? (
-              <Link href="/dashboard" className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
-                Dashboard
-              </Link>
-            ) : (
-              <Link href="/login" className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150">
-                Log In
-              </Link>
-            )}
+            <button
+              onClick={handleLoginClick}
+              className="text-[11px] text-text-2 hover:text-text-1 font-semibold uppercase tracking-wider transition-colors duration-150 cursor-pointer"
+            >
+              Log In
+            </button>
           </nav>
 
           <div className="flex items-center space-x-4">
@@ -120,60 +141,30 @@ export function LandingHeader({
 
             {/* Desktop Action Area */}
             <div className="hidden md:flex items-center space-x-4">
-              {hasSession ? (
-                <Link
-                  href="/dashboard"
-                  className="h-9 px-4 inline-flex items-center justify-center rounded-md font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)]"
-                >
-                  Go to Dashboard →
-                </Link>
-              ) : !isScrolled ? (
-                // Only show Log In link above the fold
-                <Link 
-                  href="/login" 
-                  className="text-xs text-text-2 hover:text-text-1 font-bold uppercase tracking-wider transition-all"
-                >
-                  Log In
-                </Link>
-              ) : (
-                // Show Start Free button when scrolled
-                <Link
-                  href="/signup"
-                  className="h-9 px-4 inline-flex items-center justify-center rounded-md font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)]"
-                >
-                  Start Free
-                </Link>
-              )}
+              <button
+                onClick={handleLoginClick}
+                className="text-xs text-text-2 hover:text-text-1 font-bold uppercase tracking-wider transition-all cursor-pointer"
+              >
+                Log In
+              </button>
+              <button
+                onClick={handleGetStartedClick}
+                className="h-9 px-4 inline-flex items-center justify-center rounded-md font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)] cursor-pointer"
+              >
+                Start my roadmap
+              </button>
             </div>
 
             {/* Mobile Action/Menu Area */}
             <div className="md:hidden flex items-center space-x-2">
-              {hasSession ? (
-                <Link
-                  href="/dashboard"
-                  className="h-8 px-3 inline-flex items-center justify-center rounded-md font-bold text-[10px] uppercase tracking-wider bg-primary hover:bg-primary-hover text-white transition-all shadow-[0_0_12px_rgba(91,142,255,0.2)]"
-                >
-                  Go to Dashboard →
-                </Link>
-              ) : !isScrolled ? (
-                // Only show Log In above the fold on mobile
-                <Link 
-                  href="/login" 
-                  className="text-xs text-text-2 hover:text-text-1 font-bold uppercase tracking-wider px-2 py-1"
-                >
-                  Log In
-                </Link>
-              ) : (
-                // Show hamburger menu trigger when scrolled
-                <button
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  type="button"
-                  className="p-2 rounded-md hover:bg-surface-alt transition-colors text-text-1 cursor-pointer"
-                  aria-label="Toggle Menu"
-                >
-                  {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                </button>
-              )}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                type="button"
+                className="p-2 rounded-md hover:bg-surface-alt transition-colors text-text-1 cursor-pointer"
+                aria-label="Toggle Menu"
+              >
+                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
             </div>
           </div>
         </div>
@@ -233,32 +224,24 @@ export function LandingHeader({
           </nav>
           
           <div className="flex flex-col gap-3 pt-4 border-t border-border/40">
-            {hasSession ? (
-              <Link 
-                href="/dashboard"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full h-11 bg-primary hover:bg-primary-hover text-white flex items-center justify-center rounded-lg font-bold text-xs uppercase tracking-wider"
-              >
-                Go to Dashboard →
-              </Link>
-            ) : (
-              <>
-                <Link 
-                  href="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full h-11 border border-border bg-surface hover:bg-surface-alt text-text-1 flex items-center justify-center rounded-lg font-bold text-xs uppercase tracking-wider"
-                >
-                  Sign In
-                </Link>
-                <Link 
-                  href="/signup"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full h-11 bg-primary hover:bg-primary-hover text-white flex items-center justify-center rounded-lg font-bold text-xs uppercase tracking-wider"
-                >
-                  Sign Up
-                </Link>
-              </>
-            )}
+            <button 
+              onClick={(e) => {
+                setMobileMenuOpen(false)
+                handleLoginClick(e)
+              }}
+              className="w-full h-11 border border-border bg-surface hover:bg-surface-alt text-text-1 flex items-center justify-center rounded-lg font-bold text-xs uppercase tracking-wider cursor-pointer"
+            >
+              Log In
+            </button>
+            <button 
+              onClick={(e) => {
+                setMobileMenuOpen(false)
+                handleGetStartedClick(e)
+              }}
+              className="w-full h-11 bg-primary hover:bg-primary-hover text-white flex items-center justify-center rounded-lg font-bold text-xs uppercase tracking-wider cursor-pointer"
+            >
+              Start my roadmap
+            </button>
           </div>
         </div>
       )}

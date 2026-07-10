@@ -2,10 +2,25 @@
 
 import React from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import { Target, Map, Bot, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export function HowItWorks() {
+  const supabase = createClient()
+  const router = useRouter()
+
+  const handleGetStartedClick = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      router.push('/dashboard')
+    } else {
+      router.push('/signup')
+    }
+  }
+
   const steps = [
     {
       icon: <Target className="h-6 w-6 text-primary" />,
@@ -65,13 +80,12 @@ export function HowItWorks() {
 
       {/* CTA Button */}
       <div className="mt-12">
-        <Link href="/signup">
-          <Button
-            className="h-12 px-8 bg-gradient-to-r from-primary to-accent hover:from-primary-hover hover:to-accent text-white font-extrabold rounded-xl shadow-[0_0_20px_rgba(91,142,255,0.25)] transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 text-sm cursor-pointer"
-          >
-            See it work — Start free
-          </Button>
-        </Link>
+        <Button
+          onClick={handleGetStartedClick}
+          className="h-12 px-8 bg-gradient-to-r from-primary to-accent hover:from-primary-hover hover:to-accent text-white font-extrabold rounded-xl shadow-[0_0_20px_rgba(91,142,255,0.25)] transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 text-sm cursor-pointer"
+        >
+          See it work — Start free
+        </Button>
       </div>
     </section>
   )

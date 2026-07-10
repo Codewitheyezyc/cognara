@@ -61,6 +61,99 @@ export default function AdminUsersList() {
 
   const [awardLoading, setAwardLoading] = useState('')
   const [awardMessage, setAwardMessage] = useState('')
+  
+  const [isAwarding, setIsAwarding] = useState(false)
+  const [awardResult, setAwardResult] = useState<string | null>(null)
+
+  const handleRetroactiveAward = async () => {
+    setIsAwarding(true)
+    setAwardResult(null)
+    try {
+      // 1. Fetch profiles
+      const { data: profiles, error: profErr } = await supabase
+        .from('profiles')
+        .select('id, name')
+      if (profErr) throw profErr
+
+      // 2. Fetch streaks
+      const { data: streaks, error: streakErr } = await supabase
+        .from('streaks')
+        .select('user_id, current_streak, longest_streak')
+      if (streakErr) throw streakErr
+
+      // Map streaks by user_id
+      const streakMap = new Map<string, { current_streak: number; longest_streak: number }>()
+      streaks?.forEach((s: any) => {
+        streakMap.set(s.user_id, {
+          current_streak: s.current_streak || 0,
+          longest_streak: s.longest_streak || 0
+        })
+      })
+
+      let awardedCount = 0
+      const milestones = [7, 30, 100]
+
+      for (const u of (profiles || [])) {
+        const streakData = streakMap.get(u.id) || { current_streak: 0, longest_streak: 0 }
+        const streakToCheck = Math.max(streakData.current_streak, streakData.longest_streak)
+
+        for (const milestone of milestones) {
+          if (streakToCheck >= milestone) {
+            // Check if badge already exists
+            const { data: existing } = await supabase
+              .from('cognara_streak_badges')
+              .select('id')
+              .eq('user_id', u.id)
+              .eq('streak_days', milestone)
+              .maybeSingle()
+
+            if (!existing) {
+              console.log(`Retroactively generating ${milestone}-day badge for user ${u.name} (${u.id})`)
+              
+              // Set states to trigger element rendering for html2canvas
+              setMilestoneStreakDays(milestone)
+              setBulkUserName(u.name || 'Learner')
+              
+              // Wait for DOM to update
+              await new Promise((resolve) => setTimeout(resolve, 850))
+
+              const badgeUrl = await generateStreakBadge(u.id, milestone, u.name || 'Learner')
+
+              // Add to pending awards
+              await supabase
+                .from('cognara_pending_awards')
+                .insert({
+                  user_id: u.id,
+                  award_type: 'streak_badge',
+                  award_data: {
+                    badge_url: badgeUrl,
+                    streak_days: milestone,
+                    user_name: u.name || 'Learner'
+                  },
+                  is_shown: false,
+                  created_at: new Date().toISOString()
+                })
+
+              awardedCount++
+            }
+          }
+        }
+      }
+
+      setAwardResult(`Successfully awarded ${awardedCount} missing streak badges.`)
+      showToast(`Awarded ${awardedCount} missing badges!`, 'success')
+      // Refresh user list
+      fetchUsers()
+    } catch (err: any) {
+      console.error(err)
+      setAwardResult(`Error: ${err.message || 'Failed to award badges'}`)
+      showToast('Failed to run retroactive awarding', 'error')
+    } finally {
+      setIsAwarding(false)
+      setMilestoneStreakDays(null)
+      setBulkUserName('')
+    }
+  }
 
   useEffect(() => {
     async function loadUserStats() {
@@ -115,9 +208,9 @@ export default function AdminUsersList() {
     }
     loadUserStats()
   }, [selectedUser])
-  const generateStreakBadge = async (targetUserId: string, streakDays: number) => {
+  const generateStreakBadge = async (targetUserId: string, streakDays: number, userName?: string) => {
     setMilestoneStreakDays(streakDays)
-    setBulkUserName(selectedUser?.name || 'Learner')
+    setBulkUserName(userName || selectedUser?.name || 'Learner')
     
     await new Promise((resolve) => setTimeout(resolve, 850))
 
@@ -396,6 +489,39 @@ export default function AdminUsersList() {
           <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
           <span>Refresh</span>
         </button>
+      </div>
+
+      {/* Retroactive Streak Badges */}
+      <div className="bg-surface border border-border/40 rounded-3xl p-6 shadow-xl space-y-4">
+        <div className="space-y-1">
+          <h3 className="text-sm font-extrabold text-text-1 uppercase tracking-widest">
+            Retroactive Streak Badges
+          </h3>
+          <p className="text-text-3 text-xs font-semibold leading-relaxed">
+            Award streak badges to all users who reached 7, 30, or 100 day streaks but never received their badge. Run this once.
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <button
+            onClick={handleRetroactiveAward}
+            disabled={isAwarding}
+            className="h-11 px-5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition cursor-pointer flex items-center gap-2 disabled:opacity-50"
+          >
+            {isAwarding ? (
+              <>
+                <RefreshCw size={12} className="animate-spin" />
+                <span>Awarding badges...</span>
+              </>
+            ) : (
+              <span>Award all missing streak badges</span>
+            )}
+          </button>
+          {awardResult && (
+            <p className="text-emerald-500 text-xs font-bold uppercase tracking-wider">
+              {awardResult}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Toolbar / Search & Filters */}

@@ -409,34 +409,38 @@ export default function QuizPage() {
 
   const checkStreakMilestones = async (currentStreak: number) => {
     const milestones = [7, 30, 100]
-    if (!milestones.includes(currentStreak)) return
 
-    try {
-      // Check if badge already generated for this milestone
-      const { data: existing } = await supabase
-        .from('cognara_streak_badges')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('streak_days', currentStreak)
-        .maybeSingle()
-
-      if (existing) return
-
-      // Set milestone states to trigger the hidden template rendering
-      setMilestoneStreakDays(currentStreak)
-      setIsGeneratingBadge(true)
-
-      // We need to wait for the DOM to update so the hidden template is rendered before html2canvas captures it
-      setTimeout(async () => {
+    for (const milestone of milestones) {
+      if (currentStreak >= milestone) {
         try {
-          await generateStreakBadge(currentStreak)
-        } catch (genErr) {
-          console.error('[Streak Badge] Generation failed:', genErr)
-          setIsGeneratingBadge(false)
+          // Check if badge already generated for this milestone
+          const { data: existing } = await supabase
+            .from('cognara_streak_badges')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('streak_days', milestone)
+            .maybeSingle()
+
+          if (!existing) {
+            // Set milestone states to trigger the hidden template rendering
+            setMilestoneStreakDays(milestone)
+            setIsGeneratingBadge(true)
+
+            // We need to wait for the DOM to update so the hidden template is rendered before html2canvas captures it
+            await new Promise(resolve => setTimeout(resolve, 850))
+
+            try {
+              await generateStreakBadge(milestone)
+            } catch (genErr) {
+              console.error('[Streak Badge] Generation failed:', genErr)
+              setIsGeneratingBadge(false)
+              setMilestoneStreakDays(null)
+            }
+          }
+        } catch (err) {
+          console.error('[Streak Badge] Error checking milestones:', err)
         }
-      }, 800)
-    } catch (err) {
-      console.error('[Streak Badge] Error checking milestones:', err)
+      }
     }
   }
 

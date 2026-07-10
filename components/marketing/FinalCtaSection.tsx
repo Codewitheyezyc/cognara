@@ -2,12 +2,24 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 
 export function FinalCtaSection() {
   const supabase = createClient()
+  const router = useRouter()
   const [userCount, setUserCount] = useState<number | null>(null)
+
+  const handleGetStartedClick = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      router.push('/dashboard')
+    } else {
+      router.push('/signup')
+    }
+  }
 
   useEffect(() => {
     async function fetchUserCount() {
@@ -49,13 +61,12 @@ export function FinalCtaSection() {
 
           {/* Action Area */}
           <div className="pt-4 space-y-5 w-full max-w-sm">
-            <Link href="/signup" className="w-full">
-              <Button
-                className="w-full h-13 bg-white hover:bg-neutral-100 text-[#3D6AFF] hover:text-[#2d5aef] font-extrabold text-base rounded-xl transition duration-150 cursor-pointer shadow-lg active:scale-[0.98]"
-              >
-                Build my free roadmap
-              </Button>
-            </Link>
+            <Button
+              onClick={handleGetStartedClick}
+              className="w-full h-13 bg-white hover:bg-neutral-100 text-[#3D6AFF] hover:text-[#2d5aef] font-extrabold text-base rounded-xl transition duration-150 cursor-pointer shadow-lg active:scale-[0.98]"
+            >
+              Build my free roadmap
+            </Button>
             <span className="text-[11px] text-white/80 font-bold uppercase tracking-wider block mt-6">
               Builds your path in under 60 seconds.
             </span>

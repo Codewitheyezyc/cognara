@@ -2,13 +2,25 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Spark } from '@/components/mascot/Spark'
 import { CheckCircle2, Lock } from 'lucide-react'
 
 export function HeroSection() {
   const supabase = createClient()
+  const router = useRouter()
   const [userCount, setUserCount] = useState<number | null>(null)
+
+  const handleGetStartedClick = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      router.push('/dashboard')
+    } else {
+      router.push('/signup')
+    }
+  }
   
   // Animation states
   const [activeStep, setActiveStep] = useState(0)
@@ -78,12 +90,12 @@ export function HeroSection() {
 
       {/* 4. CTA and Social Proof */}
       <div className="flex flex-col items-center justify-center gap-3.5 mt-8 w-full max-w-md mx-auto px-4 z-10">
-        <Link
-          href="/signup"
+        <button
+          onClick={handleGetStartedClick}
           className="w-full h-13 px-8 inline-flex items-center justify-center rounded-xl font-extrabold text-base bg-gradient-to-r from-primary to-accent hover:from-primary-hover hover:to-accent text-white shadow-[0_0_24px_rgba(91,142,255,0.3)] transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
         >
           Build My Free Learning Plan →
-        </Link>
+        </button>
         <span className="text-[11px] text-text-3 font-bold uppercase tracking-wider">
           Join {learnersCount} learners already on their path
         </span>
