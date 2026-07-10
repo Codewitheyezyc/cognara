@@ -16,7 +16,8 @@ import {
   Loader2,
   User,
   Menu,
-  X
+  X,
+  Megaphone
 } from 'lucide-react'
 
 export default function AdminPanelLayout({
@@ -56,6 +57,7 @@ export default function AdminPanelLayout({
     { href: '/admin-panel/dashboard', icon: <LayoutDashboard size={16} />, label: 'Dashboard' },
     { href: '/admin-panel/users', icon: <Users size={16} />, label: 'Users' },
     { href: '/admin-panel/blog', icon: <PenTool size={16} />, label: 'Blog' },
+    { href: '/admin-panel/broadcast', icon: <Megaphone size={16} />, label: 'Broadcast' },
     { href: '/admin-panel/subscriptions', icon: <CreditCard size={16} />, label: 'Subscriptions' },
     { href: '/admin-panel/testimonials', icon: <Star size={16} />, label: 'Testimonials' },
     { href: '/admin-panel/content', icon: <BookOpen size={16} />, label: 'Content' },
