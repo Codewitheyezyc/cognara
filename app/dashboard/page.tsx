@@ -402,6 +402,29 @@ export default function DashboardPage() {
           streakDataVal.current_streak = 0
           streakDataVal.is_active = false
         }
+        // Check if existing broken streak has expired (more than 24 hours)
+        if (streakDataVal.broke_at) {
+          const brokeAtTime = new Date(streakDataVal.broke_at).getTime()
+          const nowTime = new Date().getTime()
+          const hoursSinceBroke = (nowTime - brokeAtTime) / (1000 * 60 * 60)
+          if (hoursSinceBroke > 24) {
+            await supabase
+              .from('streaks')
+              .update({
+                broke_at: null,
+                days_before_break: 0,
+                is_active: true,
+                current_streak: 0
+              })
+              .eq('user_id', user.id)
+
+            streakDataVal.broke_at = null
+            streakDataVal.days_before_break = 0
+            streakDataVal.is_active = true
+            streakDataVal.current_streak = 0
+          }
+        }
+
         setStreakData(streakDataVal)
 
         // Fetch monthly restores count

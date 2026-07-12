@@ -128,8 +128,17 @@ export async function POST(request: Request) {
         newCurrentStreak = streak.current_streak || 0
         newLongestStreak = streak.longest_streak || 0
         const lastActivity = streak.last_activity_at
+        let brokeAtUpdate: any = {}
 
-        if (!lastActivity) {
+        if (streak.broke_at) {
+          newCurrentStreak = 1
+          newLongestStreak = Math.max(newLongestStreak, 1)
+          brokeAtUpdate = {
+            broke_at: null,
+            days_before_break: 0,
+            is_active: true
+          }
+        } else if (!lastActivity) {
           newCurrentStreak = 1
           newLongestStreak = Math.max(newLongestStreak, 1)
         } else {
@@ -176,6 +185,7 @@ export async function POST(request: Request) {
             longest_streak: newLongestStreak,
             last_activity_at: todayStr,
             updated_at: new Date().toISOString(),
+            ...brokeAtUpdate
           })
           .eq('user_id', user.id)
       }
