@@ -8,7 +8,7 @@ const statusMessages = [
   'Parsing primary subject topics...',
   'Structuring progressive curriculum phases...',
   'Generating modular lesson timelines...',
-  'Calibrating vocabulary for experience level...',
+  'Adjusting vocabulary for your level...',
   'Preparing quiz questions and insights engine...',
   'Assembling your personalized Learning OS...',
 ]

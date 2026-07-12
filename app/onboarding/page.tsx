@@ -39,7 +39,7 @@ const Q3_OPTIONS = [
 const LOADING_MESSAGES = [
   "Structuring your learning phases...",
   "Ordering topics from foundation to mastery...",
-  "Calibrating to your level...",
+  "Adjusting to your learning level...",
   "Building your personalised roadmap...",
   "Almost ready..."
 ]

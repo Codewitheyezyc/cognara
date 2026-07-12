@@ -1389,7 +1389,7 @@ export default function QuizPage() {
       <div className="min-h-screen bg-bg text-text-1 flex flex-col items-center justify-center p-6 space-y-4 animate-page-enter">
         <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
         <p className="text-sm font-mono text-text-2 tracking-wide animate-pulse">
-          Calibrating assessment metrics...
+          Preparing your quiz questions...
         </p>
       </div>
     )
