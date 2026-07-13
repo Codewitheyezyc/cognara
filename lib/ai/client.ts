@@ -1,5 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk'
-
 const apiKey = process.env.ANTHROPIC_API_KEY
 
 // Treat mock key or empty key as unconfigured
@@ -23,22 +21,51 @@ export function getModelName(model: string): string {
   return model
 }
 
-const rawAnthropic = isConfigured
-  ? new Anthropic({ apiKey })
-  : null
+class AnthropicClient {
+  private apiKey: string
 
-if (rawAnthropic) {
-  const messagesObj = rawAnthropic.messages as any
-  const originalCreate = messagesObj.create.bind(messagesObj)
-  messagesObj.create = function (params: any, options: any) {
-    if (params && params.model) {
-      params.model = getModelName(params.model)
+  constructor(apiKey: string) {
+    this.apiKey = apiKey
+  }
+
+  messages = {
+    create: async (params: any): Promise<any> => {
+      const resolvedModel = getModelName(params.model)
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.apiKey,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          ...params,
+          model: resolvedModel
+        })
+      })
+
+      if (!res.ok) {
+        const errorText = await res.text()
+        let parsedError: any = {}
+        try { parsedError = JSON.parse(errorText) } catch {}
+        const status = res.status
+        const message = parsedError?.error?.message || errorText || 'Anthropic API Error'
+        
+        const sdkError = new Error(message) as any
+        sdkError.status = status
+        sdkError.statusCode = status
+        sdkError.error = parsedError?.error
+        throw sdkError
+      }
+
+      return res.json()
     }
-    return originalCreate(params, options)
   }
 }
 
-export const anthropic = rawAnthropic
+export const anthropic = isConfigured
+  ? new AnthropicClient(apiKey!)
+  : null
 
 /**
  * Helper to call Anthropic Claude and return structured JSON.

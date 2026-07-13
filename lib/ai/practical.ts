@@ -1,4 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk'
 import { anthropic } from './client'
 
 // ── Domain Practical Types Config (Step 2) ────────────────────────────────────
