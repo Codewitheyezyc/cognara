@@ -244,6 +244,35 @@ export async function POST(request: Request) {
       }
     }
 
+    // Pre-generate the first 2 lessons of Phase 1 in the background (fire-and-forget)
+    try {
+      const { data: firstLessons } = await supabase
+        .from('lessons')
+        .select('id')
+        .eq('roadmap_id', roadmapData.id)
+        .order('order_index', { ascending: true })
+        .limit(2)
+
+      if (firstLessons && firstLessons.length > 0) {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+        const origin = request.headers.get('origin') || appUrl
+        const cookie = request.headers.get('cookie') || ''
+        
+        firstLessons.forEach((l: any) => {
+          fetch(`${origin}/api/ai/generate-lesson`, {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Cookie': cookie
+            },
+            body: JSON.stringify({ lessonId: l.id })
+          }).catch(err => console.error('[Pre-generate] Failed to prefetch first lesson:', err))
+        })
+      }
+    } catch (err) {
+      console.error('[Pre-generate] Error querying first lessons for prefetch:', err)
+    }
+
     return NextResponse.json({ success: true, roadmapId: roadmapData.id })
   } catch (err: any) {
     console.error('[API Roadmap Error]', err)
