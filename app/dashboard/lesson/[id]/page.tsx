@@ -286,41 +286,58 @@ export default function LessonPage() {
       if (activeContent) {
         setContent(activeContent)
       } else {
-        // No cached content — call Claude
+        // No cached content — call Claude with automatic retries
         setGenerationError(false)
         setIsGenerating(true)
         setIsAIGenerating(true)
-        try {
-          const res = await fetch('/api/ai/generate-lesson', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ lessonId }),
-          })
-          // res.json() can throw if Vercel returns an HTML timeout page
-          let result: any = {}
-          try { result = await res.json() } catch { /* non-JSON body (504 etc.) */ }
-
-          if (res.ok && result.content) {
-            setContent(result.content)
-            setContentMap(prev => ({ ...prev, [initialDepth]: result.content }))
-            setStatus('in_progress')
-            // Cache practical exercise for the quiz page to read
-            if (result.practicalExercise && typeof window !== 'undefined') {
-              sessionStorage.setItem(`practical_${lessonId}`, JSON.stringify(result.practicalExercise))
+        
+        let success = false
+        let attempts = 0
+        const maxAttempts = 3
+        let lastErrorMsg = ''
+        
+        while (attempts < maxAttempts && !success) {
+          attempts++
+          try {
+            console.log(`[generate-lesson] Attempt ${attempts} of ${maxAttempts}...`)
+            const res = await fetch('/api/ai/generate-lesson', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ lessonId }),
+            })
+            
+            let result: any = {}
+            try { result = await res.json() } catch { /* non-JSON body (504 etc.) */ }
+            
+            if (res.ok && result.content) {
+              setContent(result.content)
+              setContentMap(prev => ({ ...prev, [initialDepth]: result.content }))
+              setStatus('in_progress')
+              if (result.practicalExercise && typeof window !== 'undefined') {
+                sessionStorage.setItem(`practical_${lessonId}`, JSON.stringify(result.practicalExercise))
+              }
+              success = true
+            } else {
+              lastErrorMsg = result.error || "Spark is having trouble compiling this lesson. Let's try reloading the page!"
+              if (attempts < maxAttempts) {
+                await new Promise(resolve => setTimeout(resolve, 1500))
+              }
             }
-          } else {
-            // API returned error (500 / 504 timeout / model error)
-            setGenerationErrorMsg(result.error || "Spark is having trouble compiling this lesson. Let's try reloading the page!")
-            setGenerationError(true)
+          } catch (err) {
+            console.error(`[generate-lesson] Attempt ${attempts} failed:`, err)
+            lastErrorMsg = 'We had trouble connecting to the study server. Please check your internet connection or try again.'
+            if (attempts < maxAttempts) {
+              await new Promise(resolve => setTimeout(resolve, 1500))
+            }
           }
-        } catch (err) {
-          console.error('Error generating lesson content:', err)
-          setGenerationErrorMsg('We had trouble connecting to the study server. Please check your internet connection or try again.');
-          setGenerationError(true);
-        } finally {
-          setIsGenerating(false)
-          setIsAIGenerating(false)
         }
+        
+        if (!success) {
+          setGenerationErrorMsg(lastErrorMsg)
+          setGenerationError(true)
+        }
+        setIsGenerating(false)
+        setIsAIGenerating(false)
       }
     }
 
@@ -398,35 +415,55 @@ export default function LessonPage() {
         return
       }
 
-      // No cache — clear content (shows skeleton) then call Claude
+      // No cache — clear content (shows skeleton) then call Claude with automatic retries
       setContent(null)
       setGenerationError(false)
       setIsAIGenerating(true)
 
-      let result: any = {}
-      try {
-        const res = await fetch('/api/ai/generate-lesson', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lessonId }),
-        })
-        try { result = await res.json() } catch { /* non-JSON body */ }
-        if (res.ok && result.content) {
-          setContent(result.content)
-          setContentMap(prev => ({ ...prev, [newDepth]: result.content }))
-          setStatus('in_progress')
-        } else {
-          setGenerationErrorMsg(result.error || "Spark is having trouble adapting this lesson. Let's try reloading the page!");
-          setGenerationError(true);
+      let success = false
+      let attempts = 0
+      const maxAttempts = 3
+      let lastErrorMsg = ''
+      
+      while (attempts < maxAttempts && !success) {
+        attempts++
+        try {
+          console.log(`[generate-lesson-depth] Attempt ${attempts} of ${maxAttempts}...`)
+          const res = await fetch('/api/ai/generate-lesson', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lessonId }),
+          })
+          
+          let result: any = {}
+          try { result = await res.json() } catch { /* non-JSON body */ }
+          
+          if (res.ok && result.content) {
+            setContent(result.content)
+            setContentMap(prev => ({ ...prev, [newDepth]: result.content }))
+            setStatus('in_progress')
+            success = true
+          } else {
+            lastErrorMsg = result.error || "Spark is having trouble adapting this lesson. Let's try reloading the page!"
+            if (attempts < maxAttempts) {
+              await new Promise(resolve => setTimeout(resolve, 1500))
+            }
+          }
+        } catch (err) {
+          console.error(`[generate-lesson-depth] Attempt ${attempts} failed:`, err)
+          lastErrorMsg = 'We had trouble connecting to the study server. Please check your internet connection or try again.'
+          if (attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 1500))
+          }
         }
-      } catch (err) {
-        console.error('Error changing depth level:', err)
-        setGenerationErrorMsg('We had trouble connecting to the study server. Please check your internet connection or try again.');
-        setGenerationError(true);
-      } finally {
-        setIsChangingDepth(false);
-        setIsAIGenerating(false);
       }
+      
+      if (!success) {
+        setGenerationErrorMsg(lastErrorMsg)
+        setGenerationError(true)
+      }
+      setIsChangingDepth(false)
+      setIsAIGenerating(false)
     } catch (err) {
       console.error('handleDepthChange outer error:', err)
       setIsChangingDepth(false)
