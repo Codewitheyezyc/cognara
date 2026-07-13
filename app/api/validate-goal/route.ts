@@ -1,17 +1,7 @@
 import { NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
+import { anthropic } from '@/lib/ai/client'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient as createBaseClient } from '@supabase/supabase-js'
-
-const apiKey = process.env.ANTHROPIC_API_KEY
-const isConfigured = 
-  apiKey && 
-  apiKey !== 'mock_anthropic_api_key_for_development' && 
-  apiKey !== 'placeholder_service_role_key_for_dev'
-
-const anthropic = isConfigured
-  ? new Anthropic({ apiKey })
-  : null
 
 export async function POST(req: Request) {
   try {

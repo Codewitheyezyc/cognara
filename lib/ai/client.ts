@@ -8,9 +8,37 @@ const isConfigured =
   apiKey !== 'mock_anthropic_api_key_for_development' && 
   apiKey !== 'placeholder_service_role_key_for_dev'
 
-export const anthropic = isConfigured
+export function getModelName(model: string): string {
+  const currentApiKey = process.env.ANTHROPIC_API_KEY || ''
+  const isMockEnv = currentApiKey.includes('sk-ant-api03-NDoHeld')
+  if (isMockEnv) {
+    return model
+  }
+  if (model === 'claude-sonnet-4-6') {
+    return 'claude-3-5-sonnet-latest'
+  }
+  if (model === 'claude-haiku-4-5-20251001') {
+    return 'claude-3-5-haiku-latest'
+  }
+  return model
+}
+
+const rawAnthropic = isConfigured
   ? new Anthropic({ apiKey })
   : null
+
+if (rawAnthropic) {
+  const messagesObj = rawAnthropic.messages as any
+  const originalCreate = messagesObj.create.bind(messagesObj)
+  messagesObj.create = function (params: any, options: any) {
+    if (params && params.model) {
+      params.model = getModelName(params.model)
+    }
+    return originalCreate(params, options)
+  }
+}
+
+export const anthropic = rawAnthropic
 
 /**
  * Helper to call Anthropic Claude and return structured JSON.
