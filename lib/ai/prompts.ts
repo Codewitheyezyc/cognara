@@ -396,7 +396,10 @@ RETURN ONLY VALID JSON. No markdown. No preamble. No text outside the JSON objec
   ],
   "key_takeaways": ["string", "string", "string"],
   "next_lesson_preview": "string"
-}`;
+}
+
+SPEED & CONCISENESS RULE:
+Keep body text and explanations highly informative, dense, and concise. Avoid wordy explanations and unnecessary filler text. Keep section counts to exactly 4 or 5 sections to minimize token count and ensure generation completes in under 10 seconds.`;
 
 export interface LessonParams {
   lessonTitle: string
