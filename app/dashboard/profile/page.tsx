@@ -527,14 +527,20 @@ export default function ProfilePage() {
   const handleToggleNotification = async (field: string, currentVal: boolean) => {
     if (!userId) return
     const newVal = !currentVal
+    const updateObj: Record<string, boolean> = { [field]: newVal }
+    if (field === 'daily_reminder_enabled' || field === 'reminder_enabled') {
+      updateObj['daily_reminder_enabled'] = newVal
+      updateObj['reminder_enabled'] = newVal
+    }
+
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ [field]: newVal })
+        .update(updateObj)
         .eq('id', userId)
 
       if (error) throw error
-      setProfile((prev: any) => ({ ...prev, [field]: newVal }))
+      setProfile((prev: any) => ({ ...prev, ...updateObj }))
       toast('Notification preference saved!')
     } catch (err) {
       console.error(err)
@@ -1879,13 +1885,13 @@ export default function ProfilePage() {
                     <p className="text-[10.5px] text-text-2 mt-0.5">Receive reminders at your study hour</p>
                   </div>
                   <button
-                    onClick={() => handleToggleNotification('reminder_enabled', profile?.reminder_enabled)}
+                    onClick={() => handleToggleNotification('daily_reminder_enabled', profile?.daily_reminder_enabled ?? profile?.reminder_enabled ?? true)}
                     className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
-                      profile?.reminder_enabled ? 'bg-primary' : 'bg-surface-alt'
+                      (profile?.daily_reminder_enabled ?? profile?.reminder_enabled ?? true) ? 'bg-primary' : 'bg-surface-alt'
                     }`}
                   >
                     <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
-                      profile?.reminder_enabled ? 'translate-x-5' : 'translate-x-0'
+                      (profile?.daily_reminder_enabled ?? profile?.reminder_enabled ?? true) ? 'translate-x-5' : 'translate-x-0'
                     }`} />
                   </button>
                 </div>
@@ -1897,13 +1903,13 @@ export default function ProfilePage() {
                     <p className="text-[10.5px] text-text-2 mt-0.5">Alerts when your active streak is at risk</p>
                   </div>
                   <button
-                    onClick={() => handleToggleNotification('achievement_notifications', profile?.achievement_notifications)}
+                    onClick={() => handleToggleNotification('streak_alerts_enabled', profile?.streak_alerts_enabled ?? true)}
                     className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
-                      profile?.achievement_notifications ? 'bg-[#5B8EFF]' : 'bg-[#1A2035]'
+                      (profile?.streak_alerts_enabled ?? true) ? 'bg-[#5B8EFF]' : 'bg-[#1A2035]'
                     }`}
                   >
                     <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
-                      profile?.achievement_notifications ? 'translate-x-5' : 'translate-x-0'
+                      (profile?.streak_alerts_enabled ?? true) ? 'translate-x-5' : 'translate-x-0'
                     }`} />
                   </button>
                 </div>
@@ -1915,13 +1921,13 @@ export default function ProfilePage() {
                     <p className="text-[10.5px] text-text-2 mt-0.5">Recap of your weekly lessons completed</p>
                   </div>
                   <button
-                    onClick={() => handleToggleNotification('weekly_summary_enabled', profile?.weekly_summary_enabled)}
+                    onClick={() => handleToggleNotification('weekly_summary_enabled', profile?.weekly_summary_enabled ?? true)}
                     className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
-                      profile?.weekly_summary_enabled ? 'bg-primary' : 'bg-surface-alt'
+                      (profile?.weekly_summary_enabled ?? true) ? 'bg-primary' : 'bg-surface-alt'
                     }`}
                   >
                     <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
-                      profile?.weekly_summary_enabled ? 'translate-x-5' : 'translate-x-0'
+                      (profile?.weekly_summary_enabled ?? true) ? 'translate-x-5' : 'translate-x-0'
                     }`} />
                   </button>
                 </div>

@@ -797,8 +797,8 @@ export default function OnboardingPage() {
                   return (
                     <div key={phase.phase_number} className={`rounded-xl border overflow-hidden transition-all duration-200 ${
                       isPhase1
-                        ? 'border-[#5B8EFF]/40 bg-gradient-to-br from-[#111a30] to-[#12102a] shadow-[0_0_20px_rgba(91,142,255,0.08)]'
-                        : 'border-border bg-[#0d1020]/60 opacity-60'
+                        ? 'border-[#5B8EFF]/40 bg-surface dark:bg-gradient-to-br dark:from-[#111a30] dark:to-[#12102a] shadow-sm dark:shadow-[0_0_20px_rgba(91,142,255,0.08)]'
+                        : 'border-border bg-surface-alt/70 opacity-75'
                     }`}>
                       {/* Phase Header */}
                       <div className={`flex items-start justify-between p-4 ${
@@ -809,7 +809,7 @@ export default function OnboardingPage() {
                           <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
                             isPhase1
                               ? 'bg-gradient-to-br from-[#5B8EFF] to-[#A78BFA] text-white shadow-[0_0_12px_rgba(91,142,255,0.35)]'
-                              : 'bg-[#1E2540] text-text-3'
+                              : 'bg-surface-alt text-text-3 border border-border'
                           }`}>
                             {phase.phase_number}
                           </div>
@@ -825,7 +825,7 @@ export default function OnboardingPage() {
                               {phase.phase_name}
                             </h3>
                             <p className={`text-[11px] ${
-                              isPhase1 ? 'text-text-2' : 'text-[#3A4262]'
+                              isPhase1 ? 'text-text-2' : 'text-text-3'
                             }`}>
                               {phase.estimated_weeks} week{phase.estimated_weeks !== 1 ? 's' : ''}
                             </p>
@@ -833,8 +833,8 @@ export default function OnboardingPage() {
                         </div>
                         {!isPhase1 && (
                           <div className="flex flex-col items-end gap-1">
-                            <Lock className="h-4 w-4 text-[#3A4262]" />
-                            <span className="text-[9px] text-[#3A4262] font-semibold">Complete Phase 1 to unlock</span>
+                            <Lock className="h-4 w-4 text-text-3" />
+                            <span className="text-[9px] text-text-3 font-semibold">Complete Phase 1 to unlock</span>
                           </div>
                         )}
                         {isPhase1 && (
@@ -852,7 +852,7 @@ export default function OnboardingPage() {
                             const moduleKey = `p${phase.phase_number}-m${mod.module_number}`
                             const isOpen = expandedModuleKey === moduleKey
                             return (
-                              <div key={mod.module_number} className="rounded-lg border border-border bg-[#0D1020]/80 overflow-hidden">
+                              <div key={mod.module_number} className="rounded-lg border border-border bg-surface-alt/60 dark:bg-[#0D1020]/80 overflow-hidden">
                                 {/* Module tap row */}
                                 <button
                                   type="button"
@@ -863,7 +863,7 @@ export default function OnboardingPage() {
                                     <div className="w-5 h-5 rounded-md bg-[#5B8EFF]/15 flex items-center justify-center text-[10px] font-bold text-[#5B8EFF]">
                                       {mod.module_number}
                                     </div>
-                                    <span className="text-xs font-semibold text-text-2">{mod.module_name}</span>
+                                    <span className="text-xs font-semibold text-text-1">{mod.module_name}</span>
                                   </div>
                                   {isOpen
                                     ? <ChevronUp className="h-3.5 w-3.5 text-[#5B8EFF] flex-shrink-0" />
@@ -890,7 +890,7 @@ export default function OnboardingPage() {
                       {!isPhase1 && (phase.modules || []).length > 0 && (
                         <div className="px-4 pb-3 pt-1 space-y-1">
                           {(phase.modules || []).map((mod: any) => (
-                            <div key={mod.module_number} className="flex items-center gap-2 text-[11px] text-[#3A4262]">
+                            <div key={mod.module_number} className="flex items-center gap-2 text-[11px] text-text-3">
                               <Lock className="h-2.5 w-2.5 flex-shrink-0" />
                               <span>{mod.module_name}</span>
                             </div>

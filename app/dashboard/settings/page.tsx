@@ -507,8 +507,10 @@ export default function SettingsPage() {
         .from('profiles')
         .update({
           reminder_enabled: reminderEnabled,
+          daily_reminder_enabled: reminderEnabled,
           reminder_time: reminderTime,
           daily_reminder_time: reminderTime,
+          timezone: 'Africa/Lagos',
           reminder_timezone: 'Africa/Lagos'
         })
         .eq('id', user.id)
@@ -519,8 +521,10 @@ export default function SettingsPage() {
       setProfile((prev: any) => ({
         ...prev,
         reminder_enabled: reminderEnabled,
+        daily_reminder_enabled: reminderEnabled,
         reminder_time: reminderTime,
         daily_reminder_time: reminderTime,
+        timezone: 'Africa/Lagos',
         reminder_timezone: 'Africa/Lagos'
       }))
     } catch (err: any) {
@@ -546,7 +550,8 @@ export default function SettingsPage() {
       const { error } = await supabase
         .from('profiles')
         .update({
-          reminder_enabled: false
+          reminder_enabled: false,
+          daily_reminder_enabled: false
         })
         .eq('id', user.id)
 
@@ -556,7 +561,8 @@ export default function SettingsPage() {
       
       setProfile((prev: any) => ({
         ...prev,
-        reminder_enabled: false
+        reminder_enabled: false,
+        daily_reminder_enabled: false
       }))
     } catch (err: any) {
       console.error(err)
@@ -573,8 +579,10 @@ export default function SettingsPage() {
         .from('profiles')
         .update({
           reminder_enabled: true,
+          daily_reminder_enabled: true,
           reminder_time: reminderTime,
           daily_reminder_time: reminderTime,
+          timezone: 'Africa/Lagos',
           reminder_timezone: 'Africa/Lagos'
         })
         .eq('id', user.id)
@@ -586,8 +594,10 @@ export default function SettingsPage() {
       setProfile((prev: any) => ({
         ...prev,
         reminder_enabled: true,
+        daily_reminder_enabled: true,
         reminder_time: reminderTime,
         daily_reminder_time: reminderTime,
+        timezone: 'Africa/Lagos',
         reminder_timezone: 'Africa/Lagos'
       }))
     } catch (err: any) {

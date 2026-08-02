@@ -52,7 +52,7 @@ export default function StreakVitals({ initialStreak, isPro }: StreakVitalsProps
       if (!user) throw new Error('Unauthorized')
 
       if (!isPro) {
-        // Fetch user profile to verify they have at least 300 CXP
+        // Fetch user profile to verify they have at least 150 CXP
         const { data: profileRow } = await supabase
           .from('profiles')
           .select('xp')
@@ -60,16 +60,16 @@ export default function StreakVitals({ initialStreak, isPro }: StreakVitalsProps
           .maybeSingle()
 
         const currentXp = profileRow?.xp || 0
-        if (currentXp < 300) {
-          toast(`Need 300 CXP to restore streak. (You have ${currentXp} CXP)`)
+        if (currentXp < 150) {
+          toast(`Need 150 CXP to restore streak. (You have ${currentXp} CXP)`)
           router.push('/dashboard/settings')
           return
         }
 
-        // Spend 300 CXP
+        // Spend 150 CXP
         const { data: success, error: spendError } = await supabase.rpc('spend_user_cxp', {
           user_id_input: user.id,
-          amount_input: 300,
+          amount_input: 150,
           source_input: 'streak_repair',
           description_input: 'Restored broken streak'
         })
@@ -92,6 +92,8 @@ export default function StreakVitals({ initialStreak, isPro }: StreakVitalsProps
 
       const updateData: any = {
         last_activity_at: yesterdayStr,
+        is_active: true,
+        broke_at: null,
       }
       if (isPro) {
         updateData.shields_available = streak.shields_available - 1
@@ -120,7 +122,7 @@ export default function StreakVitals({ initialStreak, isPro }: StreakVitalsProps
       SoundEffects.play('success')
       window.dispatchEvent(new Event('cognara_xp_gained'))
 
-      toast(isPro ? 'Streak restored successfully! 🛡️' : 'Streak restored with 300 CXP! 🔥')
+      toast(isPro ? 'Streak restored successfully! 🛡️' : 'Streak restored with 150 CXP! 🔥')
       router.refresh()
     } catch (err: any) {
       console.error(err)
@@ -135,7 +137,7 @@ export default function StreakVitals({ initialStreak, isPro }: StreakVitalsProps
       <div className={`w-10 h-10 rounded-md flex items-center justify-center border transition-colors ${
         isBroken 
           ? 'bg-error/10 text-error border-error/15' 
-          : 'bg-accent-warm/10 text-accent-warm border-accent-warm/15'
+          : 'bg-accent-warm/10 text-accent-warm border-[#E2E8F0] dark:border-accent-warm/15'
       }`}>
         <Flame className={`h-5 w-5 ${!isBroken ? 'fill-current animate-pulse-subtle' : ''}`} />
       </div>
@@ -168,7 +170,7 @@ export default function StreakVitals({ initialStreak, isPro }: StreakVitalsProps
                 : 'bg-surface-alt border-border text-text-3 cursor-not-allowed'
             }`}
           >
-            {!isPro ? 'Restore (300 CXP) 🔥' : streak.shields_available > 0 ? 'Restore 🛡️' : 'No shields'}
+            {!isPro ? 'Restore (150 CXP) 🔥' : streak.shields_available > 0 ? 'Restore 🛡️' : 'No shields'}
           </button>
         )}
       </div>

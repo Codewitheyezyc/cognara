@@ -1368,8 +1368,10 @@ export default function QuizPage() {
           .from('profiles')
           .update({
             reminder_enabled: true,
+            daily_reminder_enabled: true,
             daily_reminder_time: selectedTime,
             reminder_time: selectedTime,
+            timezone: 'Africa/Lagos',
             reminder_timezone: 'Africa/Lagos'
           })
           .eq('id', userId)
@@ -1481,7 +1483,7 @@ export default function QuizPage() {
           <div className="flex flex-col gap-3 w-full">
             <Button
               onClick={() => router.push(`/dashboard/lesson/${lessonId}`)}
-              className="w-full h-13 bg-[#1E2540] hover:bg-[#2E3750] border border-border text-text-1 font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition active:scale-[0.99]"
+              className="w-full h-13 bg-surface-alt hover:bg-surface border border-border text-text-1 font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition active:scale-[0.99]"
             >
               Review Lesson
             </Button>
@@ -1490,22 +1492,22 @@ export default function QuizPage() {
               <Button
                 onClick={handleCxpRefillHearts}
                 disabled={isRefillingHearts}
-                className="w-full h-13 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-text-1 font-bold rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.25)] flex items-center justify-center gap-2 cursor-pointer transition active:scale-[0.99]"
+                className="w-full h-13 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.25)] flex items-center justify-center gap-2 cursor-pointer transition active:scale-[0.99]"
               >
-                <Sparkles className="h-4 w-4 fill-current animate-pulse text-text-1" />
+                <Sparkles className="h-4 w-4 fill-current animate-pulse text-white" />
                 Refill & Retry (150 CXP)
               </Button>
             ) : (
               <div className="space-y-2">
                 <Button
                   disabled={true}
-                  className="w-full h-13 bg-[#1E2540]/30 border border-border/55 text-text-2/50 font-bold rounded-xl text-xs flex items-center justify-center gap-2"
+                  className="w-full h-13 bg-surface-alt/50 border border-border/55 text-text-2/60 font-bold rounded-xl text-xs flex items-center justify-center gap-2"
                 >
                   Need 150 CXP to refill (You have {profile?.xp ?? 0} CXP)
                 </Button>
                 <Button
                   onClick={() => router.push('/dashboard/path?reentry=true')}
-                  className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-text-1 font-bold rounded-xl shadow-[0_0_20px_rgba(91,142,255,0.25)] flex items-center justify-center gap-2 cursor-pointer transition active:scale-[0.99]"
+                  className="w-full h-13 bg-gradient-to-r from-[#5B8EFF] to-[#A78BFA] hover:from-[#4A7AEE] hover:to-[#9067FA] text-white font-bold rounded-xl shadow-[0_0_20px_rgba(91,142,255,0.25)] flex items-center justify-center gap-2 cursor-pointer transition active:scale-[0.99]"
                 >
                   Review Completed Lessons (+1 Heart)
                 </Button>

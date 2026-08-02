@@ -830,11 +830,13 @@ export default function DashboardPage() {
       })
 
       // Restore streak in database
+      const todayStr = new Date().toISOString().split('T')[0]
       await supabase.from('streaks')
         .update({
           current_streak: daysRestored,
           broke_at: null,
           last_active: new Date().toISOString(),
+          last_activity_at: todayStr,
           is_active: true
         })
         .eq('user_id', userId)
@@ -860,6 +862,7 @@ export default function DashboardPage() {
       setStreakData((prev: any) => ({
         ...prev,
         current_streak: daysRestored,
+        last_activity_at: todayStr,
         broke_at: null,
         days_before_break: 0,
         is_active: true
