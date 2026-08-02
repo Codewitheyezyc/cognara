@@ -14,6 +14,7 @@ import { LessonCompleteModal } from '@/components/mascot/LessonCompleteModal'
 import { ReadingProgressBar } from '@/components/lesson/ReadingProgressBar'
 import MascotOverlay from '@/components/mascot/MascotOverlay'
 import LessonGeneratingOverlay from '@/components/lesson/LessonGeneratingOverlay'
+import { PreviewInsightScreen } from '@/components/lesson/PreviewInsightScreen'
 import { useToast } from '@/components/ui/toast'
 import { SoundEffects } from '@/lib/sound'
 
@@ -60,6 +61,13 @@ export default function LessonPage() {
   const [isLockedLesson, setIsLockedLesson] = useState(false)
   const [isOffline, setIsOffline] = useState(false)
   const [isCached, setIsCached] = useState(false)
+
+  // Preview Insight state
+  const [showInsight, setShowInsight] = useState(true)
+
+  useEffect(() => {
+    setShowInsight(true)
+  }, [lessonId])
 
   // Celebration Mascot Modal States
   const [showCelebration, setShowCelebration] = useState(false)
@@ -851,6 +859,18 @@ export default function LessonPage() {
   const displayEstimatedMinutes = isReentry
     ? Math.max(2, Math.round((content.estimated_minutes || 5) * 0.4))
     : (content.estimated_minutes || 5)
+
+  if (showInsight && content?.preview_insight) {
+    return (
+      <div className="min-h-screen bg-bg text-text-1">
+        <PreviewInsightScreen
+          insight={content.preview_insight}
+          topicName={lessonTitle || content.title || 'this lesson'}
+          onContinue={() => setShowInsight(false)}
+        />
+      </div>
+    )
+  }
 
   return (
     <>

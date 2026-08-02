@@ -20,6 +20,8 @@ import { CertificateShareScreen } from '@/components/celebration/CertificateShar
 import { GoalCelebration } from '@/components/celebration/GoalCelebration'
 import { PracticalExerciseScreen, type PracticalExerciseData } from '@/components/lesson/PracticalExerciseScreen'
 import { AwardModal } from '@/components/celebration/AwardModal'
+import { getProgressUpdate, type ProgressUpdate } from '@/lib/progress'
+import { LessonCompleteScreen } from '@/components/lesson/LessonCompleteScreen'
 
 function shuffleArray<T>(array: T[]): T[] {
   const arr = [...array]
@@ -84,6 +86,10 @@ export default function QuizPage() {
   const [showTimePicker, setShowTimePicker] = useState(false)
   const [selectedTime, setSelectedTime] = useState('08:00')
   const [showXpAnim, setShowXpAnim] = useState(false)
+
+  // Immediate Visible Progress state
+  const [progressUpdate, setProgressUpdate] = useState<ProgressUpdate | null>(null)
+  const [showProgressScreen, setShowProgressScreen] = useState(false)
 
   // Quiz testimonial popups
   const [showQuizTestimonialPrompt, setShowQuizTestimonialPrompt] = useState(false)
@@ -779,6 +785,18 @@ export default function QuizPage() {
           await checkStreakMilestones(finalStreak)
         }
         await checkProgressMilestones()
+
+        // Calculate immediate visible progress update
+        if (result.passed && userId && lessonId) {
+          try {
+            const prog = await getProgressUpdate(supabase, userId, lessonId)
+            if (prog) {
+              setProgressUpdate(prog)
+            }
+          } catch (progErr) {
+            console.error('Error calculating progress update:', progErr)
+          }
+        }
       } catch (err: any) {
         console.error(err)
         setErrorMsg(err.message || 'Failed to save quiz score.')
@@ -1557,7 +1575,9 @@ export default function QuizPage() {
   if (showPracticalScreen && practicalExercise && userId) {
     const handlePracticalDone = () => {
       setShowPracticalScreen(false)
-      if (nextLessonId) {
+      if (progressUpdate) {
+        setShowProgressScreen(true)
+      } else if (nextLessonId) {
         // Clear the practical from sessionStorage since we're moving on
         if (typeof window !== 'undefined') {
           sessionStorage.removeItem(`practical_${lessonId}`)
@@ -1581,6 +1601,27 @@ export default function QuizPage() {
         onSkip={handlePracticalDone}
         isPro={profile?.subscription_tier !== 'free'}
       />
+    )
+  }
+
+  // Immediate Visible Progress Screen
+  if (showProgressScreen && progressUpdate) {
+    return (
+      <div className="min-h-screen bg-bg text-text-1">
+        <LessonCompleteScreen
+          progressUpdate={progressUpdate}
+          onContinue={() => {
+            if (nextLessonId) {
+              if (typeof window !== 'undefined') {
+                sessionStorage.removeItem(`practical_${lessonId}`)
+              }
+              router.push(`/dashboard/lesson/${nextLessonId}`)
+            } else {
+              router.push('/dashboard/path')
+            }
+          }}
+        />
+      </div>
     )
   }
 

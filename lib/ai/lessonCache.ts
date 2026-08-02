@@ -85,7 +85,7 @@ export async function checkLessonCache(
   try {
     const { data, error } = await supabase
       .from('cognara_lesson_cache')
-      .select('id, content, practical_exercise, quality_score, serve_count')
+      .select('id, content, preview_insight, practical_exercise, quality_score, serve_count')
       .eq('domain', params.domain)
       .eq('subject', params.subject)
       .eq('module', params.module)
@@ -112,6 +112,10 @@ export async function checkLessonCache(
             last_served_at: new Date().toISOString()
           })
           .eq('id', data.id)
+
+        if ((data as any)?.preview_insight && !lesson.preview_insight) {
+          lesson.preview_insight = (data as any).preview_insight
+        }
 
         return {
           lesson: lesson as GeneratedLesson,
@@ -156,6 +160,7 @@ export async function writeLessonCache(
           topic: params.topic,
           depth_level: params.depthLevel,
           content: params.content,
+          preview_insight: (params.content as any)?.preview_insight || null,
           practical_exercise: params.practical || null,
           practical_starter_code: params.practical?.starter_code || null,
           practical_expected_output: params.practical?.expected_output || null,

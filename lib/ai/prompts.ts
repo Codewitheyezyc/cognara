@@ -349,12 +349,25 @@ A lesson about a complex process:
 5. exercise_task — Full practical walk-through exercise
 6. summary — Core process principles to remember
 
+RULE 10 — PREVIEW INSIGHT
+Generate a "preview_insight" field. This is ONE or TWO sentences maximum.
+It should be a specific, interesting fact about the topic that creates curiosity and makes the learner think "oh, that's cool, tell me more."
+Rules:
+- Must be genuinely interesting, not generic
+- Must be specific to this exact topic
+- Should feel like a small reveal, not a warning
+- Written in plain, conversational English, no jargon
+
+Example for "Node.js Basics": "Did you know Node.js lets JavaScript run outside the browser? That's the trick that allows it to build entire servers — something JavaScript could never do before."
+Example for "SEO Basics": "Here's something most beginners don't realise: Google doesn't actually read your whole page the way a human does. It scans specific signals. Once you know what those are, SEO stops feeling random."
+
 ---
 
 RETURN ONLY VALID JSON. No markdown. No preamble. No text outside the JSON object.
 
 {
   "title": "string",
+  "preview_insight": "string - 1 to 2 sentences maximum. A specific, interesting fact about the topic that creates curiosity",
   "estimated_minutes": number,
   "sections": [
     {

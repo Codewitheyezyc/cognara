@@ -78,6 +78,7 @@ export interface LessonSection {
 
 export interface GeneratedLesson {
   title: string
+  preview_insight?: string
   estimated_minutes: number
   sections: LessonSection[]
   key_takeaways: string[]
