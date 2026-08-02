@@ -1676,12 +1676,23 @@ export default function QuizPage() {
               </div>
 
               <div className="py-1">
-                <input
-                  type="time"
-                  value={selectedTime}
+                <select
+                  value={selectedTime.includes(':') ? `${selectedTime.split(':')[0].padStart(2, '0')}:00` : '08:00'}
                   onChange={(e) => setSelectedTime(e.target.value)}
-                  className="w-full h-12 bg-[#1a2130] border border-border rounded-xl text-center text-xl font-bold font-mono text-text-1 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
+                  className="w-full h-12 bg-[#1a2130] border border-border rounded-xl text-center text-lg font-bold font-mono text-text-1 focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer px-4"
+                >
+                  {Array.from({ length: 24 }, (_, i) => {
+                    const hour = i.toString().padStart(2, '0')
+                    const timeStr = `${hour}:00`
+                    const ampm = i >= 12 ? 'PM' : 'AM'
+                    const displayHour = i % 12 || 12
+                    return (
+                      <option key={timeStr} value={timeStr} className="bg-[#111622] text-text-1">
+                        {displayHour}:00 {ampm}
+                      </option>
+                    )
+                  })}
+                </select>
               </div>
 
               <div className="flex gap-3">

@@ -911,13 +911,24 @@ export default function SettingsPage() {
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <div className="flex-1 flex gap-2 items-center">
-                  <Input
+                  <select
                     id="reminderTime"
-                    type="time"
-                    value={reminderTime}
+                    value={reminderTime.includes(':') ? `${reminderTime.split(':')[0].padStart(2, '0')}:00` : '09:00'}
                     onChange={(e) => setReminderTime(e.target.value)}
-                    className="h-10 text-xs font-semibold max-w-[120px]"
-                  />
+                    className="h-10 px-3 bg-surface-alt border border-border rounded-xl text-xs font-semibold text-text-1 focus:outline-none focus:ring-2 focus:ring-primary/50 max-w-[140px] cursor-pointer"
+                  >
+                    {Array.from({ length: 24 }, (_, i) => {
+                      const hour = i.toString().padStart(2, '0')
+                      const timeStr = `${hour}:00`
+                      const ampm = i >= 12 ? 'PM' : 'AM'
+                      const displayHour = i % 12 || 12
+                      return (
+                        <option key={timeStr} value={timeStr} className="bg-surface text-text-1">
+                          {displayHour}:00 {ampm}
+                        </option>
+                      )
+                    })}
+                  </select>
                   <Button
                     onClick={handleSaveReminderSettings}
                     disabled={savingReminders}
@@ -940,13 +951,24 @@ export default function SettingsPage() {
             <div className="space-y-4 text-center py-6 bg-surface-alt/25 border border-dashed border-border rounded-xl">
               <p className="text-xs text-text-3 font-medium">No reminder set</p>
               <div className="flex justify-center gap-3 items-center pt-2">
-                <Input
+                <select
                   id="reminderTime"
-                  type="time"
-                  value={reminderTime}
+                  value={reminderTime.includes(':') ? `${reminderTime.split(':')[0].padStart(2, '0')}:00` : '09:00'}
                   onChange={(e) => setReminderTime(e.target.value)}
-                  className="h-10 text-xs font-semibold max-w-[120px]"
-                />
+                  className="h-10 px-3 bg-surface-alt border border-border rounded-xl text-xs font-semibold text-text-1 focus:outline-none focus:ring-2 focus:ring-primary/50 max-w-[140px] cursor-pointer"
+                >
+                  {Array.from({ length: 24 }, (_, i) => {
+                    const hour = i.toString().padStart(2, '0')
+                    const timeStr = `${hour}:00`
+                    const ampm = i >= 12 ? 'PM' : 'AM'
+                    const displayHour = i % 12 || 12
+                    return (
+                      <option key={timeStr} value={timeStr} className="bg-surface text-text-1">
+                        {displayHour}:00 {ampm}
+                      </option>
+                    )
+                  })}
+                </select>
                 <Button
                   onClick={handleEnableReminder}
                   disabled={savingReminders}

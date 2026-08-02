@@ -135,7 +135,10 @@ export async function GET(request: Request) {
       const alreadySentToday = user.last_daily_reminder_sent &&
         isSameDayInTimezone(new Date(user.last_daily_reminder_sent), now, userTz)
 
-      if (userHourInTz === reminderHour && !alreadySentToday) {
+      const isMatch = userHourInTz === reminderHour
+      console.log(`[Cron Nudge] User ${user.email} (TZ: ${userTz}): Current Hour=${userHourInTz}, Reminder Hour=${reminderHour} -> Match: ${isMatch}, AlreadySentToday: ${!!alreadySentToday}`)
+
+      if (isMatch && !alreadySentToday) {
         // Check if user already studied today (UTC / Tz day)
         const todayStartStr = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
         const { data: studiedProgress } = await supabase
